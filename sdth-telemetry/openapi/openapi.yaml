@@ -6,7 +6,7 @@ info:
 servers:
   - url: http://localhost:8000
     description: Local Mac dev
-  - url: http://100.x.x.x:8000
+  - url: http://MyIPAddress
     description: Tailscale tailnet IP (replace with your Mac IP)
 paths:
   /health:
