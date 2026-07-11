@@ -1,0 +1,20 @@
+{
+  "flight_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "timestamp_utc": "2026-07-11T10:00:00Z",
+  "source": "teammate-simulator",
+  "event_id": "evt-sample-001",
+  "records": [
+    {
+      "lat": 1.3521,
+      "lon": 103.8198,
+      "alt_m": 42.5,
+      "roll": 1.2,
+      "pitch": -0.8,
+      "yaw": 180.0,
+      "battery_pct": 87,
+      "battery_v": 15.4,
+      "drone_model": "demo-quad",
+      "firmware": "1.0.0"
+    }
+  ]
+}

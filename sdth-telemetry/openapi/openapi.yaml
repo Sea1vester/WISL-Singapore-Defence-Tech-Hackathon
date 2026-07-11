@@ -1,0 +1,140 @@
+openapi: 3.1.0
+info:
+  title: SDTH Telemetry Platform
+  version: 0.1.0
+  description: Ingest normalized telemetry (L1), translate to canonical JSON (L2) via Ollama.
+servers:
+  - url: http://localhost:8000
+    description: Local Mac dev
+  - url: http://100.x.x.x:8000
+    description: Tailscale tailnet IP (replace with your Mac IP)
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+  /v1/telemetry/ingest:
+    post:
+      summary: Ingest normalized telemetry batch
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/IngestPayload"
+            example:
+              flight_id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+              timestamp_utc: "2026-07-11T10:00:00Z"
+              source: teammate-parser
+              event_id: evt-001
+              records:
+                - lat: 1.3521
+                  lon: 103.8198
+                  alt_m: 42.5
+                  battery_pct: 87
+      responses:
+        "202":
+          description: Accepted for translation
+        "401":
+          description: Invalid API key
+  /v1/ingest/{ingest_id}/status:
+    get:
+      summary: Translation job status
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: ingest_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Job status
+  /v1/flights:
+    get:
+      summary: List flights
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: offset
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Flight list
+  /v1/flights/{flight_id}/records:
+    get:
+      summary: Canonical records for a flight
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: from
+          in: query
+          schema:
+            type: string
+        - name: to
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Canonical records
+  /v1/export/flights/{flight_id}.jsonl:
+    get:
+      summary: Export canonical records as JSONL
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: JSONL export
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    IngestPayload:
+      type: object
+      required: [flight_id, timestamp_utc, source, records]
+      properties:
+        flight_id:
+          type: string
+        timestamp_utc:
+          type: string
+          format: date-time
+        source:
+          type: string
+        event_id:
+          type: string
+          description: Optional idempotency key
+        records:
+          type: array
+          items:
+            type: object
+            additionalProperties: true

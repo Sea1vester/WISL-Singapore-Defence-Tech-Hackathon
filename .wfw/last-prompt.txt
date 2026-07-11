@@ -1,0 +1,1 @@
+look at the latest lavish artifact as a base, why do we need a vm? dont we just need a cloud platform?

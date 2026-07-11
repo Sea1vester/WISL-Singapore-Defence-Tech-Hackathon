@@ -1,0 +1,51 @@
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ./platform-api
+    ports:
+      - "0.0.0.0:8000:8000"
+    environment:
+      DATABASE_PATH: /data/telemetry.db
+      REDIS_URL: redis://redis:6379/0
+      INGEST_API_KEYS: ${INGEST_API_KEYS:-dev-teammate-key-change-me}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-deepseek-r1:7b}
+    volumes:
+      - sqlite-data:/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  worker:
+    build:
+      context: ./platform-api
+    command: ["python", "-m", "app.worker"]
+    environment:
+      DATABASE_PATH: /data/telemetry.db
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-deepseek-r1:7b}
+    volumes:
+      - sqlite-data:/data
+      - ./platform-api/app:/app/app:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+volumes:
+  sqlite-data:
