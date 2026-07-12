@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: wisl-ingest
+Version: 0.1.0
+Summary: WISL data ingestion pipeline: parses raw drone flight logs and feeds them into the normalisation module
+Requires-Python: >=3.11
+Requires-Dist: pyulog>=1.0
+Requires-Dist: pymavlink>=2.4
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"

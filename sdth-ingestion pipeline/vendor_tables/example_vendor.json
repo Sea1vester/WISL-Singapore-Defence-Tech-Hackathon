@@ -1,0 +1,5 @@
+{
+  "0x1A3": { "message_type": "GPS_MULTIPATH_WARNING" },
+  "0x2F0": { "message_type": "SENSOR_DROPOUT_IMU" },
+  "0x0FF": { "message_type": "BATTERY_CELL_IMBALANCE" }
+}
