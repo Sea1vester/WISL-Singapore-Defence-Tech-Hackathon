@@ -149,7 +149,25 @@ curl -H "Authorization: Bearer <API_KEY>" \
   -o flight.jsonl
 ```
 
-### 6. API reference
+### 6. AI Analytics (Phase 4)
+
+Generate an incident report for a flight using the local LLM:
+
+```bash
+curl -X POST -H "Authorization: Bearer <API_KEY>" \
+  http://MyIPAddress:8000/v1/flights/<flight_id>/incident-report
+```
+
+Ask natural language questions about the telemetry:
+
+```bash
+curl -X POST -H "Authorization: Bearer <API_KEY>" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Show me the battery drop rate"}' \
+  http://MyIPAddress:8000/v1/flights/<flight_id>/chat
+```
+
+### 7. API reference
 
 Full contract: `openapi/openapi.yaml`
 
