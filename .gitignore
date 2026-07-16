@@ -7,3 +7,5 @@ __pycache__/
 *.db
 .lavish
 .wfw
+package-lock.json
+treehouse.toml
