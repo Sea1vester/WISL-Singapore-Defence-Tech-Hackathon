@@ -12,6 +12,9 @@ class SourceFormat(str, Enum):
     PX4_ULOG = "px4_ulog"
     ARDUPILOT_BIN = "ardupilot_bin"
     VENDOR_HEX = "vendor_hex"
+    HERMES900_STANAG = "hermes900_stanag"
+    ORBITER4_JSON = "orbiter4_json"
+    AUNAV_ROS = "aunav_ros"
 
 
 @dataclass(slots=True)

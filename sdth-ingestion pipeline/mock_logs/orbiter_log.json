@@ -1,0 +1,22 @@
+[
+  {
+    "timestamp_ms": 1718550000000,
+    "lat": 1.3520,
+    "lon": 103.8197,
+    "alt_m": 120.5,
+    "roll_deg": 1.1,
+    "pitch_deg": 0.5,
+    "yaw_deg": 88.0,
+    "battery_pct": 95
+  },
+  {
+    "timestamp_ms": 1718550001000,
+    "lat": 1.3523,
+    "lon": 103.8194,
+    "alt_m": 121.0,
+    "roll_deg": 1.2,
+    "pitch_deg": 0.4,
+    "yaw_deg": 87.5,
+    "battery_pct": 94
+  }
+]

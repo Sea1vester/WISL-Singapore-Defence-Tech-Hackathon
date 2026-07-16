@@ -11,3 +11,5 @@ class PipelineConfig:
     vendor_hex_table_path: Path | None = None
     orcrist_enabled: bool = False
     orcrist_endpoint: str | None = None
+    telemetry_endpoint: str | None = None
+    telemetry_api_key: str | None = None
