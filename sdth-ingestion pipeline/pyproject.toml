@@ -17,6 +17,7 @@ dev = ["pytest>=8"]
 
 [project.scripts]
 wisl-ingest = "wisl_ingest.cli:main"
+wisl-edge-upload = "wisl_ingest.edge.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

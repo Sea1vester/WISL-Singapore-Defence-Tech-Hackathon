@@ -1,2 +1,3 @@
 [console_scripts]
+wisl-edge-upload = wisl_ingest.edge.cli:main
 wisl-ingest = wisl_ingest.cli:main
