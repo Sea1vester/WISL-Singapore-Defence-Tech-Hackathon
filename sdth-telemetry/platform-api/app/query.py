@@ -1,13 +1,19 @@
 import json
-from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
 from app.auth import require_api_key
 from app.db import db_session
+from app.path_export import (
+    PATH_CONTRACT_VERSION,
+    build_flight_path,
+    l1_payload_to_path,
+    sample_from_l2_record,
+)
 from app.schemas import (
     CanonicalRecordItem,
+    FlightPathResponse,
     FlightSummary,
     FlightsListResponse,
     RecordsListResponse,
@@ -94,6 +100,111 @@ def list_flight_records(
         for row in rows
     ]
     return RecordsListResponse(items=items, total=total, offset=offset, limit=limit)
+
+
+@router.get("/flights/{flight_id}/path", response_model=FlightPathResponse)
+def get_flight_path(
+    flight_id: str,
+    stride: int = Query(1, ge=1, le=1000),
+    max_samples: int = Query(20000, ge=1, le=100000),
+    prefer: str = Query("auto", pattern="^(auto|l2|l1)$"),
+    _: str = Depends(require_api_key),
+) -> FlightPathResponse:
+    """
+    Stable 3D-viz handoff.
+
+    Returns ordered samples: ``{t, lat, lon, alt_m, ...}``.
+    Prefers L2 canonical records; falls back to stored L1 ingest payloads
+    so visualization works before LLM translation finishes.
+    """
+    with db_session() as conn:
+        flight = conn.execute(
+            "SELECT id, source FROM flights WHERE id = ?",
+            (flight_id,),
+        ).fetchone()
+        if not flight:
+            raise HTTPException(status_code=404, detail="Flight not found")
+
+        samples: list[dict] = []
+        data_origin = "l2_canonical"
+        frame = "wgs84"
+
+        use_l2 = prefer in {"auto", "l2"}
+        use_l1 = prefer in {"auto", "l1"}
+
+        if use_l2:
+            rows = conn.execute(
+                """
+                SELECT recorded_at, canonical_json
+                FROM canonical_records
+                WHERE flight_id = ? AND validation_ok = 1
+                ORDER BY recorded_at ASC
+                """,
+                (flight_id,),
+            ).fetchall()
+            for i, row in enumerate(rows):
+                if i % stride != 0:
+                    continue
+                canonical = json.loads(row["canonical_json"])
+                sample = sample_from_l2_record(canonical, recorded_at=row["recorded_at"])
+                if sample is None:
+                    continue
+                samples.append(sample)
+                if len(samples) >= max_samples:
+                    break
+            if samples and any("north_m" in s for s in samples[:5]):
+                frame = "wgs84+local_ned"
+
+        if not samples and use_l1:
+            data_origin = "l1_ingest"
+            events = conn.execute(
+                """
+                SELECT payload_json
+                FROM ingest_events
+                WHERE flight_id = ?
+                ORDER BY rowid ASC
+                """,
+                (flight_id,),
+            ).fetchall()
+            merged_records: list[dict] = []
+            source = flight["source"]
+            batch_ts: str | None = None
+            for event in events:
+                payload = json.loads(event["payload_json"])
+                source = payload.get("source") or source
+                if not batch_ts:
+                    batch_ts = payload.get("timestamp_utc")
+                merged_records.extend(payload.get("records") or [])
+            path = l1_payload_to_path(
+                {
+                    "flight_id": flight_id,
+                    "source": source,
+                    "timestamp_utc": batch_ts,
+                    "records": merged_records,
+                },
+                stride=stride,
+                max_samples=max_samples,
+            )
+            samples = path["samples"]
+            frame = path["frame"]
+
+        path_doc = build_flight_path(
+            flight_id=flight_id,
+            source=flight["source"],
+            samples=samples,
+            frame=frame,
+        )
+
+    return FlightPathResponse(
+        contract_version=PATH_CONTRACT_VERSION,
+        flight_id=path_doc["flight_id"],
+        source=path_doc["source"],
+        frame=path_doc["frame"],
+        units=path_doc["units"],
+        count=path_doc["count"],
+        samples=path_doc["samples"],
+        data_origin=data_origin,
+    )
 
 
 @router.get("/export/flights/{flight_id}.jsonl")
