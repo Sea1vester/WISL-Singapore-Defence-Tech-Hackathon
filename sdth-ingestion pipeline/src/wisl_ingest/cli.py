@@ -15,7 +15,7 @@ from .parsers import (
     VendorHexCodeParser,
 )
 from .pipeline import IngestionPipeline
-from .sinks import JsonlStagingStore, OrcristSink, TelemetryApiSink
+from .sinks import JsonlStagingStore, TelemetryApiSink
 
 
 def build_pipeline(config: PipelineConfig) -> IngestionPipeline:
@@ -30,8 +30,7 @@ def build_pipeline(config: PipelineConfig) -> IngestionPipeline:
         parsers.append(VendorHexCodeParser(config.vendor_hex_table_path))
 
     staging_store = JsonlStagingStore(config.staging_db_path)
-    orcrist_sink = OrcristSink(endpoint=config.orcrist_endpoint, enabled=config.orcrist_enabled)
-    sinks = [orcrist_sink]
+    sinks = []
     if config.telemetry_endpoint and config.telemetry_api_key:
         sinks.append(TelemetryApiSink(config.telemetry_endpoint, config.telemetry_api_key))
 
