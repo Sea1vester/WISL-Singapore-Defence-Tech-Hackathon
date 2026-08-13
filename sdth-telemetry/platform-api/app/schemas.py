@@ -63,6 +63,33 @@ class RecordsListResponse(BaseModel):
     limit: int
 
 
+class PathSample(BaseModel):
+    """One pose for 3D visualization. Extra keys allowed for overlays."""
+
+    model_config = {"extra": "allow"}
+
+    t: str | None = None
+    lat: float
+    lon: float
+    alt_m: float | None = None
+    roll_deg: float | None = None
+    pitch_deg: float | None = None
+    yaw_deg: float | None = None
+    battery_pct: float | None = None
+    battery_v: float | None = None
+
+
+class FlightPathResponse(BaseModel):
+    contract_version: str = "1.0"
+    flight_id: str
+    source: str
+    frame: str = "wgs84"
+    units: dict[str, str]
+    count: int
+    samples: list[dict[str, Any]]
+    data_origin: str  # "l2_canonical" | "l1_ingest"
+
+
 CANONICAL_JSON_SCHEMA: dict[str, Any] = {
     "type": "object",
     "required": ["flight_id", "timestamp_utc", "position", "attitude", "battery", "sensors", "metadata"],

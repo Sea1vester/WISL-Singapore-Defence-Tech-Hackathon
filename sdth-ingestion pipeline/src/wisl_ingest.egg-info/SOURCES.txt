@@ -17,6 +17,7 @@ src/wisl_ingest/edge/cli.py
 src/wisl_ingest/edge/destinations.py
 src/wisl_ingest/edge/uploader.py
 src/wisl_ingest/parsers/__init__.py
+src/wisl_ingest/parsers/_util.py
 src/wisl_ingest/parsers/ardupilot_parser.py
 src/wisl_ingest/parsers/aunav_parser.py
 src/wisl_ingest/parsers/hermes900_parser.py
@@ -26,8 +27,8 @@ src/wisl_ingest/parsers/ulog_parser.py
 src/wisl_ingest/sinks/__init__.py
 src/wisl_ingest/sinks/base.py
 src/wisl_ingest/sinks/local_store.py
-src/wisl_ingest/sinks/orcrist.py
 src/wisl_ingest/sinks/telemetry_api.py
 tests/test_edge_uploader.py
 tests/test_parsers.py
 tests/test_pipeline.py
+tests/test_platform_parsers.py

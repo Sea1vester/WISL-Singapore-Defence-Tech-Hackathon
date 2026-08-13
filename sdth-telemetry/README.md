@@ -192,6 +192,83 @@ docker compose up --build
 
 API listens on `http://0.0.0.0:8000` (reachable via Tailscale at `http://$(tailscale ip -4):8000`).
 
+### Normalize raw telemetry → L1 JSON
+
+Cloud-side parsers live in `parsers/`. Prefer the local venv (needs `pyulog` for Step 2):
+
+```bash
+cd sdth-telemetry
+python3 -m venv .venv
+.venv/bin/pip install -r parsers/requirements.txt
+```
+
+**Step 1 - DJI FlightRecord CSV**
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers dji ../raw_telemetry-datasets/dji.csv -o normalized/dji_l1.json
+```
+
+**Step 2 - PX4 / Auterion ULog**
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers ulg ../raw_telemetry-datasets/e0ad253a-a5f5-4883-ab96-56c397fe18ee.ulg -o normalized/e0ad_l1.json
+# large logs: downsample
+PYTHONPATH=. .venv/bin/python -m parsers ulg ../raw_telemetry-datasets/0ceef477-0523-4e67-9b0a-57310817f1cc.ulg -o normalized/0ceef_l1.json --stride 5
+```
+
+Local-NED-only logs (no GPS) are projected to lat/lon using PX4 SITL home by default (`--origin-lat/lon`).
+
+**Step 3 - ArduPilot DataFlash / MAVLink**
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers bin ../raw_telemetry-datasets/sample_crash_log.bin -o normalized/crash_l1.json
+PYTHONPATH=. .venv/bin/python -m parsers tlog ../raw_telemetry-datasets/dronekit-la-testdata-master/flight.tlog -o normalized/flight_tlog_l1.json --stride 5
+```
+
+**Step 4 - Excel (.xlsx)**
+
+Routes DJI FlightRecord sheets through the DJI mapper; otherwise expects generic `lat`/`lon`/`alt` columns. Legacy `.xls` is rejected (re-save as `.xlsx`).
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers excel path/to/flight.xlsx -o normalized/excel_l1.json
+PYTHONPATH=. .venv/bin/python -m parsers excel path/to/flight.xlsx -o normalized/excel_l1.json --sheet Sheet1
+```
+
+**Step 5 - Path handoff for 3D viz**
+
+Stable contract: `{ contract_version, flight_id, source, frame, units, count, samples[{t, lat, lon, alt_m, ...}] }`.
+
+Offline from L1 JSON:
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers path normalized/dji_l1.json -o normalized/dji_path.json
+PYTHONPATH=. .venv/bin/python -m parsers path normalized/dji_l1.json -o normalized/dji_path.json --stride 5
+```
+
+Live API (prefers L2 canonical; falls back to stored L1 so viz works before LLM translation finishes):
+
+```bash
+curl -H "Authorization: Bearer dev-teammate-key-change-me" \
+  "http://localhost:8000/v1/flights/<flight_id>/path"
+
+curl -H "Authorization: Bearer dev-teammate-key-change-me" \
+  "http://localhost:8000/v1/flights/<flight_id>/path?stride=5&max_samples=5000&prefer=l1"
+```
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers detect ../raw_telemetry-datasets/dji.csv
+PYTHONPATH=. .venv/bin/pytest parsers/tests -q
+```
+
+Then ingest the generated file (API running):
+
+```bash
+curl -X POST http://localhost:8000/v1/telemetry/ingest \
+  -H "Authorization: Bearer dev-teammate-key-change-me" \
+  -H "Content-Type: application/json" \
+  -d @normalized/dji_l1.json
+```
+
 ### Test ingest locally
 
 Full E2E (ingest + poll translation + show canonical records):
@@ -224,6 +301,9 @@ curl -H "Authorization: Bearer dev-teammate-key-change-me" \
 
 curl -H "Authorization: Bearer dev-teammate-key-change-me" \
   http://localhost:8000/v1/flights/<flight_id>/records
+
+curl -H "Authorization: Bearer dev-teammate-key-change-me" \
+  "http://localhost:8000/v1/flights/<flight_id>/path"
 ```
 
 ## Architecture

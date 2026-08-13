@@ -1,0 +1,4 @@
+timestamps,OSD.flyTime [s],OSD.latitude,OSD.longitude,OSD.height [ft],OSD.altitude [ft],OSD.pitch,OSD.roll,OSD.yaw,OSD.hSpeed [MPH],OSD.flycState,OSD.droneType,OSD.isOnGround,BATTERY.chargeLevel,BATTERY.voltage [V],APP.warning,APP.tip
+1722648654,0,0,0,0,0,-0.1,1.1,-1,0,P-GPS,Mini 4 Pro,TRUE,52,7.477,GPS signal weak,
+1722648670,16,39.62655835,-105.0007326,32.8,5400,1.2,-0.5,45,5.5,P-GPS,Mini 4 Pro,FALSE,51,7.45,,Aircraft in flight
+1722648671,17,39.62656,-105.00074,35.0,5402,1.0,-0.4,46,6.0,P-GPS,Mini 4 Pro,FALSE,51,7.44,,
