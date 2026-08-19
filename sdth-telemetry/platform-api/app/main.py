@@ -4,9 +4,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db import run_migrations
+from app.analytics import router as analytics_router
+from app.incident_api import router as incident_router
 from app.ingest import router as ingest_router
 from app.query import router as query_router
-from app.analytics import router as analytics_router
 
 
 @asynccontextmanager
@@ -33,6 +34,7 @@ app.add_middleware(
 app.include_router(ingest_router)
 app.include_router(query_router)
 app.include_router(analytics_router)
+app.include_router(incident_router)
 
 
 @app.get("/health")

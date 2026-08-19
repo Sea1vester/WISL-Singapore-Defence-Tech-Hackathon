@@ -151,7 +151,8 @@ curl -H "Authorization: Bearer <API_KEY>" \
 
 ### 6. AI Analytics (Phase 4)
 
-Generate an incident report for a flight using the local LLM:
+Generate an incident report for a flight using the local LLM.
+The report is also stored in SQLite as an `llm_report` incident.
 
 ```bash
 curl -X POST -H "Authorization: Bearer <API_KEY>" \
@@ -167,7 +168,38 @@ curl -X POST -H "Authorization: Bearer <API_KEY>" \
   http://MyIPAddress:8000/v1/flights/<flight_id>/chat
 ```
 
-### 7. API reference
+### 7. Incident index (SQLite)
+
+Rule detectors run on L2-shaped JSON only (position, attitude, battery, sensors).
+Vendor packets are never read directly.
+Thresholds are physics/ops bands (low battery, altitude spike, GPS jump, attitude shock, telemetry gap).
+
+Index a flight after ingest (also runs automatically when translation finishes):
+
+```bash
+curl -X POST -H "Authorization: Bearer <API_KEY>" \
+  http://MyIPAddress:8000/v1/flights/<flight_id>/index-incidents
+```
+
+List incidents for a flight, recurring patterns across missions, and per-brand reliability:
+
+```bash
+curl -H "Authorization: Bearer <API_KEY>" \
+  http://MyIPAddress:8000/v1/flights/<flight_id>/incidents
+
+curl -H "Authorization: Bearer <API_KEY>" \
+  http://MyIPAddress:8000/v1/incidents/patterns?min_flights=2
+
+curl -H "Authorization: Bearer <API_KEY>" \
+  http://MyIPAddress:8000/v1/reliability
+
+curl -H "Authorization: Bearer <API_KEY>" \
+  http://MyIPAddress:8000/v1/hardware/brands
+```
+
+Hardware brands currently in the log set: DJI, PX4/Auterion, ArduPilot, Elbit Hermes 900, Aeronautics Orbiter 4, aunav.NEO HD (Taurus UGV).
+
+### 8. API reference
 
 Full contract: `openapi/openapi.yaml`
 

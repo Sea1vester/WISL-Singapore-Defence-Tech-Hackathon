@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.auth import require_api_key
-from app.db import db_session
 from app.config import settings
+from app.db import db_session
+from app.incidents import index_flight
 
 router = APIRouter(prefix="/v1", tags=["analytics"])
 
@@ -50,6 +51,22 @@ def _get_flight_data(flight_id: str) -> list[dict]:
         
     return [json.loads(row["canonical_json"]) for row in rows]
 
+
+def generate_llm_incident_text(flight_id: str) -> str:
+    data = _get_flight_data(flight_id)
+    prompt = f"""You are a drone safety analyst.
+Please review the following telemetry data and auto-generate a plain-English incident report.
+Highlight any anomalies, sudden drops in altitude, unusual battery drain, or unexpected attitude changes.
+If the flight looks normal, state that no incidents were detected.
+
+Telemetry Data:
+{json.dumps(data, indent=2)}
+
+Incident Report:
+"""
+    return _ask_llm(prompt)
+
+
 @router.post("/flights/{flight_id}/chat", response_model=ChatResponse)
 def chat_with_flight_data(flight_id: str, request: ChatRequest, _: str = Depends(require_api_key)) -> ChatResponse:
     data = _get_flight_data(flight_id)
@@ -67,17 +84,9 @@ Please provide a concise and helpful answer based on the data.
 
 @router.post("/flights/{flight_id}/incident-report", response_model=IncidentReportResponse)
 def generate_incident_report(flight_id: str, _: str = Depends(require_api_key)) -> IncidentReportResponse:
-    data = _get_flight_data(flight_id)
-    
-    prompt = f"""You are a drone safety analyst.
-Please review the following telemetry data and auto-generate a plain-English incident report.
-Highlight any anomalies, sudden drops in altitude, unusual battery drain, or unexpected attitude changes.
-If the flight looks normal, state that no incidents were detected.
-
-Telemetry Data:
-{json.dumps(data, indent=2)}
-
-Incident Report:
-"""
-    report = _ask_llm(prompt)
+    report = generate_llm_incident_text(flight_id)
+    try:
+        index_flight(flight_id, include_llm_report=report)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Flight not found")
     return IncidentReportResponse(report=report)

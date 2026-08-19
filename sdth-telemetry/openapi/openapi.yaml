@@ -109,6 +109,64 @@ paths:
       responses:
         "200":
           description: JSONL export
+  /v1/flights/{flight_id}/index-incidents:
+    post:
+      summary: Detect and store incidents for a flight
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Index summary
+  /v1/flights/{flight_id}/incidents:
+    get:
+      summary: List stored incidents for a flight
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Incident list
+  /v1/incidents/patterns:
+    get:
+      summary: Recurring failure signatures across missions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: min_flights
+          in: query
+          schema:
+            type: integer
+            default: 2
+      responses:
+        "200":
+          description: Pattern list
+  /v1/reliability:
+    get:
+      summary: Per-brand reliability stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Reliability report
+  /v1/hardware/brands:
+    get:
+      summary: Hardware brands derived from current log parsers
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Brand catalog
 components:
   securitySchemes:
     bearerAuth:

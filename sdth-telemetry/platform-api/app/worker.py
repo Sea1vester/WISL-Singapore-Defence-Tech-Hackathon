@@ -81,6 +81,13 @@ def process_job(job_id: str) -> None:
         )
         _set_job_status(conn, job_id, "done")
 
+    try:
+        from app.incidents import index_flight
+
+        index_flight(ingest["flight_id"])
+    except Exception:
+        logger.exception("Incident indexing failed for flight %s", ingest["flight_id"])
+
     logger.info("Job %s done -> canonical record %s", job_id, record_id)
 
 
