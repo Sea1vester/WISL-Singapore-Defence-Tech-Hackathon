@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+import wisl_ingest.edge.destinations as destination_module
 from wisl_ingest.edge.destinations import HttpDestination, NullDestination
 from wisl_ingest.edge.uploader import LogUploader
 
@@ -100,3 +101,38 @@ def test_non_log_files_are_ignored(tmp_path: Path):
 def test_http_destination_requires_endpoint():
     with pytest.raises(ValueError):
         HttpDestination("")
+
+
+def test_http_destination_posts_authenticated_multipart(tmp_path: Path, monkeypatch):
+    log = tmp_path / "controller.csv"
+    log.write_bytes(b"raw-log")
+    captured = {}
+
+    class Response:
+        status = 202
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return None
+
+    def fake_urlopen(request, timeout):
+        captured["request"] = request
+        captured["timeout"] = timeout
+        return Response()
+
+    monkeypatch.setattr(destination_module, "urlopen", fake_urlopen)
+    destination = HttpDestination(
+        "http://100.64.0.2:8000/v1/logs/upload",
+        api_key="demo-key",
+        timeout_seconds=12,
+    )
+
+    assert destination.upload(log, "abc123") is True
+    request = captured["request"]
+    assert request.get_header("Authorization") == "Bearer demo-key"
+    assert request.get_header("X-wisl-sha256") == "abc123"
+    assert b'filename="controller.csv"' in request.data
+    assert b"raw-log" in request.data
+    assert captured["timeout"] == 12

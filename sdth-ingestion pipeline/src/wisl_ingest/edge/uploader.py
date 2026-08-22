@@ -12,7 +12,21 @@ from .destinations import UploadDestination
 logger = logging.getLogger(__name__)
 
 # Raw log formats the controller produces; matches the parsers in wisl_ingest.parsers.
-LOG_EXTENSIONS = {".ulg", ".ulog", ".bin", ".hex"}
+LOG_EXTENSIONS = {
+    ".bin",
+    ".csv",
+    ".hex",
+    ".hermes",
+    ".json",
+    ".ros",
+    ".stanag",
+    ".syslog",
+    ".tlog",
+    ".ulg",
+    ".ulog",
+    ".xlsx",
+    ".xml",
+}
 
 
 @dataclass(slots=True)
@@ -64,9 +78,12 @@ class LogUploader:
         return h.hexdigest()
 
     def _discover(self) -> list[Path]:
+        manifest = self.manifest_path.resolve()
         return sorted(
             p for p in self.log_dir.rglob("*")
-            if p.is_file() and p.suffix.lower() in LOG_EXTENSIONS
+            if p.is_file()
+            and p.resolve() != manifest
+            and p.suffix.lower() in LOG_EXTENSIONS
         )
 
     def _is_stable(self, path: Path) -> bool:

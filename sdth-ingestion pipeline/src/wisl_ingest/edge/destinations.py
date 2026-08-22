@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import logging
+import mimetypes
+import uuid
 from pathlib import Path
 from typing import Protocol
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 logger = logging.getLogger(__name__)
 
@@ -29,20 +33,41 @@ class NullDestination:
 
 
 class HttpDestination:
-    """Cloud upload over HTTPS. Endpoint intentionally unset until the team picks one.
+    """Upload raw logs to the WISL multipart endpoint over Tailscale or HTTPS."""
 
-    Expected contract once decided: PUT/POST the file bytes with the sha256 as an
-    integrity header, authenticated via a bearer token from an environment variable.
-    """
-
-    def __init__(self, endpoint: str, api_key: str | None = None):
+    def __init__(self, endpoint: str, api_key: str | None = None, timeout_seconds: float = 60.0):
         if not endpoint:
-            raise ValueError("HttpDestination requires a non-empty endpoint; use NullDestination until one is decided")
-        self.endpoint = endpoint
+            raise ValueError("HttpDestination requires a non-empty endpoint")
+        self.endpoint = endpoint.rstrip("/")
         self.api_key = api_key
+        self.timeout_seconds = timeout_seconds
 
     def upload(self, path: Path, sha256: str) -> bool:
-        raise NotImplementedError(
-            "Cloud destination contract not agreed yet (endpoint, auth, integrity header). "
-            "Implement the request here once the team decides where logs are hosted."
-        )
+        boundary = f"wisl-{uuid.uuid4().hex}"
+        content_type = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        prefix = (
+            f"--{boundary}\r\n"
+            f'Content-Disposition: form-data; name="file"; filename="{path.name}"\r\n'
+            f"Content-Type: {content_type}\r\n\r\n"
+        ).encode()
+        body = prefix + path.read_bytes() + f"\r\n--{boundary}--\r\n".encode()
+        headers = {
+            "Content-Type": f"multipart/form-data; boundary={boundary}",
+            "Content-Length": str(len(body)),
+            "X-WISL-SHA256": sha256,
+        }
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
+
+        request = Request(self.endpoint, data=body, headers=headers, method="POST")
+        try:
+            with urlopen(request, timeout=self.timeout_seconds) as response:
+                ok = 200 <= response.status < 300
+                if ok:
+                    logger.info("Uploaded %s (%s)", path.name, sha256[:12])
+                return ok
+        except HTTPError as exc:
+            logger.error("Upload rejected for %s: HTTP %s", path.name, exc.code)
+        except URLError as exc:
+            logger.warning("Upload unavailable for %s: %s", path.name, exc.reason)
+        return False

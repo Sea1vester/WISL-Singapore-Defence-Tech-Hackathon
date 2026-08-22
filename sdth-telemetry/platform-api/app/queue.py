@@ -20,6 +20,11 @@ def enqueue_translation_job(job_id: str) -> None:
     client.rpush(settings.job_queue_key, json.dumps({"job_id": job_id}))
 
 
+def enqueue_raw_upload(upload_id: str) -> None:
+    client = get_redis()
+    client.rpush(settings.raw_upload_queue_key, json.dumps({"upload_id": upload_id}))
+
+
 def blocking_pop_job(timeout: int = 5) -> str | None:
     client = get_redis()
     result = client.blpop(settings.job_queue_key, timeout=timeout)

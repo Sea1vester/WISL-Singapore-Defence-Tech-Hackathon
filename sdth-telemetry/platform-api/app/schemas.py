@@ -31,6 +31,24 @@ class JobStatusResponse(BaseModel):
     error: str | None = None
 
 
+class RawUploadResponse(BaseModel):
+    upload_id: str
+    status: str
+    sha256: str
+    duplicate: bool = False
+
+
+class RawUploadStatusResponse(BaseModel):
+    upload_id: str
+    status: str
+    filename: str
+    size_bytes: int
+    sha256: str
+    flight_id: str | None = None
+    ingest_id: str | None = None
+    error: str | None = None
+
+
 class FlightSummary(BaseModel):
     id: str
     source: str
