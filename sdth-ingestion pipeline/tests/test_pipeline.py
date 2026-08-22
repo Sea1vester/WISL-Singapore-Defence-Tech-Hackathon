@@ -5,7 +5,6 @@ from wisl_ingest.base import ParsedLogEntry, SourceFormat
 from wisl_ingest.normalisation import StagingQueueNormaliser
 from wisl_ingest.pipeline import IngestionPipeline
 from wisl_ingest.sinks.local_store import JsonlStagingStore
-from wisl_ingest.sinks.orcrist import OrcristSink
 
 
 class FakeParser:
@@ -41,15 +40,3 @@ def test_pipeline_parses_and_stages_entries(tmp_path: Path):
     lines = staging_path.read_text().splitlines()
     assert len(lines) == 1
     assert "TEST_EVENT" in lines[0]
-
-
-def test_orcrist_sink_is_a_noop_while_disabled(tmp_path: Path):
-    sink = OrcristSink(enabled=False)
-    entry = ParsedLogEntry(
-        source_format=SourceFormat.VENDOR_HEX,
-        source_file="x",
-        timestamp=datetime.now(timezone.utc),
-        message_type="TEST",
-        fields={},
-    )
-    sink.write([entry])  # must not raise, must not require endpoint/api_key

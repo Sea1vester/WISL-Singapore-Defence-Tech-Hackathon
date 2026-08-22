@@ -1,13 +1,26 @@
-# WISL Singapore Defence Tech Hackathon
+# WISL — Singapore Defence Tech Hackathon
 
-Hackathon repo for our drone telemetry MVP.
+Multi-vendor drone telemetry: parse recorded logs, normalize to one JSON schema, store in SQLite, index incidents across missions, and replay them in 3D.
 
-## Platform
+Target parser coverage: DJI, PX4/Auterion, ArduPilot, Elbit Hermes 900, Aeronautics Orbiter 4, aunav.NEO HD (Taurus UGV).
+Hermes, Orbiter, and aunav parsers are format-coverage claims from sample logs, not hardware-validated flights.
 
-The telemetry cloud platform lives in [`sdth-telemetry/`](sdth-telemetry/README.md):
+## Layout
 
-- FastAPI ingest API (SQLite + Redis)
-- Ollama/DeepSeek translation to canonical JSON
-- Docker Compose for local dev; Tailscale for teammate integration
+- [`sdth-telemetry/`](sdth-telemetry/README.md) — ingest API, deterministic canonical series, optional local Ollama enrichment, incident index, two-laptop demo scripts.
+- [`sdth-ingestion pipeline/`](sdth-ingestion%20pipeline/README.md) — in-house parsers plus the controller directory watcher.
+- [`sdth-replay/`](sdth-replay/README.md) - CesiumJS 3D replay served by the Laptop B API.
+- `sdth-telemetry/fixtures/demo/` — deterministic controller logs for the hackathon demo.
 
-See [sdth-telemetry/README.md](sdth-telemetry/README.md) for setup and API docs.
+## Demo
+
+The supported demo is a recorded raw-log workflow across two laptops over Tailscale, with a same-laptop fallback.
+See the [two-laptop demo runbook](sdth-telemetry/docs/two-laptop-demo.md).
+
+Laptop A drops a log into a watched directory.
+Laptop B parses, normalizes, detects incidents, and opens the Cesium replay in a browser.
+
+## Deferred and unsupported
+
+Live airframe or ground-control-station connections, edge VLM inference, microburst/EW/LPI capabilities, automated fleet fixes, operational accreditation, Azure deployment, and Orcrist integration are not part of this demo.
+Tailscale only provides private transport between demo laptops.

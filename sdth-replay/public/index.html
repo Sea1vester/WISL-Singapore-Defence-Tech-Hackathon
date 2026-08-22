@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SDTH Replay</title>
+    <link
+      rel="stylesheet"
+      href="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Widgets/widgets.css"
+    />
+    <link rel="stylesheet" href="./replay.css" />
+  </head>
+  <body>
+    <div id="cesiumContainer"></div>
+    <div id="hud">
+      <div id="banner" class="banner ok">
+        <button id="bannerClose" class="banner-close" type="button" aria-label="Dismiss banner">
+          Close
+        </button>
+        <div id="bannerTitle">NO INCIDENTS</div>
+        <div id="bannerMeta"></div>
+        <div id="bannerDescription">Loading replay...</div>
+      </div>
+      <aside id="panel">
+        <button class="chip" id="failureChip" type="button" hidden>MISSION FAILURE</button>
+        <h1>SDTH Flight Replay</h1>
+        <label class="field">
+          API token
+          <input id="tokenInput" type="password" autocomplete="off" placeholder="INGEST_API_KEYS" />
+        </label>
+        <p class="status" id="statusLine">Connecting...</p>
+        <p id="playState">PAUSED</p>
+        <p id="flightMeta"></p>
+        <p id="sourceLine"></p>
+        <p id="timeLine"></p>
+        <p id="poseLine"></p>
+        <p id="eventLine"></p>
+        <h2>Ingested flights</h2>
+        <div id="flightList" class="list"></div>
+        <h2>Local datasets</h2>
+        <input id="datasetFilter" type="search" placeholder="Filter raw telemetry files" />
+        <div id="datasetList" class="list"></div>
+        <p class="hint" id="datasetHint">
+          Files come from the raw_telemetry-datasets directory on Laptop B.
+        </p>
+        <h2>Incidents</h2>
+        <div id="incidentList"></div>
+        <h2>Report</h2>
+        <p id="reportText" class="report"></p>
+        <h2>Fleet Patterns</h2>
+        <div id="patternList" class="list"></div>
+        <p class="hint" id="patternHint">Signatures recurring across 2+ flights &mdash; the fleet-wide payoff.</p>
+        <h2>Mitigation Bulletins</h2>
+        <div id="bulletinList" class="list"></div>
+      </aside>
+      <div id="transport">
+        <button id="playButton" type="button">Play</button>
+        <div id="speeds"></div>
+      </div>
+    </div>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Cesium.js"></script>
+    <script type="module" src="./replay.js"></script>
+  </body>
+</html>

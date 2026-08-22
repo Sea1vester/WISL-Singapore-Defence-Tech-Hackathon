@@ -7,7 +7,7 @@ import httpx
 import jsonschema
 
 from app.config import settings
-from app.schemas import CANONICAL_JSON_SCHEMA
+from app.schemas import ERROR_ENRICHMENT_SCHEMA
 
 
 def _extract_json(text: str) -> dict[str, Any]:
@@ -22,23 +22,41 @@ def _extract_json(text: str) -> dict[str, Any]:
 
 
 def build_prompt(l1_payload: dict[str, Any]) -> str:
-    schema_str = json.dumps(CANONICAL_JSON_SCHEMA, indent=2)
-    payload_str = json.dumps(l1_payload, indent=2)
-    return f"""You are a telemetry normalization assistant.
-Map the input JSON (L1 normalized telemetry) into the canonical JSON Schema (L2).
+    schema_str = json.dumps(ERROR_ENRICHMENT_SCHEMA, indent=2)
+    relevant_records = []
+    for record in l1_payload.get("records") or []:
+        if not isinstance(record, dict):
+            continue
+        selected = {
+            key: value
+            for key, value in record.items()
+            if key in {"timestamp_utc", "warning", "tip", "hex_code", "message_type", "error", "status"}
+            and value not in (None, "")
+        }
+        if len(selected) > 1:
+            relevant_records.append(selected)
+    payload_str = json.dumps(
+        {
+            "flight_id": l1_payload.get("flight_id"),
+            "source": l1_payload.get("source"),
+            "error_records": relevant_records,
+        },
+        indent=2,
+    )
+    return f"""You are a telemetry error-normalization assistant.
+Map unstructured warnings and vendor codes into the controlled error taxonomy.
 Rules:
 - Output ONLY valid JSON matching the schema.
-- Put unknown fields under sensors.extra.
-- Never drop data silently.
-- Use flight_id and timestamp_utc from the ingest envelope when mapping records.
+- Do not invent errors that are absent from the input.
+- Use category "unknown" when evidence is insufficient.
+- State evidence limitations explicitly.
 
-Canonical JSON Schema:
+Error Enrichment JSON Schema:
 {schema_str}
 
-Input L1 payload:
+Input warning and error records:
 {payload_str}
-
-Return a single canonical JSON object for the primary record in this batch."""
+"""
 
 
 def translate_payload(l1_payload: dict[str, Any]) -> tuple[dict[str, Any], int, str]:
@@ -52,7 +70,8 @@ def translate_payload(l1_payload: dict[str, Any]) -> tuple[dict[str, Any], int, 
                 "model": settings.ollama_model,
                 "prompt": prompt,
                 "stream": False,
-                "format": "json",
+                "format": ERROR_ENRICHMENT_SCHEMA,
+                "options": {"temperature": 0, "seed": 42},
             },
         )
         response.raise_for_status()
@@ -61,7 +80,7 @@ def translate_payload(l1_payload: dict[str, Any]) -> tuple[dict[str, Any], int, 
     latency_ms = int((time.perf_counter() - started) * 1000)
     raw = data.get("response", "")
     parsed = _extract_json(raw)
-    jsonschema.validate(instance=parsed, schema=CANONICAL_JSON_SCHEMA)
+    jsonschema.validate(instance=parsed, schema=ERROR_ENRICHMENT_SCHEMA)
     return parsed, latency_ms, settings.ollama_model
 
 

@@ -2,7 +2,11 @@ openapi: 3.1.0
 info:
   title: SDTH Telemetry Platform
   version: 0.1.0
-  description: Ingest normalized telemetry (L1), translate to canonical JSON (L2) via Ollama.
+  description: |
+    Recorded-log demo API for raw upload, normalized telemetry ingest, flight paths,
+    incident analysis, and local-LLM reports.
+    Live airframe/GCS connections, edge VLM, microburst/EW/LPI capabilities,
+    automated fleet fixes, accreditation, Azure, and Orcrist are not supported.
 servers:
   - url: http://localhost:8000
     description: Local Mac dev
@@ -42,11 +46,76 @@ paths:
           description: Accepted for translation
         "401":
           description: Invalid API key
-  /v1/ingest/{ingest_id}/status:
-    get:
-      summary: Translation job status
+  /v1/logs/upload:
+    post:
+      summary: Upload a recorded raw telemetry log
+      description: |
+        Accepts a supported recorded log and starts asynchronous parsing,
+        normalization, storage, and analysis.
       security:
         - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: X-WISL-SHA256
+          in: header
+          required: false
+          description: Optional SHA-256 used to verify upload integrity
+          schema:
+            type: string
+            pattern: "^[0-9a-fA-F]{64}$"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "202":
+          description: Raw log accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RawUploadAccepted"
+        "401":
+          description: Invalid API key
+        "413":
+          description: Raw log exceeds the upload limit
+        "415":
+          description: Unsupported raw log extension
+        "422":
+          description: Declared SHA-256 does not match the uploaded content
+  /v1/uploads/{upload_id}:
+    get:
+      summary: Raw-log processing status
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: upload_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Upload and processing status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RawUploadStatus"
+        "404":
+          description: Upload not found
+  /v1/ingest/{ingest_id}/status:
+    get:
+      summary: Raw-log or normalized-ingest processing status
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
       parameters:
         - name: ingest_id
           in: path
@@ -56,6 +125,12 @@ paths:
       responses:
         "200":
           description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IngestStatus"
+        "404":
+          description: Ingest job not found
   /v1/flights:
     get:
       summary: List flights
@@ -95,6 +170,43 @@ paths:
       responses:
         "200":
           description: Canonical records
+  /v1/flights/{flight_id}/path:
+    get:
+      summary: Get a visualization-ready flight path
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: stride
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 1
+        - name: max_samples
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100000
+            default: 20000
+        - name: prefer
+          in: query
+          schema:
+            type: string
+            enum: [auto, l1, l2]
+            default: auto
+      responses:
+        "200":
+          description: Flight path contract and samples
+        "404":
+          description: Flight not found
   /v1/export/flights/{flight_id}.jsonl:
     get:
       summary: Export canonical records as JSONL
@@ -109,6 +221,133 @@ paths:
       responses:
         "200":
           description: JSONL export
+  /v1/flights/{flight_id}/index-incidents:
+    post:
+      summary: Detect and store incidents for a flight
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Index summary
+  /v1/flights/{flight_id}/incident-report:
+    get:
+      summary: Return the latest evidence-backed incident summary
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Stored or deterministically generated report
+        "404":
+          description: Flight not found
+    post:
+      summary: Generate and store an evidence-backed incident summary
+      description: |
+        Uses the full canonical series and rule incidents.
+        Local-LLM wording is optional and the pipeline remains usable if Ollama is down.
+        This is not a causal root-cause analysis.
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Generated incident report
+        "404":
+          description: Flight not found
+  /v1/flights/{flight_id}/incidents:
+    get:
+      summary: List stored incidents for a flight
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: flight_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Incident list
+  /v1/incidents/patterns:
+    get:
+      summary: Recurring failure signatures across missions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: min_flights
+          in: query
+          schema:
+            type: integer
+            default: 2
+      responses:
+        "200":
+          description: Pattern list
+  /v1/reliability:
+    get:
+      summary: Per-brand reliability stats
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Reliability report
+  /v1/mitigation-bulletins:
+    get:
+      summary: List reviewable operator mitigation bulletins
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: Bulletin list
+    post:
+      summary: Create a reviewable mitigation bulletin from a recurring signature
+      description: |
+        Bulletins are operator guidance documents.
+        They do not push firmware, configuration, or commands to vehicles.
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [signature]
+              properties:
+                signature:
+                  type: string
+      responses:
+        "200":
+          description: Bulletin created
+        "404":
+          description: No recurring pattern for that signature
+  /v1/hardware/brands:
+    get:
+      summary: Hardware brands derived from current log parsers
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Brand catalog
 components:
   securitySchemes:
     bearerAuth:
@@ -119,6 +358,56 @@ components:
       in: header
       name: X-API-Key
   schemas:
+    RawUploadAccepted:
+      type: object
+      required: [upload_id, status, sha256]
+      properties:
+        upload_id:
+          type: string
+        status:
+          type: string
+          example: received
+        sha256:
+          type: string
+        duplicate:
+          type: boolean
+          default: false
+    RawUploadStatus:
+      type: object
+      required: [upload_id, status, filename, size_bytes, sha256]
+      properties:
+        upload_id:
+          type: string
+        status:
+          type: string
+          example: received
+        filename:
+          type: string
+        size_bytes:
+          type: integer
+        sha256:
+          type: string
+        flight_id:
+          type: [string, "null"]
+        ingest_id:
+          type: [string, "null"]
+        error:
+          type: [string, "null"]
+    IngestStatus:
+      type: object
+      required: [job_id, ingest_id, status]
+      properties:
+        job_id:
+          type: string
+        ingest_id:
+          type: string
+        flight_id:
+          type: string
+        status:
+          type: string
+          enum: [accepted, pending, running, done, failed]
+        error:
+          type: [string, "null"]
     IngestPayload:
       type: object
       required: [flight_id, timestamp_utc, source, records]

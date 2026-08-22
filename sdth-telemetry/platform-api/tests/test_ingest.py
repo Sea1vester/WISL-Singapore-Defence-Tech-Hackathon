@@ -68,3 +68,27 @@ def test_list_flights_after_ingest(client):
     data = response.json()
     assert data["total"] == 1
     assert data["items"][0]["id"] == payload["flight_id"]
+
+
+def test_flight_path_uses_immediate_deterministic_canonical_series(client):
+    payload = json.loads(Path(__file__).resolve().parents[2].joinpath("fixtures/sample_l1.json").read_text())
+    client.post(
+        "/v1/telemetry/ingest",
+        json=payload,
+        headers={"Authorization": "Bearer test-key"},
+    )
+    response = client.get(
+        f"/v1/flights/{payload['flight_id']}/path",
+        headers={"Authorization": "Bearer test-key"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["contract_version"] == "1.0"
+    assert body["flight_id"] == payload["flight_id"]
+    assert body["data_origin"] == "l2_canonical"
+    assert body["count"] == 1
+    sample = body["samples"][0]
+    assert sample["lat"] == 1.3521
+    assert sample["lon"] == 103.8198
+    assert sample["alt_m"] == 42.5
+    assert sample["t"] == payload["timestamp_utc"]

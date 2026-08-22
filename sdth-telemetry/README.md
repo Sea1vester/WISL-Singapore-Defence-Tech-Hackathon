@@ -4,8 +4,11 @@ Mac-first drone telemetry platform: ingest normalized JSON (via Tailscale), stor
 
 ## Progress
 
-Pivoted from cloud-hosted to laptop-hosted for now. Azure requires credits and I cant register to Oracle.
-The platform runs on my Mac via Docker; ya'll reach it over **Tailscale**.
+The platform runs on a laptop via Docker. Teammates reach the HTTP API over **Tailscale**.
+Azure is not used. Tailscale is private transport, not accreditation.
+
+The supported demo is recorded-log upload from Laptop A to Laptop B.
+See [`docs/two-laptop-demo.md`](docs/two-laptop-demo.md).
 
 **Important:** nobody connects to SQLite directly.
 Yall both use the HTTP API.
@@ -85,7 +88,8 @@ Statuses: `pending` → `running` → `done` (or `failed` with an `error` field)
 ### 5. What you do not need to do
 
 - Do not install SQLite or connect to the database file.
-- Do not send raw binary/logs to this endpoint - only normalized JSON.
+- Send normalized JSON to `/v1/telemetry/ingest`.
+- Send supported raw logs as multipart field `file` to `/v1/logs/upload`.
 - Field naming inside `records[]` can be negotiated; unknown fields are preserved under `sensors.extra` in L2.
 
 ---
@@ -151,7 +155,8 @@ curl -H "Authorization: Bearer <API_KEY>" \
 
 ### 6. AI Analytics (Phase 4)
 
-Generate an incident report for a flight using the local LLM:
+Generate an incident report for a flight using the local LLM.
+The report is also stored in SQLite as an `llm_report` incident.
 
 ```bash
 curl -X POST -H "Authorization: Bearer <API_KEY>" \
@@ -167,9 +172,61 @@ curl -X POST -H "Authorization: Bearer <API_KEY>" \
   http://MyIPAddress:8000/v1/flights/<flight_id>/chat
 ```
 
-### 7. API reference
+### 7. Incident index (SQLite)
+
+Rule detectors run on L2-shaped JSON only (position, attitude, battery, sensors).
+Vendor packets are never read directly.
+Thresholds are physics/ops bands (low battery, altitude spike, GPS jump, attitude shock, telemetry gap).
+
+Index a flight after ingest (also runs automatically when translation finishes):
+
+```bash
+curl -X POST -H "Authorization: Bearer <API_KEY>" \
+  http://MyIPAddress:8000/v1/flights/<flight_id>/index-incidents
+```
+
+List incidents for a flight, recurring patterns across missions, and per-brand reliability:
+
+```bash
+curl -H "Authorization: Bearer <API_KEY>" \
+  http://MyIPAddress:8000/v1/flights/<flight_id>/incidents
+
+curl -H "Authorization: Bearer <API_KEY>" \
+  http://MyIPAddress:8000/v1/incidents/patterns?min_flights=2
+
+curl -H "Authorization: Bearer <API_KEY>" \
+  http://MyIPAddress:8000/v1/reliability
+
+curl -H "Authorization: Bearer <API_KEY>" \
+  http://MyIPAddress:8000/v1/hardware/brands
+```
+
+Hardware brands currently in the log set: DJI, PX4/Auterion, ArduPilot, Elbit Hermes 900, Aeronautics Orbiter 4, aunav.NEO HD (Taurus UGV).
+
+### 8. API reference
 
 Full contract: `openapi/openapi.yaml`
+
+---
+
+## Two-laptop demo
+
+Use [`docs/two-laptop-demo.md`](docs/two-laptop-demo.md) for the Tailscale setup, Laptop A and Laptop B launchers, troubleshooting, and the same-laptop fallback.
+
+The demo-facing workflow uses:
+
+- `POST /v1/logs/upload` for a raw multipart upload.
+- `GET /v1/uploads/{upload_id}` for raw-log processing status.
+- `GET /v1/ingest/{ingest_id}/status` for normalized-ingest translation status.
+- `GET /v1/flights/{flight_id}/path` for visualization-ready flight path data.
+- `POST /v1/flights/{flight_id}/index-incidents` and `GET /v1/flights/{flight_id}/incidents` for incident analysis.
+- `POST /v1/flights/{flight_id}/incident-report` for the local-LLM report.
+
+The launchers assume these contracts even when the raw-upload backend is being implemented concurrently.
+Their raw upload and status paths can be overridden with environment variables.
+
+The demo is limited to recorded logs.
+Live airframe/GCS connections, edge VLM inference, microburst/EW/LPI functionality, automated fleet fixes, accreditation, Azure, and Orcrist are explicitly deferred.
 
 ---
 
@@ -191,6 +248,84 @@ docker compose up --build
 ```
 
 API listens on `http://0.0.0.0:8000` (reachable via Tailscale at `http://$(tailscale ip -4):8000`).
+
+### Normalize raw telemetry → L1 JSON
+
+Cloud-side parsers live in `parsers/`. Prefer the local venv (needs `pyulog` for Step 2):
+
+```bash
+cd sdth-telemetry
+python3 -m venv .venv
+.venv/bin/pip install -r parsers/requirements.txt
+```
+
+**Step 1 - DJI FlightRecord CSV**
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers dji ../raw_telemetry-datasets/dji.csv -o normalized/dji_l1.json
+```
+
+**Step 2 - PX4 / Auterion ULog**
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers ulg ../raw_telemetry-datasets/e0ad253a-a5f5-4883-ab96-56c397fe18ee.ulg -o normalized/e0ad_l1.json
+# large logs: downsample
+PYTHONPATH=. .venv/bin/python -m parsers ulg ../raw_telemetry-datasets/0ceef477-0523-4e67-9b0a-57310817f1cc.ulg -o normalized/0ceef_l1.json --stride 5
+```
+
+Local-NED-only logs (no GPS) are projected to lat/lon using PX4 SITL home by default (`--origin-lat/lon`).
+
+**Step 3 - ArduPilot DataFlash / MAVLink**
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers bin ../raw_telemetry-datasets/sample_crash_log.bin -o normalized/crash_l1.json
+PYTHONPATH=. .venv/bin/python -m parsers tlog ../raw_telemetry-datasets/dronekit-la-testdata-master/flight.tlog -o normalized/flight_tlog_l1.json --stride 5
+```
+
+**Step 4 - Excel (.xlsx)**
+
+Routes DJI FlightRecord sheets through the DJI mapper; otherwise expects generic `lat`/`lon`/`alt` columns. Legacy `.xls` is rejected (re-save as `.xlsx`).
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers excel path/to/flight.xlsx -o normalized/excel_l1.json
+PYTHONPATH=. .venv/bin/python -m parsers excel path/to/flight.xlsx -o normalized/excel_l1.json --sheet Sheet1
+```
+
+**Step 5 - Path handoff for 3D viz**
+
+Stable contract: `{ contract_version, flight_id, source, frame, units, count, samples[{t, lat, lon, alt_m, ...}] }`.
+The Cesium viewer on Laptop B consumes this from `GET /v1/flights/<id>/path` at `http://localhost:8000/replay/`.
+
+Offline from L1 JSON:
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers path normalized/dji_l1.json -o normalized/dji_path.json
+PYTHONPATH=. .venv/bin/python -m parsers path normalized/dji_l1.json -o normalized/dji_path.json --stride 5
+```
+
+Live API (prefers L2 canonical; falls back to stored L1 so viz works before LLM translation finishes):
+
+```bash
+curl -H "Authorization: Bearer dev-teammate-key-change-me" \
+  "http://localhost:8000/v1/flights/<flight_id>/path"
+
+curl -H "Authorization: Bearer dev-teammate-key-change-me" \
+  "http://localhost:8000/v1/flights/<flight_id>/path?stride=5&max_samples=5000&prefer=l1"
+```
+
+```bash
+PYTHONPATH=. .venv/bin/python -m parsers detect ../raw_telemetry-datasets/dji.csv
+PYTHONPATH=. .venv/bin/pytest parsers/tests -q
+```
+
+Then ingest the generated file (API running):
+
+```bash
+curl -X POST http://localhost:8000/v1/telemetry/ingest \
+  -H "Authorization: Bearer dev-teammate-key-change-me" \
+  -H "Content-Type: application/json" \
+  -d @normalized/dji_l1.json
+```
 
 ### Test ingest locally
 
@@ -224,6 +359,9 @@ curl -H "Authorization: Bearer dev-teammate-key-change-me" \
 
 curl -H "Authorization: Bearer dev-teammate-key-change-me" \
   http://localhost:8000/v1/flights/<flight_id>/records
+
+curl -H "Authorization: Bearer dev-teammate-key-change-me" \
+  "http://localhost:8000/v1/flights/<flight_id>/path"
 ```
 
 ## Architecture

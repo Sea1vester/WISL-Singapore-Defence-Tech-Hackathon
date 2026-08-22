@@ -12,6 +12,11 @@ dependencies = [
     "redis>=5.2.0",
     "pydantic>=2.10.0",
     "pydantic-settings>=2.6.0",
+    "python-multipart>=0.0.20",
+    "pyulog>=1.0.0",
+    "pymavlink>=2.4.0",
+    "openpyxl>=3.1.0",
+    "numpy>=1.26.0",
 ]
 
 [project.optional-dependencies]
@@ -30,3 +35,4 @@ packages = ["app"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+pythonpath = [".", "../parsers"]

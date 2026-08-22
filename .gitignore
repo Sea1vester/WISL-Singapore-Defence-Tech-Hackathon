@@ -1,5 +1,6 @@
 data/
 *.html
+!sdth-replay/public/**/*.html
 .env
 __pycache__/
 *.pyc
@@ -10,3 +11,6 @@ __pycache__/
 .wfw
 package-lock.json
 treehouse.toml
+raw_telemetry-datasets
+sdth-replay/build/
+sdth-telemetry/demo-output/
