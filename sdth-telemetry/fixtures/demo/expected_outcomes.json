@@ -1,0 +1,39 @@
+{
+  "missions": [
+    {
+      "file": "controller_mission_alpha.csv",
+      "source": "dji-csv",
+      "path_samples": 8,
+      "incident_type": "operator_warning",
+      "severity": "warning",
+      "signature": "operator_warning",
+      "evidence_contains": "GPS signal weak"
+    },
+    {
+      "file": "controller_mission_bravo.csv",
+      "source": "dji-csv",
+      "path_samples": 8,
+      "incident_type": "operator_warning",
+      "severity": "warning",
+      "signature": "operator_warning",
+      "evidence_contains": "GPS signal weak"
+    }
+  ],
+  "recurring_pattern": {
+    "signature": "operator_warning",
+    "minimum_flights": 2
+  },
+  "claims": {
+    "validated": [
+      "DJI CSV parsing",
+      "full flight-path preservation",
+      "deterministic warning detection",
+      "cross-mission pattern detection"
+    ],
+    "not_hardware_validated": [
+      "Hermes 900",
+      "Orbiter 4",
+      "aunav/Taurus"
+    ]
+  }
+}
