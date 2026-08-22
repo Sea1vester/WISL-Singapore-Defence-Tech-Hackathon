@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 from app.auth import require_api_key
 from app.brands import brand_catalog
+from app.bulletins import build_mitigation_bulletin, list_bulletins
 from app.db import db_session
 from app.edge_bench import run_edge_benchmark
 from app.incidents import index_flight, list_flight_incidents, list_patterns, reliability_report
@@ -83,6 +84,27 @@ def get_incident_patterns(
 @router.get("/reliability")
 def get_reliability(_: str = Depends(require_api_key)) -> dict[str, Any]:
     return reliability_report()
+
+
+class CreateBulletinRequest(BaseModel):
+    signature: str
+
+
+@router.post("/mitigation-bulletins")
+def create_mitigation_bulletin(
+    body: CreateBulletinRequest,
+    _: str = Depends(require_api_key),
+) -> dict[str, Any]:
+    try:
+        return build_mitigation_bulletin(body.signature)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="No recurring pattern for that signature") from exc
+
+
+@router.get("/mitigation-bulletins")
+def get_mitigation_bulletins(_: str = Depends(require_api_key)) -> dict[str, Any]:
+    items = list_bulletins()
+    return {"count": len(items), "items": items}
 
 
 @router.post("/reliability/edge-benchmark")
