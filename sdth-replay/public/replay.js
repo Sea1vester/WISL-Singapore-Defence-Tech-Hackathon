@@ -29,6 +29,8 @@ const state = {
   active: 0,
   datasets: [],
   ingests: {},
+  patterns: [],
+  bulletins: [],
   viewer: null,
   entities: [],
   clockListener: null,
@@ -59,6 +61,9 @@ const els = {
   datasetHint: document.getElementById("datasetHint"),
   incidentList: document.getElementById("incidentList"),
   reportText: document.getElementById("reportText"),
+  patternList: document.getElementById("patternList"),
+  patternHint: document.getElementById("patternHint"),
+  bulletinList: document.getElementById("bulletinList"),
   banner: document.getElementById("banner"),
   bannerClose: document.getElementById("bannerClose"),
   bannerTitle: document.getElementById("bannerTitle"),
@@ -862,6 +867,92 @@ async function refreshDatasets() {
   }
 }
 
+function renderPatterns() {
+  els.patternList.innerHTML = "";
+  if (!state.patterns.length) {
+    els.patternHint.textContent = state.token
+      ? "No signature yet recurs across 2+ flights."
+      : "Enter the API token to see fleet-wide patterns.";
+    return;
+  }
+  els.patternHint.textContent = "Signatures recurring across 2+ flights — the fleet-wide payoff.";
+  for (const pattern of state.patterns) {
+    const row = document.createElement("div");
+    row.className = "dataset-row";
+    const label = document.createElement("p");
+    label.innerHTML = `<strong>[${pattern.max_severity}] ${pattern.incident_type}</strong><br />${pattern.summary || ""}`;
+    row.append(label);
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "Generate mitigation bulletin";
+    button.addEventListener("click", () => createBulletin(pattern.signature, button));
+    row.append(button);
+    els.patternList.append(row);
+  }
+}
+
+function renderBulletins() {
+  els.bulletinList.innerHTML = "";
+  if (!state.bulletins.length) {
+    const empty = document.createElement("p");
+    empty.className = "hint";
+    empty.textContent = "No bulletins generated yet.";
+    els.bulletinList.append(empty);
+    return;
+  }
+  for (const bulletin of state.bulletins) {
+    const row = document.createElement("div");
+    row.className = "dataset-row";
+    const review = (bulletin.recommended_review || []).map((item) => `&bull; ${item}`).join("<br />");
+    row.innerHTML = `<strong>${bulletin.incident_type}</strong> (${bulletin.flight_count} flights)<br />${bulletin.evidence_summary || ""}<br />${review}`;
+    els.bulletinList.append(row);
+  }
+}
+
+async function createBulletin(signature, button) {
+  button.disabled = true;
+  button.textContent = "Generating...";
+  try {
+    await apiPost("/v1/mitigation-bulletins", { signature });
+    await refreshBulletins();
+  } catch (error) {
+    setStatus(error.message);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Generate mitigation bulletin";
+  }
+}
+
+async function refreshPatterns() {
+  if (!state.token) {
+    state.patterns = [];
+    renderPatterns();
+    return;
+  }
+  try {
+    const body = await apiGet("/v1/incidents/patterns?min_flights=2");
+    state.patterns = body.items || [];
+    renderPatterns();
+  } catch (error) {
+    els.patternHint.textContent = error.message;
+  }
+}
+
+async function refreshBulletins() {
+  if (!state.token) {
+    state.bulletins = [];
+    renderBulletins();
+    return;
+  }
+  try {
+    const body = await apiGet("/v1/mitigation-bulletins");
+    state.bulletins = body.items || [];
+    renderBulletins();
+  } catch {
+    // Bulletins are supplementary; a failed fetch just leaves the list empty.
+  }
+}
+
 function setIngest(path, patch) {
   state.ingests[path] = { ...state.ingests[path], ...patch };
   renderDatasets();
@@ -879,6 +970,8 @@ async function applyLoadedFlight(flightId) {
   }
   setStatus(`Ready: ${flight.flight_id}`);
   await showActiveFlight();
+  await refreshPatterns();
+  await refreshBulletins();
 }
 
 async function pollUpload(path, uploadId) {
@@ -1046,6 +1139,8 @@ async function bootstrap(create = true) {
     setStatus(state.flights[0]?.upload_status || "ready");
     await showActiveFlight();
     await refreshDatasets();
+    await refreshPatterns();
+    await refreshBulletins();
   } catch (error) {
     setStatus(error.message);
     if (!state.flights.length) {
