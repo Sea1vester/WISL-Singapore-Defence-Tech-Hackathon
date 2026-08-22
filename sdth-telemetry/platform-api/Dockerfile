@@ -6,9 +6,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml README.md ./
-COPY app ./app
-COPY migrations ./migrations
+COPY platform-api/pyproject.toml platform-api/README.md ./
+COPY platform-api/app ./app
+COPY platform-api/migrations ./migrations
+COPY parsers ./parsers
 
 RUN pip install --no-cache-dir .
 

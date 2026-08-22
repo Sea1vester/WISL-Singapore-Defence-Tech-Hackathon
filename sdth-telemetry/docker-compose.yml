@@ -11,7 +11,8 @@ services:
 
   api:
     build:
-      context: ./platform-api
+      context: .
+      dockerfile: platform-api/Dockerfile
     ports:
       - "0.0.0.0:8000:8000"
     environment:
@@ -30,7 +31,8 @@ services:
 
   worker:
     build:
-      context: ./platform-api
+      context: .
+      dockerfile: platform-api/Dockerfile
     command: ["python", "-m", "app.worker"]
     environment:
       DATABASE_PATH: /data/telemetry.db

@@ -33,3 +33,18 @@ def blocking_pop_job(timeout: int = 5) -> str | None:
     _, payload = result
     data = json.loads(payload)
     return data["job_id"]
+
+
+def blocking_pop_work(timeout: int = 5) -> tuple[str, str] | None:
+    client = get_redis()
+    result = client.blpop(
+        [settings.raw_upload_queue_key, settings.job_queue_key],
+        timeout=timeout,
+    )
+    if not result:
+        return None
+    queue_name, payload = result
+    data = json.loads(payload)
+    if queue_name == settings.raw_upload_queue_key:
+        return "raw_upload", data["upload_id"]
+    return "translation", data["job_id"]
