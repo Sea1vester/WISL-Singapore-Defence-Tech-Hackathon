@@ -13,7 +13,9 @@ from uuid import uuid4
 
 import jsonschema
 
+from app.config import settings
 from app.path_export import _num
+from app.privacy import redact_operator_locations
 from app.schemas import CANONICAL_JSON_SCHEMA
 
 # Same default home as PX4 SITL / local-NED projection in the parsers.
@@ -165,9 +167,14 @@ def persist_canonical_series(
     ingest_id: str,
     payload: dict[str, Any],
     parser: str,
+    redactions: list[str] | None = None,
 ) -> int:
     """Persist every L1 sample as deterministic, schema-valid canonical telemetry."""
-    series = series_from_l1_payload(payload)
+    working = payload
+    applied = list(redactions or [])
+    if settings.redact_operator_location and redactions is None:
+        working, applied = redact_operator_locations(payload)
+    series = series_from_l1_payload(working)
     conn.execute("DELETE FROM canonical_records WHERE ingest_id = ?", (ingest_id,))
     for canonical in series:
         frame = (canonical.get("metadata") or {}).get("frame")
@@ -176,6 +183,8 @@ def persist_canonical_series(
             "canonical_structure": "derived",
             "position": "derived" if frame == "local_ned" else "observed",
             "model_enrichment": "none",
+            "operator_location": "redacted" if applied else "not_present",
+            "redactions": applied,
         }
         canonical["metadata"] = {
             **(canonical.get("metadata") or {}),

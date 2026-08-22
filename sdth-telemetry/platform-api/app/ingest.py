@@ -9,6 +9,7 @@ from app.auth import require_api_key
 from app.canonical_series import persist_canonical_series
 from app.config import settings
 from app.db import db_session
+from app.privacy import apply_retention, record_audit, redact_operator_locations
 from app.queue import enqueue_raw_upload, enqueue_translation_job
 from app.schemas import (
     IngestPayload,
@@ -57,7 +58,11 @@ def ingest_telemetry(payload: IngestPayload, _: str = Depends(require_api_key)) 
     ingest_id = new_id()
     job_id = new_id()
     idempotency_key = payload.event_id
-    payload_json = json.dumps(payload.model_dump())
+    stored_payload = payload.model_dump()
+    redactions: list[str] = []
+    if settings.redact_operator_location:
+        stored_payload, redactions = redact_operator_locations(stored_payload)
+    payload_json = json.dumps(stored_payload)
 
     with db_session() as conn:
         if idempotency_key:
@@ -92,9 +97,18 @@ def ingest_telemetry(payload: IngestPayload, _: str = Depends(require_api_key)) 
         persist_canonical_series(
             conn,
             ingest_id=ingest_id,
-            payload=payload.model_dump(),
+            payload=stored_payload,
             parser="api-l1",
+            redactions=redactions,
         )
+        if redactions:
+            record_audit(
+                conn,
+                event_type="operator_location_redacted",
+                subject=payload.flight_id,
+                detail={"fields": redactions, "transport": "l1-json"},
+            )
+        apply_retention(conn, retention_days=settings.retention_days)
         now = datetime.now(timezone.utc).isoformat()
         conn.execute(
             """

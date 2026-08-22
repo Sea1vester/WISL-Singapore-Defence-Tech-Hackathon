@@ -35,6 +35,8 @@ def test_row_to_record_converts_units():
         "OSD.flycState": "P-GPS",
         "OSD.isOnGround": "FALSE",
         "APP.warning": "GPS signal weak",
+        "HOME.latitude": "1.3499",
+        "HOME.longitude": "103.8177",
     }
     record = row_to_record(row)
     assert record is not None
@@ -44,6 +46,8 @@ def test_row_to_record_converts_units():
     assert record["battery_pct"] == 80
     assert record["warning"] == "GPS signal weak"
     assert record["timestamp_utc"] == "2024-08-03T01:31:10.000000Z"
+    assert record["home_lat"] == pytest.approx(1.3499)
+    assert record["home_lon"] == pytest.approx(103.8177)
 
 
 def test_parse_fixture_skips_zero_gps():

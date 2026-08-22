@@ -10,6 +10,7 @@ from app.canonical_series import persist_canonical_series
 from app.config import settings
 from app.db import db_session, run_migrations
 from app.llm import translate_with_repair
+from app.privacy import apply_retention, record_audit, redact_operator_locations
 from app.queue import blocking_pop_work, enqueue_translation_job
 from app.schemas import new_id
 from parsers.registry import parse_raw_log
@@ -74,6 +75,9 @@ def process_raw_upload(upload_id: str) -> None:
             sha256=upload["sha256"],
             original_name=upload["original_name"],
         )
+        redactions: list[str] = []
+        if settings.redact_operator_location:
+            payload, redactions = redact_operator_locations(payload)
         ingest_id = new_id()
         job_id = new_id()
         queued_job = None
@@ -130,13 +134,24 @@ def process_raw_upload(upload_id: str) -> None:
                 ingest_id=ingest_id,
                 payload=payload,
                 parser=parser_key,
+                redactions=redactions,
             )
             provenance = {
                 "transport": "multipart",
                 "parser": parser_key,
                 "source_format": payload["source"],
                 "record_count": len(payload["records"]),
+                "operator_location": "redacted" if redactions else "not_present",
+                "redactions": redactions,
             }
+            if redactions:
+                record_audit(
+                    conn,
+                    event_type="operator_location_redacted",
+                    subject=payload["flight_id"],
+                    detail={"fields": redactions, "upload_id": upload_id},
+                )
+            apply_retention(conn, retention_days=settings.retention_days)
             conn.execute(
                 "UPDATE raw_uploads SET provenance_json = ? WHERE id = ?",
                 (json.dumps(provenance), upload_id),

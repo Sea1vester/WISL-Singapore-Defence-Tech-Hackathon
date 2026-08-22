@@ -23,6 +23,8 @@ def test_demo_fixtures_match_recorded_outcomes():
         assert len(payload["records"]) == mission["path_samples"]
         warnings = [record.get("warning", "") for record in payload["records"]]
         assert mission["evidence_contains"] in warnings
+        assert payload["records"][0].get("home_lat")
+        assert payload["records"][0].get("home_lon")
 
 
 def test_demo_fixtures_have_distinct_paths_for_pattern_demo():

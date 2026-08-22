@@ -147,6 +147,13 @@ def row_to_record(row: dict[str, str]) -> dict[str, Any] | None:
     if gps_num is not None:
         record["gps_satellites"] = int(gps_num)
 
+    home_lat = _f(row, "HOME.latitude")
+    home_lon = _f(row, "HOME.longitude")
+    if home_lat is not None:
+        record["home_lat"] = home_lat
+    if home_lon is not None:
+        record["home_lon"] = home_lon
+
     return record
 
 

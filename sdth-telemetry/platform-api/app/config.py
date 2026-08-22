@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     raw_upload_queue_key: str = "sdth:raw_uploads"
     raw_upload_dir: str = "./data/raw-uploads"
     raw_upload_max_bytes: int = 100 * 1024 * 1024
+    redact_operator_location: bool = True
+    retention_days: int = 30
     api_host: str = "0.0.0.0"
     api_port: int = 8000
 
