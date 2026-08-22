@@ -65,7 +65,7 @@ class DetectedIncident:
     evidence: dict[str, Any] = field(default_factory=dict)
 
 
-def _parse_ts(value: str | None) -> datetime | None:
+def parse_timestamp(value: str | None) -> datetime | None:
     if not value:
         return None
     text = value.replace("Z", "+00:00")
@@ -76,8 +76,8 @@ def _parse_ts(value: str | None) -> datetime | None:
 
 
 def _dt_seconds(prev: dict[str, Any], curr: dict[str, Any], fallback: float = 1.0) -> float:
-    a = _parse_ts(prev.get("timestamp_utc"))
-    b = _parse_ts(curr.get("timestamp_utc"))
+    a = parse_timestamp(prev.get("timestamp_utc"))
+    b = parse_timestamp(curr.get("timestamp_utc"))
     if a and b:
         delta = (b - a).total_seconds()
         if delta > 0:
@@ -110,8 +110,8 @@ def _merge(incidents: list[DetectedIncident]) -> list[DetectedIncident]:
         if last.incident_type != item.incident_type:
             merged.append(item)
             continue
-        last_end = _parse_ts(last.ended_at) or _parse_ts(last.started_at)
-        next_start = _parse_ts(item.started_at)
+        last_end = parse_timestamp(last.ended_at) or parse_timestamp(last.started_at)
+        next_start = parse_timestamp(item.started_at)
         if last_end and next_start and (next_start - last_end).total_seconds() <= MERGE_GAP_S:
             last.ended_at = item.ended_at
             if _severity_rank(item.severity) > _severity_rank(last.severity):
@@ -307,11 +307,11 @@ def detect_incidents(series: list[dict[str, Any]]) -> list[DetectedIncident]:
 
         prev_pct = _num((prev.get("battery") or {}).get("percent"))
         if percent is not None and prev_pct is not None and percent > 0 and prev_pct > 0:
-            window_start = _parse_ts(sample.get("timestamp_utc"))
+            window_start = parse_timestamp(sample.get("timestamp_utc"))
             if window_start:
                 peak = prev_pct
                 for older in reversed(series[: i + 1]):
-                    older_ts = _parse_ts(older.get("timestamp_utc"))
+                    older_ts = parse_timestamp(older.get("timestamp_utc"))
                     older_pct = _num((older.get("battery") or {}).get("percent"))
                     if older_ts and (window_start - older_ts).total_seconds() > BATTERY_PLUNGE_WINDOW_S:
                         break

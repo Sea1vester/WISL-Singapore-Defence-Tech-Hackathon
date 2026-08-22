@@ -9,7 +9,7 @@ from typing import Any
 from app.brands import identify_brand
 from app.canonical_series import load_flight_series
 from app.db import db_session
-from app.detectors import detect_incidents
+from app.detectors import detect_incidents, parse_timestamp
 from app.schemas import new_id
 
 _SEVERITY_RANK = {"info": 0, "warning": 1, "critical": 2}
@@ -17,6 +17,33 @@ _SEVERITY_RANK = {"info": 0, "warning": 1, "critical": 2}
 
 def _max_severity(values: list[str]) -> str:
     return max(values, key=lambda item: _SEVERITY_RANK.get(item, 0), default="info")
+
+
+def nearest_position(series: list[dict[str, Any]], timestamp: str | None) -> dict[str, Any] | None:
+    """Return the path sample closest to an incident timestamp."""
+    if not series:
+        return None
+    target = parse_timestamp(timestamp)
+    best: dict[str, Any] | None = None
+    best_delta: float | None = None
+    for sample in series:
+        position = sample.get("position") or {}
+        if position.get("lat") is None and position.get("lon") is None:
+            continue
+        sample_ts = parse_timestamp(sample.get("timestamp_utc"))
+        if target and sample_ts:
+            delta = abs((sample_ts - target).total_seconds())
+        else:
+            delta = float("inf")
+        if best is None or delta < (best_delta if best_delta is not None else float("inf")):
+            best = {
+                "lat": position.get("lat"),
+                "lon": position.get("lon"),
+                "alt_m": position.get("alt_m"),
+                "timestamp_utc": sample.get("timestamp_utc"),
+            }
+            best_delta = 0.0 if delta == float("inf") else delta
+    return best
 
 
 def rebuild_patterns(conn) -> int:
@@ -82,6 +109,10 @@ def index_flight(flight_id: str, *, include_llm_report: str | None = None) -> di
             (flight_id,),
         )
         for item in detected:
+            evidence = dict(item.evidence)
+            position = nearest_position(series, item.started_at)
+            if position:
+                evidence.setdefault("position", position)
             conn.execute(
                 """
                 INSERT INTO incidents (
@@ -100,7 +131,7 @@ def index_flight(flight_id: str, *, include_llm_report: str | None = None) -> di
                     item.ended_at,
                     item.signature,
                     item.summary,
-                    json.dumps(item.evidence),
+                    json.dumps(evidence),
                 ),
             )
 
@@ -263,4 +294,8 @@ def reliability_report() -> dict[str, Any]:
 def _incident_row(row) -> dict[str, Any]:
     item = dict(row)
     item["evidence"] = json.loads(item.pop("evidence_json") or "{}")
+    position = item["evidence"].get("position") or {}
+    item["lat"] = position.get("lat")
+    item["lon"] = position.get("lon")
+    item["alt_m"] = position.get("alt_m")
     return item

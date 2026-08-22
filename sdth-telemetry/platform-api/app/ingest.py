@@ -105,6 +105,12 @@ def ingest_telemetry(payload: IngestPayload, _: str = Depends(require_api_key)) 
         )
 
     enqueue_translation_job(job_id)
+    from app.incidents import index_flight
+
+    try:
+        index_flight(payload.flight_id)
+    except Exception:
+        pass
     return IngestResponse(ingest_id=ingest_id, job_id=job_id, status="accepted")
 
 

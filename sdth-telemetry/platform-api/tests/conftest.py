@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+_TELEMETRY_ROOT = Path(__file__).resolve().parents[2]
+if str(_TELEMETRY_ROOT) not in sys.path:
+    sys.path.insert(0, str(_TELEMETRY_ROOT))
+
 import pytest
 from fastapi.testclient import TestClient
 

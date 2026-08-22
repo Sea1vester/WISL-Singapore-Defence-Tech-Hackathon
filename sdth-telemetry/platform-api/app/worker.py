@@ -148,6 +148,12 @@ def process_raw_upload(upload_id: str) -> None:
                 flight_id=payload["flight_id"],
                 ingest_id=ingest_id,
             )
+        from app.incidents import index_flight
+
+        try:
+            index_flight(payload["flight_id"])
+        except Exception:
+            logger.exception("Immediate incident index failed for %s", payload["flight_id"])
         if not existing or not queued_job or queued_job["status"] == "pending":
             enqueue_translation_job(job_id)
     except Exception as exc:

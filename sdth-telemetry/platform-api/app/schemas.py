@@ -187,5 +187,62 @@ ERROR_ENRICHMENT_SCHEMA: dict[str, Any] = {
 }
 
 
+INCIDENT_REPORT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": [
+        "kind",
+        "flight_id",
+        "mission_summary",
+        "timeline",
+        "likely_contributing_factors",
+        "confidence_and_limitations",
+        "recommended_follow_up",
+        "model_enrichment",
+    ],
+    "properties": {
+        "kind": {
+            "type": "string",
+            "const": "evidence_backed_incident_summary",
+        },
+        "not_a_root_cause_analysis": {"type": "boolean"},
+        "flight_id": {"type": "string"},
+        "mission_summary": {"type": "string"},
+        "timeline": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["timestamp_utc", "event", "evidence"],
+                "properties": {
+                    "timestamp_utc": {"type": "string"},
+                    "event": {"type": "string"},
+                    "evidence": {"type": "string"},
+                    "lat": {"type": ["number", "null"]},
+                    "lon": {"type": ["number", "null"]},
+                    "alt_m": {"type": ["number", "null"]},
+                },
+            },
+        },
+        "likely_contributing_factors": {"type": "array", "items": {"type": "string"}},
+        "confidence_and_limitations": {"type": "string"},
+        "recommended_follow_up": {"type": "array", "items": {"type": "string"}},
+        "model_enrichment": {"type": "string", "enum": ["available", "degraded"]},
+    },
+    "additionalProperties": False,
+}
+
+
+class IncidentReportResponse(BaseModel):
+    kind: str = "evidence_backed_incident_summary"
+    not_a_root_cause_analysis: bool = True
+    flight_id: str
+    mission_summary: str
+    timeline: list[dict[str, Any]]
+    likely_contributing_factors: list[str]
+    confidence_and_limitations: str
+    recommended_follow_up: list[str]
+    model_enrichment: str
+    report: str
+
+
 def new_id() -> str:
     return str(uuid4())
