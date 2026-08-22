@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+"""
+ulg_3d_flightpath.py
+
+Read a PX4 .ulg (ULog) flight log and produce a 3D visualization of the
+drone's flight path.
+
+Usage:
+    python3 ulg_3d_flightpath.py path/to/log.ulg [--out-prefix myflight]
+
+Outputs (written next to the script unless --out-dir is given):
+    <prefix>_3d_static.png   - static 3D matplotlib plot, colored by altitude
+    <prefix>_3d_interactive.html - interactive plotly 3D plot (rotate/zoom in browser)
+
 How it works
 -------------
 PX4 .ulg files are a binary log of every topic the flight controller
@@ -225,12 +239,30 @@ def plot_interactive_3d(traj, out_path):
     fig.write_html(out_path)
 
 
+def export_csv(traj, out_path):
+    """
+    Write a CSV in the exact format drone_sim's FlightPath.h expects:
+        t_sec,north,east,up
+    Drop the resulting file at drone_sim/assets/flightpath.csv (or pass its
+    path as the first CLI arg to the drone_sim executable) to replay this
+    real flight in the C++ 3D simulation.
+    """
+    arr = np.column_stack([traj["t_sec"], traj["north"], traj["east"], traj["up"]])
+    np.savetxt(out_path, arr, header="t_sec,north,east,up", delimiter=",", comments="")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Visualize a PX4 .ulg flight log in 3D.")
     parser.add_argument("ulg_file", help="Path to the .ulg log file")
     parser.add_argument("--out-prefix", default=None,
                          help="Prefix for output files (default: derived from input filename)")
     parser.add_argument("--out-dir", default=".", help="Directory to write output files to")
+    parser.add_argument("--csv", action="store_true",
+                         help="Also export a flightpath.csv for use with the C++ drone_sim viewer "
+                              "(format: t_sec,north,east,up)")
+    parser.add_argument("--csv-name", default="flightpath.csv",
+                         help="Filename for the CSV export (default: flightpath.csv, matching "
+                              "drone_sim's default asset name)")
     args = parser.parse_args()
 
     if not os.path.isfile(args.ulg_file):
@@ -254,6 +286,12 @@ def main():
 
     plot_interactive_3d(traj, interactive_path)
     print(f"Saved interactive plot to: {interactive_path}")
+
+    if args.csv:
+        csv_path = os.path.join(args.out_dir, args.csv_name)
+        export_csv(traj, csv_path)
+        print(f"Saved drone_sim-compatible CSV to: {csv_path}")
+        print("Copy/rename this to drone_sim/assets/flightpath.csv to replay it in the 3D sim.")
 
 
 if __name__ == "__main__":
