@@ -4,8 +4,11 @@ Mac-first drone telemetry platform: ingest normalized JSON (via Tailscale), stor
 
 ## Progress
 
-Pivoted from cloud-hosted to laptop-hosted for now. Azure requires credits and I cant register to Oracle.
-The platform runs on my Mac via Docker; ya'll reach it over **Tailscale**.
+The platform runs on a laptop via Docker. Teammates reach the HTTP API over **Tailscale**.
+Azure is not used. Tailscale is private transport, not accreditation.
+
+The supported demo is recorded-log upload from Laptop A to Laptop B.
+See [`docs/two-laptop-demo.md`](docs/two-laptop-demo.md).
 
 **Important:** nobody connects to SQLite directly.
 Yall both use the HTTP API.
@@ -85,7 +88,8 @@ Statuses: `pending` → `running` → `done` (or `failed` with an `error` field)
 ### 5. What you do not need to do
 
 - Do not install SQLite or connect to the database file.
-- Do not send raw binary/logs to this endpoint - only normalized JSON.
+- Send normalized JSON to `/v1/telemetry/ingest`.
+- Send supported raw logs as multipart field `file` to `/v1/logs/upload`.
 - Field naming inside `records[]` can be negotiated; unknown fields are preserved under `sensors.extra` in L2.
 
 ---
@@ -202,6 +206,27 @@ Hardware brands currently in the log set: DJI, PX4/Auterion, ArduPilot, Elbit He
 ### 8. API reference
 
 Full contract: `openapi/openapi.yaml`
+
+---
+
+## Two-laptop demo
+
+Use [`docs/two-laptop-demo.md`](docs/two-laptop-demo.md) for the Tailscale setup, Laptop A and Laptop B launchers, troubleshooting, and the same-laptop fallback.
+
+The demo-facing workflow uses:
+
+- `POST /v1/logs/upload` for a raw multipart upload.
+- `GET /v1/uploads/{upload_id}` for raw-log processing status.
+- `GET /v1/ingest/{ingest_id}/status` for normalized-ingest translation status.
+- `GET /v1/flights/{flight_id}/path` for visualization-ready flight path data.
+- `POST /v1/flights/{flight_id}/index-incidents` and `GET /v1/flights/{flight_id}/incidents` for incident analysis.
+- `POST /v1/flights/{flight_id}/incident-report` for the local-LLM report.
+
+The launchers assume these contracts even when the raw-upload backend is being implemented concurrently.
+Their raw upload and status paths can be overridden with environment variables.
+
+The demo is limited to recorded logs.
+Live airframe/GCS connections, edge VLM inference, microburst/EW/LPI functionality, automated fleet fixes, accreditation, Azure, and Orcrist are explicitly deferred.
 
 ---
 
