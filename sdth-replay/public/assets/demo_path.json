@@ -4,6 +4,7 @@
   "source": "bundled-offline-demo",
   "frame": "wgs84",
   "data_origin": "offline_file",
+  "mission_summary": "Survey aborted after wind compensation during the north turn. Review GPS lock and wind limits before repeating the route.",
   "units": {
     "horizontal": "degrees_wgs84",
     "altitude": "meters",

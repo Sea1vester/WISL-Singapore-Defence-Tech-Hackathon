@@ -1,17 +1,25 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# Laptop B hosts processing and replay: Ollama, Docker API/worker, C++ viewer.
+# Laptop B hosts processing and replay: Ollama, Docker API/worker, Cesium viewer.
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
-REPO_ROOT="$(cd -- "$PROJECT_DIR/.." && pwd)"
 BASE_URL="${BASE_URL:-http://localhost:8000}"
 OLLAMA_URL="${OLLAMA_URL:-http://localhost:11434}"
 START_TIMEOUT="${START_TIMEOUT:-180}"
 COMPOSE_BUILD="${COMPOSE_BUILD:-1}"
 LAUNCH_REPLAY="${LAUNCH_REPLAY:-1}"
-API_KEY="${API_KEY:-${INGEST_API_KEYS:-dev-teammate-key-change-me}}"
+API_KEY="${API_KEY:-${INGEST_API_KEYS:-}}"
+
+if [[ -z "$API_KEY" && -f "$PROJECT_DIR/.env" ]]; then
+  # shellcheck disable=SC1091
+  set -a
+  source "$PROJECT_DIR/.env"
+  set +a
+  API_KEY="${API_KEY:-${INGEST_API_KEYS:-dev-teammate-key-change-me}}"
+fi
+API_KEY="${API_KEY:-dev-teammate-key-change-me}"
 
 log() { printf '[Laptop B processor] %s\n' "$*"; }
 fail() { printf '[Laptop B processor] ERROR: %s\n' "$*" >&2; exit 1; }
@@ -62,7 +70,7 @@ wait_for_url "${BASE_URL%/}/health" "Telemetry API"
 
 TAILSCALE_IP=""
 if command -v tailscale >/dev/null 2>&1; then
-  TAILSCALE_IP="$(tailscale ip -4 2>/dev/null | awk 'NR == 1 {print; exit}')"
+  TAILSCALE_IP="$(tailscale ip -4 2>/dev/null | awk 'NR == 1 {print; exit}' || true)"
 fi
 
 log "Stack is ready at ${BASE_URL%/}"
@@ -73,20 +81,15 @@ else
 fi
 
 if [[ "$LAUNCH_REPLAY" == "1" ]]; then
-  replay_bin="$REPO_ROOT/sdth-replay/build/sdth-replay"
-  if [[ ! -x "$replay_bin" ]]; then
-    if command -v cmake >/dev/null 2>&1; then
-      log "Building sdth-replay"
-      cmake -S "$REPO_ROOT/sdth-replay" -B "$REPO_ROOT/sdth-replay/build" -DSDTH_REPLAY_BUILD_APP=ON
-      cmake --build "$REPO_ROOT/sdth-replay/build" --target sdth-replay
-    else
-      log "cmake not found; open the offline demo later with a prebuilt binary"
-      replay_bin=""
-    fi
-  fi
-  if [[ -x "$replay_bin" ]]; then
-    log "Launching C++ replay against ${BASE_URL%/}"
-    exec "$replay_bin" --latest --api "${BASE_URL%/}" --token "$API_KEY"
+  token_q="$(
+    python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$API_KEY"
+  )"
+  replay_url="${BASE_URL%/}/replay/?token=${token_q}&latest=1"
+  log "Opening Cesium replay at ${replay_url}"
+  if command -v open >/dev/null 2>&1; then
+    open "$replay_url" >/dev/null 2>&1 || true
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$replay_url" >/dev/null 2>&1 || true
   fi
 fi
 

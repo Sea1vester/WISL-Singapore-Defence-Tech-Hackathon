@@ -24,6 +24,7 @@ def client(tmp_path, monkeypatch):
 
     monkeypatch.setattr("app.ingest.enqueue_translation_job", noop_enqueue)
     monkeypatch.setattr("app.ingest.enqueue_raw_upload", noop_enqueue)
+    monkeypatch.setattr("app.datasets.enqueue_raw_upload", noop_enqueue)
 
     with TestClient(app) as test_client:
         yield test_client

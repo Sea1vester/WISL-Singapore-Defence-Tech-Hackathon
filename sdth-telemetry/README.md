@@ -294,6 +294,7 @@ PYTHONPATH=. .venv/bin/python -m parsers excel path/to/flight.xlsx -o normalized
 **Step 5 - Path handoff for 3D viz**
 
 Stable contract: `{ contract_version, flight_id, source, frame, units, count, samples[{t, lat, lon, alt_m, ...}] }`.
+The Cesium viewer on Laptop B consumes this from `GET /v1/flights/<id>/path` at `http://localhost:8000/replay/`.
 
 Offline from L1 JSON:
 

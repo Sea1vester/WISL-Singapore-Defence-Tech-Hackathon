@@ -9,7 +9,7 @@ Hermes, Orbiter, and aunav parsers are format-coverage claims from sample logs, 
 
 - [`sdth-telemetry/`](sdth-telemetry/README.md) — ingest API, deterministic canonical series, optional local Ollama enrichment, incident index, two-laptop demo scripts.
 - [`sdth-ingestion pipeline/`](sdth-ingestion%20pipeline/README.md) — in-house parsers plus the controller directory watcher.
-- [`sdth-replay/`](sdth-replay/README.md) — native C++ 3D replay.
+- [`sdth-replay/`](sdth-replay/README.md) - CesiumJS 3D replay served by the Laptop B API.
 - `sdth-telemetry/fixtures/demo/` — deterministic controller logs for the hackathon demo.
 
 ## Demo
@@ -18,7 +18,7 @@ The supported demo is a recorded raw-log workflow across two laptops over Tailsc
 See the [two-laptop demo runbook](sdth-telemetry/docs/two-laptop-demo.md).
 
 Laptop A drops a log into a watched directory.
-Laptop B parses, normalizes, detects incidents, and opens the C++ replay.
+Laptop B parses, normalizes, detects incidents, and opens the Cesium replay in a browser.
 
 ## Deferred and unsupported
 

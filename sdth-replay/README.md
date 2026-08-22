@@ -1,55 +1,56 @@
 # SDTH Replay
 
-Native C++ 3D replay for recorded WISL flights.
+CesiumJS 3D replay for recorded WISL flights.
 
-The viewer is an offline-capable raylib app. It maps WGS84 path samples into a
-local East-North-Up frame, animates a UAV along the recorded timestamps, and
-places incident markers from the telemetry API or bundled demo JSON.
+Laptop B serves the viewer at `/replay/` from the telemetry API.
+It draws WGS84 path samples on an ellipsoid globe with OpenStreetMap imagery, animates the UAV on the recorded clock, and overlays indexed incidents.
 
 This is not a live airframe or GCS client.
-
-## Build
-
-```bash
-cmake -S . -B build
-cmake --build build --target sdth-replay sdth_replay_tests
-ctest --test-dir build --output-on-failure
-```
+No Cesium Ion token is required.
+The default UAV is a small quadcopter (`public/assets/drone.glb`, CC BY 4.0, [amvlab/aircraft-models](https://github.com/amvlab/aircraft-models)).
 
 ## Run
 
-Offline fallback (no API required):
+Start the API on Laptop B, then open a browser:
 
 ```bash
-./build/sdth-replay
+cd sdth-telemetry
+./scripts/demo-laptop-b.sh
 ```
 
-Live API, including the latest ingested flight:
+Same-laptop ingest then replay:
 
 ```bash
-./build/sdth-replay --latest --api http://localhost:8000 --token "$INGEST_API_KEYS"
+cd sdth-telemetry
+./scripts/demo-local.sh
 ```
 
-Specific flights or local path JSON:
+Manual URL:
+
+```text
+http://localhost:8000/replay/?token=$INGEST_API_KEYS&latest=1
+http://localhost:8000/replay/?token=$INGEST_API_KEYS&flights=<id1>,<id2>
+```
+
+Without flight ids, the page loads the bundled offline demo JSON.
+The side panel lists ingested flights and files from `raw_telemetry-datasets/` on Laptop B.
+Select a dataset to parse it and visualize the path.
+
+## Tests
 
 ```bash
-./build/sdth-replay --file assets/demo_path.json --incidents assets/demo_incidents.json
-./build/sdth-replay --flight <flight-id> --api http://100.x.y.z:8000 --token "$INGEST_API_KEYS"
+node --test tests/flight.test.mjs
+```
+
+From `sdth-telemetry/platform-api`:
+
+```bash
+pytest tests/test_replay_viewer.py
 ```
 
 ## Controls
 
-- Space: play or pause
-- Timeline bar: scrub
-- Speed buttons: 0.25x to 4x
-- Right mouse: orbit
-- Shift + right mouse: pan
-- Wheel: zoom
-- F: follow UAV
-- R: reset camera
-- [ and ]: switch among loaded flights
-
-## What the panel shows
-
-Upload or demo status, flight metadata, battery, current event, detected
-incidents, and the evidence-backed report when the API has one.
+Cesium camera: pinch to zoom, drag to orbit the UAV (including from below), Home to reset.
+The globe uses real world elevation where available, drapes OSM imagery on that terrain, and plants OpenStreetMap trees near the flight.
+Play/pause and speed buttons drive the Cesium clock.
+Pick an ingested flight or a local dataset from the side panel.

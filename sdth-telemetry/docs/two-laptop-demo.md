@@ -1,7 +1,7 @@
 # Two-Laptop WISL Demo Runbook
 
 Laptop A simulates a controller by dropping a recorded raw log into a watched directory.
-Laptop B receives the file, parses it, normalizes it, detects incidents, and opens the C++ replay.
+Laptop B receives the file, parses it, normalizes it, detects incidents, and opens the Cesium replay in a browser.
 
 Both laptops should be on the same Tailscale tailnet.
 The API stays private to that tailnet. Do not expose it with Tailscale Funnel.
@@ -11,6 +11,8 @@ This demo uses recorded logs. It is not a live airframe or GCS connection.
 ## Before the demo
 
 Laptop B needs Docker Desktop, Tailscale, `curl`, and optionally Ollama with `deepseek-r1:7b`.
+Ollama is not required to turn vendor logs into canonical JSON.
+Parsers and `persist_canonical_series` do that. Ollama only enriches the incident write-up.
 Laptop A needs Tailscale, `curl`, Python 3, and the ingestion package on `PYTHONPATH`.
 Share a dedicated demo API key out of band. Do not commit it.
 
@@ -33,12 +35,15 @@ cd sdth-telemetry
 ./scripts/demo-laptop-b.sh
 ```
 
-The launcher starts Ollama if present, starts Docker Compose, waits for `/health`, prints the Tailscale URL for Laptop A, and launches `sdth-replay --latest`.
+The launcher starts Ollama if present, starts Docker Compose, waits for `/health`, prints the Tailscale URL for Laptop A, and opens `http://localhost:8000/replay/` on Laptop B.
 
-If cmake is missing, the API still starts. Build the replay later from `sdth-replay/README.md`, or use the bundled offline JSON:
+The viewer is served by the API.
+Laptop A does not open replay.
 
-```bash
-./sdth-replay/build/sdth-replay --file sdth-replay/assets/demo_path.json --incidents sdth-replay/assets/demo_incidents.json
+If a browser does not open, load:
+
+```text
+http://localhost:8000/replay/?token=$INGEST_API_KEYS&latest=1
 ```
 
 ## Laptop A - controller
@@ -62,34 +67,34 @@ curl -X POST http://100.x.y.z:8000/v1/mitigation-bulletins \
 
 ## Same-laptop fallback
 
-If Tailscale or the second laptop is unavailable:
+If Tailscale or the second laptop is unavailable, stay on this machine:
 
 ```bash
 cd sdth-telemetry
-LAUNCH_REPLAY=0 ./scripts/demo-laptop-b.sh
+./scripts/demo-laptop-b.sh
 ```
+
+Then ingest the recorded demo missions and open replay:
 
 ```bash
 cd sdth-telemetry
-API_KEY='replace-with-the-demo-key' \
-BASE_URL='http://localhost:8000' \
-ONCE=1 \
-./scripts/demo-laptop-a.sh fixtures/demo/controller_mission_alpha.csv
+./scripts/demo-local.sh
 ```
 
-Then open replay locally:
+That uploads `fixtures/demo/controller_mission_alpha.csv` and `controller_mission_bravo.csv`, waits for parse/normalize/detect, generates the GPS-warning report and mitigation bulletin, then opens the Cesium replay.
 
-```bash
-./sdth-replay/build/sdth-replay --latest --api http://localhost:8000 --token "$API_KEY"
-```
+Ollama is optional enrichment, not the JSON normalizer.
+If Ollama is down, path replay and the deterministic incident report still work, and model enrichment is marked degraded.
 
-Ollama can also be unavailable. Detection, path replay, and the deterministic incident report still work. Model enrichment is marked degraded.
+The replay side panel can also list files from `raw_telemetry-datasets/` on this machine.
+Select one to parse it and visualize it on the globe.
 
 ## What the demo proves
 
 - Dropping a recorded controller log uploads once, even if the file is dropped again.
 - Laptop B parses server-side, stores a full canonical series, and indexes geolocated incidents.
-- Replay animates the GPS path and places the GPS-warning marker.
+- Replay animates the GPS path on an OSM globe and places the GPS-warning marker.
+- Live GPS logs use Cesium camera controls and a mission-failure banner when incidents exist.
 - Two missions with the same signature produce a reviewable mitigation bulletin, not a vehicle command.
 
 ## Explicitly out of scope

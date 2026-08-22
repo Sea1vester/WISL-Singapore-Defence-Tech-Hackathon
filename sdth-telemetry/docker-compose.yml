@@ -11,8 +11,8 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: platform-api/Dockerfile
+      context: ..
+      dockerfile: sdth-telemetry/platform-api/Dockerfile
     ports:
       - "0.0.0.0:8000:8000"
     environment:
@@ -22,10 +22,16 @@ services:
       OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
       OLLAMA_MODEL: ${OLLAMA_MODEL:-deepseek-r1:7b}
       RAW_UPLOAD_DIR: /data/raw-uploads
+      RAW_DATASETS_DIR: /datasets
+      REPLAY_STATIC_DIR: /replay/public
       REDACT_OPERATOR_LOCATION: ${REDACT_OPERATOR_LOCATION:-true}
       RETENTION_DAYS: ${RETENTION_DAYS:-30}
     volumes:
       - sqlite-data:/data
+      - ../raw_telemetry-datasets:/datasets:ro
+      - ./platform-api/app:/app/app:ro
+      - ../sdth-replay/public:/replay/public:ro
+      - ../sdth-replay/src:/replay/src:ro
     depends_on:
       redis:
         condition: service_healthy
@@ -34,8 +40,8 @@ services:
 
   worker:
     build:
-      context: .
-      dockerfile: platform-api/Dockerfile
+      context: ..
+      dockerfile: sdth-telemetry/platform-api/Dockerfile
     command: ["python", "-m", "app.worker"]
     environment:
       DATABASE_PATH: /data/telemetry.db

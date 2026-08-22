@@ -1,0 +1,264 @@
+:root {
+  --ink: #202830;
+  --muted: #5c6a74;
+  --panel: rgba(248, 250, 247, 0.94);
+  --teal: #128c84;
+  --failure: #bc2a30;
+  --line: #cdd4cc;
+  font-family: system-ui, "Segoe UI", sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  color: var(--ink);
+  background: #9ec4de;
+}
+
+#cesiumContainer {
+  position: absolute;
+  inset: 0 380px 0 0;
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+#hud {
+  pointer-events: none;
+}
+
+#hud * {
+  pointer-events: auto;
+}
+
+.banner {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 404px;
+  min-height: 72px;
+  padding: 14px 44px 14px 22px;
+  border: 1px solid var(--line);
+  background: rgba(232, 244, 236, 0.94);
+  box-shadow: 0 8px 24px rgba(32, 40, 48, 0.12);
+}
+
+.banner[hidden] {
+  display: none;
+}
+
+.banner-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.banner.fail {
+  background: rgba(255, 236, 234, 0.96);
+  border-left: 8px solid var(--failure);
+}
+
+.banner.ok {
+  border-left: 8px solid var(--teal);
+}
+
+#bannerTitle {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.banner.fail #bannerTitle {
+  color: var(--failure);
+}
+
+.banner.ok #bannerTitle {
+  color: var(--teal);
+}
+
+#bannerMeta {
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+#bannerDescription {
+  margin-top: 6px;
+  font-size: 15px;
+}
+
+#panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 380px;
+  height: 100%;
+  overflow: auto;
+  padding: 18px 20px 96px;
+  box-sizing: border-box;
+  background: var(--panel);
+  border-left: 1px solid var(--line);
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+h2 {
+  margin: 18px 0 8px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.chip {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 5px 10px;
+  border: 0;
+  background: var(--failure);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dataset-row {
+  display: grid;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  background: #e8ece6;
+}
+
+.dataset-row button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.dataset-row.busy {
+  opacity: 0.85;
+}
+
+.progress {
+  height: 8px;
+  background: #d5ddd4;
+  overflow: hidden;
+}
+
+.progress > span {
+  display: block;
+  height: 100%;
+  background: var(--teal);
+  width: 0;
+}
+
+.progress-label {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+input,
+button {
+  font: inherit;
+}
+
+input[type="password"],
+input[type="search"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.status {
+  color: var(--teal);
+}
+
+.hint,
+.report {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.list {
+  display: grid;
+  gap: 6px;
+  max-height: 180px;
+  overflow: auto;
+}
+
+.list button,
+#speeds button,
+#playButton {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  background: #e8ece6;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.list button.active,
+#speeds button.active,
+#playButton.active {
+  background: var(--teal);
+  color: #fff;
+  border-color: var(--teal);
+}
+
+.list .dataset-row button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.list .dataset-row button:disabled {
+  cursor: default;
+}
+
+#transport {
+  position: absolute;
+  left: 16px;
+  bottom: 52px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#speeds {
+  display: flex;
+  gap: 6px;
+}
+
+#playButton {
+  min-width: 84px;
+  text-align: center;
+}
+
+.cesium-viewer-bottom {
+  left: 8px !important;
+  right: 388px !important;
+}
