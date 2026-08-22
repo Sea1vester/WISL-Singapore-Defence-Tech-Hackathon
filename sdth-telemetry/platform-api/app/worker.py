@@ -6,6 +6,8 @@ from pathlib import Path
 
 import redis
 
+from app.canonical_series import persist_canonical_series
+from app.config import settings
 from app.db import db_session, run_migrations
 from app.llm import translate_with_repair
 from app.queue import blocking_pop_work, enqueue_translation_job
@@ -123,6 +125,12 @@ def process_raw_upload(upload_id: str) -> None:
                     """,
                     (job_id, ingest_id, now, now),
                 )
+            persist_canonical_series(
+                conn,
+                ingest_id=ingest_id,
+                payload=payload,
+                parser=parser_key,
+            )
             provenance = {
                 "transport": "multipart",
                 "parser": parser_key,
@@ -172,45 +180,71 @@ def process_job(job_id: str) -> None:
 
     l1_payload = json.loads(ingest["payload_json"])
 
+    enrichment = None
+    enrichment_error = None
+    latency_ms = 0
+    model = settings.ollama_model
     try:
-        canonical, latency_ms, model = translate_with_repair(l1_payload)
+        enrichment, latency_ms, model = translate_with_repair(l1_payload)
     except Exception as exc:
-        logger.exception("Translation failed for job %s", job_id)
-        with db_session() as conn:
-            _set_job_status(conn, job_id, "failed", str(exc))
-        return
+        enrichment_error = f"Model enrichment unavailable: {exc}"
+        logger.warning("%s", enrichment_error)
 
-    record_id = new_id()
-    recorded_at = canonical.get("timestamp_utc") or l1_payload.get("timestamp_utc")
-
+    enrichment_id = new_id()
     with db_session() as conn:
-        conn.execute(
-            """
-            INSERT INTO canonical_records (
-              id, ingest_id, flight_id, recorded_at, canonical_json,
-              llm_model, llm_latency_ms, validation_ok
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-            """,
-            (
-                record_id,
-                ingest["id"],
-                ingest["flight_id"],
-                recorded_at,
-                json.dumps(canonical),
-                model,
-                latency_ms,
-            ),
-        )
-        _set_job_status(conn, job_id, "done")
+        if enrichment is not None:
+            conn.execute(
+                """
+                INSERT INTO normalization_enrichments (
+                  id, ingest_id, flight_id, enrichment_json,
+                  llm_model, llm_latency_ms, validation_ok
+                ) VALUES (?, ?, ?, ?, ?, ?, 1)
+                """,
+                (
+                    enrichment_id,
+                    ingest["id"],
+                    ingest["flight_id"],
+                    json.dumps(enrichment),
+                    model,
+                    latency_ms,
+                ),
+            )
+        _set_job_status(conn, job_id, "done", enrichment_error)
+        upload = conn.execute(
+            "SELECT id FROM raw_uploads WHERE ingest_id = ?",
+            (ingest["id"],),
+        ).fetchone()
+        if upload:
+            _set_upload_status(
+                conn,
+                upload["id"],
+                "detecting",
+                error=enrichment_error,
+            )
 
     try:
         from app.incidents import index_flight
 
         index_flight(ingest["flight_id"])
-    except Exception:
+        if upload:
+            with db_session() as conn:
+                _set_upload_status(
+                    conn,
+                    upload["id"],
+                    "ready",
+                    error=enrichment_error,
+                )
+    except Exception as exc:
         logger.exception("Incident indexing failed for flight %s", ingest["flight_id"])
+        if upload:
+            with db_session() as conn:
+                _set_upload_status(conn, upload["id"], "failed", error=str(exc))
 
-    logger.info("Job %s done -> canonical record %s", job_id, record_id)
+    logger.info(
+        "Job %s done; deterministic series retained, enrichment=%s",
+        job_id,
+        "available" if enrichment is not None else "degraded",
+    )
 
 
 def run_worker() -> None:

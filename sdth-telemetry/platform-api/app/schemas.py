@@ -149,6 +149,43 @@ CANONICAL_JSON_SCHEMA: dict[str, Any] = {
     "additionalProperties": False,
 }
 
+ERROR_ENRICHMENT_SCHEMA: dict[str, Any] = {
+    "type": "object",
+    "required": ["flight_id", "errors", "summary", "limitations"],
+    "properties": {
+        "flight_id": {"type": "string"},
+        "errors": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["timestamp_utc", "code", "category", "summary", "confidence"],
+                "properties": {
+                    "timestamp_utc": {"type": "string"},
+                    "code": {"type": "string"},
+                    "category": {
+                        "type": "string",
+                        "enum": [
+                            "battery",
+                            "navigation",
+                            "propulsion",
+                            "communications",
+                            "sensor",
+                            "flight_control",
+                            "unknown",
+                        ],
+                    },
+                    "summary": {"type": "string"},
+                    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+                },
+                "additionalProperties": False,
+            },
+        },
+        "summary": {"type": "string"},
+        "limitations": {"type": "string"},
+    },
+    "additionalProperties": False,
+}
+
 
 def new_id() -> str:
     return str(uuid4())

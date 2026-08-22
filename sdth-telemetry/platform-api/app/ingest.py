@@ -6,6 +6,7 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
 
 from app.auth import require_api_key
+from app.canonical_series import persist_canonical_series
 from app.config import settings
 from app.db import db_session
 from app.queue import enqueue_raw_upload, enqueue_translation_job
@@ -88,6 +89,12 @@ def ingest_telemetry(payload: IngestPayload, _: str = Depends(require_api_key)) 
         except Exception as exc:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Duplicate ingest") from exc
 
+        persist_canonical_series(
+            conn,
+            ingest_id=ingest_id,
+            payload=payload.model_dump(),
+            parser="api-l1",
+        )
         now = datetime.now(timezone.utc).isoformat()
         conn.execute(
             """

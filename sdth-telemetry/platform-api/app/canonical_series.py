@@ -9,8 +9,12 @@ from __future__ import annotations
 import json
 import math
 from typing import Any
+from uuid import uuid4
+
+import jsonschema
 
 from app.path_export import _num
+from app.schemas import CANONICAL_JSON_SCHEMA
 
 # Same default home as PX4 SITL / local-NED projection in the parsers.
 _ORIGIN_LAT = 1.3521
@@ -153,6 +157,64 @@ def series_from_l1_payload(payload: dict[str, Any]) -> list[dict[str, Any]]:
             )
         )
     return series
+
+
+def persist_canonical_series(
+    conn,
+    *,
+    ingest_id: str,
+    payload: dict[str, Any],
+    parser: str,
+) -> int:
+    """Persist every L1 sample as deterministic, schema-valid canonical telemetry."""
+    series = series_from_l1_payload(payload)
+    conn.execute("DELETE FROM canonical_records WHERE ingest_id = ?", (ingest_id,))
+    for canonical in series:
+        frame = (canonical.get("metadata") or {}).get("frame")
+        value_origin = {
+            "telemetry_fields": "observed",
+            "canonical_structure": "derived",
+            "position": "derived" if frame == "local_ned" else "observed",
+            "model_enrichment": "none",
+        }
+        canonical["metadata"] = {
+            **(canonical.get("metadata") or {}),
+            "schema_version": "1.0",
+            "normalization": "deterministic",
+            "value_origin": value_origin,
+        }
+        jsonschema.validate(instance=canonical, schema=CANONICAL_JSON_SCHEMA)
+        record_id = str(uuid4())
+        conn.execute(
+            """
+            INSERT INTO canonical_records (
+              id, ingest_id, flight_id, recorded_at, canonical_json,
+              llm_model, llm_latency_ms, validation_ok
+            ) VALUES (?, ?, ?, ?, ?, NULL, NULL, 1)
+            """,
+            (
+                record_id,
+                ingest_id,
+                payload["flight_id"],
+                canonical["timestamp_utc"],
+                json.dumps(canonical),
+            ),
+        )
+        conn.execute(
+            """
+            INSERT INTO normalization_provenance (
+              canonical_record_id, parser, source_format, schema_version,
+              validation_status, value_origin
+            ) VALUES (?, ?, ?, '1.0', 'schema_valid', ?)
+            """,
+            (
+                record_id,
+                parser,
+                payload.get("source") or "unknown",
+                json.dumps(value_origin),
+            ),
+        )
+    return len(series)
 
 
 def normalize_l2(canonical: dict[str, Any], *, source: str | None = None, recorded_at: str | None = None) -> dict[str, Any]:
