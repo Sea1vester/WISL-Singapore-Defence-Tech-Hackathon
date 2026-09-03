@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     job_queue_key: str = "sdth:translation_jobs"
     raw_upload_queue_key: str = "sdth:raw_uploads"
     raw_upload_dir: str = "./data/raw-uploads"
+    visuals_dir: str = "./data/visuals"
     raw_upload_max_bytes: int = 100 * 1024 * 1024
     raw_datasets_dir: str = Field(default_factory=_default_datasets_dir)
     replay_static_dir: str = Field(default_factory=_default_replay_dir)

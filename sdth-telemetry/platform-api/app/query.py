@@ -44,6 +44,37 @@ def list_flights(
     return FlightsListResponse(items=items, total=total, offset=offset, limit=limit)
 
 
+@router.get("/flights/{flight_id}", response_model=FlightSummary)
+def get_flight(
+    flight_id: str,
+    include_visuals: bool = Query(default=True, description="Attach visual thumbnail summary"),
+    _: str = Depends(require_api_key),
+) -> FlightSummary:
+    with db_session() as conn:
+        row = conn.execute(
+            "SELECT id, source, started_at, ended_at, created_at FROM flights WHERE id = ?",
+            (flight_id,),
+        ).fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Flight not found")
+    summary = FlightSummary(**dict(row))
+    if include_visuals:
+        from app.visuals import list_visuals
+        visuals = list_visuals(flight_id, limit=50)
+        summary.visuals = [
+            {
+                "id": v["id"],
+                "kind": v["kind"],
+                "mime_type": v["mime_type"],
+                "caption": v.get("caption"),
+                "recorded_at": v["recorded_at"],
+                "file_url": f"/v1/visuals/{v['id']}/file",
+            }
+            for v in visuals
+        ]
+    return summary
+
+
 @router.get("/flights/{flight_id}/records", response_model=RecordsListResponse)
 def list_flight_records(
     flight_id: str,

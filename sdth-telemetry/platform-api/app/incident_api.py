@@ -63,12 +63,35 @@ def index_incidents(
 
 
 @router.get("/flights/{flight_id}/incidents")
-def get_flight_incidents(flight_id: str, _: str = Depends(require_api_key)) -> dict[str, Any]:
+def get_flight_incidents(
+    flight_id: str,
+    include_visuals: bool = Query(default=True, description="Attach visual thumbnail metadata to each incident"),
+    _: str = Depends(require_api_key),
+) -> dict[str, Any]:
     with db_session() as conn:
         flight = conn.execute("SELECT id FROM flights WHERE id = ?", (flight_id,)).fetchone()
         if not flight:
             raise HTTPException(status_code=404, detail="Flight not found")
     items = list_flight_incidents(flight_id)
+    if include_visuals:
+        from app.visuals import list_visuals
+
+        # Build a map of incident_id -> list of visual metadata dicts
+        all_visuals = list_visuals(flight_id, limit=1000)
+        visuals_by_incident: dict[str | None, list[dict[str, Any]]] = {}
+        for v in all_visuals:
+            key = v.get("incident_id")
+            visuals_by_incident.setdefault(key, []).append({
+                "id": v["id"],
+                "kind": v["kind"],
+                "mime_type": v["mime_type"],
+                "caption": v.get("caption"),
+                "recorded_at": v["recorded_at"],
+                "file_url": f"/v1/visuals/{v['id']}/file",
+            })
+        for item in items:
+            incident_id = item.get("id")
+            item["visuals"] = visuals_by_incident.get(incident_id, [])
     return {"flight_id": flight_id, "count": len(items), "items": items}
 
 

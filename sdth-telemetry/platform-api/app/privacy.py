@@ -100,5 +100,11 @@ def apply_retention(conn, *, retention_days: int) -> int:
         conn.execute("DELETE FROM canonical_records WHERE flight_id = ?", (flight_id,))
         conn.execute("DELETE FROM ingest_events WHERE flight_id = ?", (flight_id,))
         conn.execute("DELETE FROM raw_uploads WHERE flight_id = ?", (flight_id,))
+        # Cascade-delete visual files + DB rows before removing the flight row
+        try:
+            from app.visuals import delete_visuals_for_flight
+            delete_visuals_for_flight(flight_id)
+        except Exception:
+            pass  # best-effort; files may already be gone
         conn.execute("DELETE FROM flights WHERE id = ?", (flight_id,))
     return len(flights)

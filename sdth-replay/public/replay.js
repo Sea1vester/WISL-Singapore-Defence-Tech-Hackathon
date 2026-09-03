@@ -757,6 +757,9 @@ function renderHud(flight, pose) {
         .join("")
     : "<p>No indexed incidents</p>";
   els.reportText.textContent = flight.mission_summary || flight.report_text || "No report yet.";
+  // Auto-capture a screenshot the first time each incident becomes visible
+  const isoTimestamp = formatIso8601Utc(pose.time_s);
+  maybeCaptureIncidentScreenshot(flight, banner, isoTimestamp);
 }
 
 async function showActiveFlight() {
@@ -777,6 +780,71 @@ async function showActiveFlight() {
     return;
   }
   setStatus(flight.upload_status || "ready");
+}
+
+// ---------------------------------------------------------------------------
+// Visual records: screenshot capture
+// ---------------------------------------------------------------------------
+
+// Track which incident ids we have already captured so we don't duplicate.
+const _capturedIncidents = new Set();
+
+/**
+ * Capture the current Cesium canvas and POST it to the visuals API.
+ * Silent on failure - never interrupts the replay.
+ *
+ * @param {string} flightId
+ * @param {string} isoTimestamp  - recorded_at for the visual record
+ * @param {string|null} incidentId
+ * @param {string} caption
+ */
+async function captureAndUploadScreenshot(flightId, isoTimestamp, incidentId, caption) {
+  if (!state.token) return;
+  try {
+    // Force Cesium to render a fresh frame before capturing
+    state.viewer.scene.render();
+    const dataUrl = await new Promise((resolve, reject) => {
+      state.viewer.scene.canvas.toBlob(
+        (blob) => (blob ? resolve(blob) : reject(new Error("Canvas toBlob returned null"))),
+        "image/png",
+      );
+    });
+    const params = new URLSearchParams({
+      kind: "cesium_screenshot",
+      recorded_at: isoTimestamp,
+      source: "replay",
+      caption,
+      ...(incidentId ? { incident_id: incidentId } : {}),
+    });
+    await fetch(`${apiBase()}/v1/flights/${flightId}/visuals?${params}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${state.token}` },
+      body: (() => {
+        const fd = new FormData();
+        fd.append("file", dataUrl, "screenshot.png");
+        return fd;
+      })(),
+    });
+  } catch {
+    // Silent - screenshot capture is best-effort
+  }
+}
+
+/**
+ * Called from renderHud when an incident banner transitions to a new incident.
+ * Captures a screenshot once per unique incident id.
+ */
+function maybeCaptureIncidentScreenshot(flight, banner, isoTimestamp) {
+  if (!banner.failed) return;
+  const incidentId = banner.incident?.id || null;
+  const dedupeKey = incidentId || `${banner.type}:${isoTimestamp}`;
+  if (_capturedIncidents.has(dedupeKey)) return;
+  _capturedIncidents.add(dedupeKey);
+  const caption = `[${banner.severity}] ${banner.type} at ${isoTimestamp}`;
+  // Schedule capture on next animation frame so Cesium has drawn the current state
+  requestAnimationFrame(() =>
+    captureAndUploadScreenshot(flight.flight_id, isoTimestamp, incidentId, caption),
+  );
 }
 
 function attachClock() {

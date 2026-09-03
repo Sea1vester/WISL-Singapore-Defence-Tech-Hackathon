@@ -55,6 +55,7 @@ class FlightSummary(BaseModel):
     started_at: str
     ended_at: str | None = None
     created_at: str | None = None
+    visuals: list[Any] | None = None
 
 
 class FlightsListResponse(BaseModel):

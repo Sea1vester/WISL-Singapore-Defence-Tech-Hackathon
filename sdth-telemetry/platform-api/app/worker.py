@@ -261,6 +261,14 @@ def process_job(job_id: str) -> None:
             with db_session() as conn:
                 _set_upload_status(conn, upload["id"], "failed", error=str(exc))
 
+    # Eagerly generate sensor charts now that canonical records are ready
+    try:
+        from app.chart_export import export_charts_for_flight
+
+        export_charts_for_flight(ingest["flight_id"])
+    except Exception:
+        logger.exception("Chart export failed for flight %s", ingest["flight_id"])
+
     logger.info(
         "Job %s done; deterministic series retained, enrichment=%s",
         job_id,

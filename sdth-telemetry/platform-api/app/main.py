@@ -13,6 +13,7 @@ from app.datasets import router as datasets_router
 from app.incident_api import router as incident_router
 from app.ingest import router as ingest_router
 from app.query import router as query_router
+from app.visual_api import router as visual_router
 
 logger = logging.getLogger("sdth")
 
@@ -46,6 +47,7 @@ app.include_router(query_router)
 app.include_router(analytics_router)
 app.include_router(incident_router)
 app.include_router(datasets_router)
+app.include_router(visual_router)
 
 
 @app.get("/health")
