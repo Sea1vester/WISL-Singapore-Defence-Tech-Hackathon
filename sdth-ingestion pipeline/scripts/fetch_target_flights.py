@@ -26,7 +26,12 @@ from pathlib import Path
 
 # Substring patterns (lowercase) used to match a flight's "source" field to a target
 # platform. Add aliases here if the API's naming convention doesn't match a real flight.
+# Cheap/COTS brands are the focus; the two tactical-platform entries stay only for
+# backward-compat with flights already ingested under those labels.
 TARGET_PLATFORMS: dict[str, list[str]] = {
+    "DJI": ["dji", "mavic", "phantom", "mini 4", "air 3", "matrice"],
+    "PX4 / Auterion (FPV, DIY, budget autopilot builds)": ["px4", "auterion"],
+    "ArduPilot (FPV, DIY, budget autopilot builds)": ["ardupilot", "arducopter", "arduplane"],
     "Elbit Systems Hermes 900": ["hermes 900", "hermes900", "elbit hermes", "elbit systems hermes"],
     "Aeronautics Orbiter 4": ["orbiter 4", "orbiter4", "aeronautics orbiter"],
     "ST Engineering Taurus UGV": ["taurus ugv", "taurus", "st engineering taurus"],
@@ -95,9 +100,9 @@ def main() -> None:
 
     if not matched:
         print(
-            "No flights matched the target platforms (Elbit Hermes 900, Aeronautics Orbiter 4, "
-            "ST Engineering Taurus UGV). If you expect data, check ingest status with Isaac or "
-            "confirm the translation worker is running (ask Sylvester)."
+            "No flights matched the target platforms (DJI, PX4/Auterion, ArduPilot, plus the "
+            "legacy Hermes 900 / Orbiter 4 / Taurus UGV aliases). If you expect data, check "
+            "ingest status with Isaac or confirm the translation worker is running (ask Sylvester)."
         )
         return
 

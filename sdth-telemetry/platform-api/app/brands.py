@@ -21,6 +21,9 @@ class Brand:
 
 
 # Order matters: first match wins. More specific markers before generic ones.
+# Cheap/COTS brands lead the catalog — that's the fleet we're actually sized for.
+# The two tactical-platform entries stay for format coverage and backward-compat with
+# already-ingested test flights, but are no longer the headline target segment.
 BRANDS: tuple[Brand, ...] = (
     Brand(
         id="dji",
@@ -29,6 +32,22 @@ BRANDS: tuple[Brand, ...] = (
         log_formats=("FlightRecord CSV", "Excel FlightRecord"),
         source_markers=("dji-csv", "dji-excel"),
         model_markers=("dji", "mini 4", "mavic", "phantom", "air 3", "matrice"),
+    ),
+    Brand(
+        id="px4",
+        name="PX4 / Auterion",
+        family="autopilot",
+        log_formats=("ULog .ulg", ".ulog"),
+        source_markers=("px4-ulg", "px4", "auterion"),
+        model_markers=("px4", "auterion"),
+    ),
+    Brand(
+        id="ardupilot",
+        name="ArduPilot",
+        family="autopilot",
+        log_formats=("DataFlash .bin", "MAVLink .tlog"),
+        source_markers=("ardupilot-bin", "ardupilot-tlog", "ardupilot"),
+        model_markers=("ardupilot", "arducopter", "arduplane"),
     ),
     Brand(
         id="hermes900",
@@ -53,22 +72,6 @@ BRANDS: tuple[Brand, ...] = (
         log_formats=("ROS console", ".ros", ".aunav"),
         source_markers=("aunav", "taurus"),
         model_markers=("aunav", "neo hd", "taurus"),
-    ),
-    Brand(
-        id="px4",
-        name="PX4 / Auterion",
-        family="autopilot",
-        log_formats=("ULog .ulg", ".ulog"),
-        source_markers=("px4-ulg", "px4", "auterion"),
-        model_markers=("px4", "auterion"),
-    ),
-    Brand(
-        id="ardupilot",
-        name="ArduPilot",
-        family="autopilot",
-        log_formats=("DataFlash .bin", "MAVLink .tlog"),
-        source_markers=("ardupilot-bin", "ardupilot-tlog", "ardupilot"),
-        model_markers=("ardupilot", "arducopter", "arduplane"),
     ),
 )
 

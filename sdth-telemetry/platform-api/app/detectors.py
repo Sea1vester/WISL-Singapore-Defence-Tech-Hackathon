@@ -8,8 +8,9 @@ Why these numbers:
   in a minute.
 - Altitude 25 m step / 20 m/s vertical: DJI max climb is ~6 m/s; a 25 m jump
   between 1 Hz samples is a spike or drop, not flight.
-- Ground speed 120 m/s (air) / 15 m/s (UGV): Hermes 900 cruise is ~60 m/s.
-  120 m/s implied between samples is a GPS jump. Taurus UGV cannot do 15 m/s.
+- Ground speed 120 m/s (air) / 15 m/s (UGV): a DJI multirotor or PX4/ArduPilot FPV
+  build cruises well under 30 m/s. 120 m/s implied between samples is a GPS jump.
+  A ground rig cannot do 15 m/s.
 - Attitude 40 deg / 70 deg: level flight stays well under 30 deg roll/pitch.
   70 deg is tumble/crash territory.
 - Gap 15 s: 1 Hz streams that go silent that long are a dropout, not jitter.

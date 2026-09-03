@@ -1,0 +1,73 @@
+<svg viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison: a vendor-opcode approach needs one detector per cheap drone brand and does not generalize; the physics-threshold approach normalizes every brand into one schema first, so a single set of detectors covers all of them.">
+  <defs>
+    <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f2937"/>
+    </marker>
+  </defs>
+  <style>
+    text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; fill: #1f2937; }
+    .box { fill: #ffffff; stroke: #1f2937; stroke-width: 1.5; }
+    .box-muted { fill: #f3f4f2; stroke: #9aa3a9; stroke-width: 1.5; stroke-dasharray: 3 3; }
+    .box-accent { fill: #e6f4f2; stroke: #128c84; stroke-width: 2; }
+    .title { font-size: 12px; font-weight: 600; text-anchor: middle; }
+    .sub { font-size: 10.5px; fill: #5c6a74; text-anchor: middle; }
+    .lane { font-size: 13px; font-weight: 700; text-anchor: middle; }
+    .verdict { font-size: 11px; text-anchor: middle; font-style: italic; }
+    path.conn { stroke: #1f2937; stroke-width: 1.5; fill: none; marker-end: url(#arrow3); }
+  </style>
+
+  <!-- LEFT LANE: vendor opcodes -->
+  <text class="lane" x="220" y="28" fill="#5c6a74">Vendor-opcode approach</text>
+
+  <rect class="box" x="20" y="55" width="130" height="45" rx="4"/>
+  <text class="title" x="85" y="82">DJI log</text>
+  <rect class="box" x="160" y="55" width="130" height="45" rx="4"/>
+  <text class="title" x="225" y="82">PX4 ULog</text>
+  <rect class="box" x="300" y="55" width="130" height="45" rx="4"/>
+  <text class="title" x="365" y="82">ArduPilot log</text>
+
+  <path d="M85 100 L85 140" class="conn"/>
+  <path d="M225 100 L225 140" class="conn"/>
+  <path d="M365 100 L365 140" class="conn"/>
+
+  <rect class="box-muted" x="20" y="140" width="130" height="50" rx="4"/>
+  <text class="title" x="85" y="163">Detector A</text>
+  <text class="sub" x="85" y="178">DJI codes</text>
+  <rect class="box-muted" x="160" y="140" width="130" height="50" rx="4"/>
+  <text class="title" x="225" y="163">Detector B</text>
+  <text class="sub" x="225" y="178">PX4 codes</text>
+  <rect class="box-muted" x="300" y="140" width="130" height="50" rx="4"/>
+  <text class="title" x="365" y="163">Detector C</text>
+  <text class="sub" x="365" y="178">ArduPilot codes</text>
+
+  <text class="verdict" x="225" y="220" fill="#bc2a30">3 detectors, 0 shared code — breaks on the next budget brand</text>
+
+  <!-- divider -->
+  <line x1="460" y1="20" x2="460" y2="380" stroke="#cdd4cc" stroke-width="1"/>
+
+  <!-- RIGHT LANE: physics thresholds -->
+  <text class="lane" x="670" y="28" fill="#128c84">Physics-threshold approach</text>
+
+  <rect class="box" x="490" y="55" width="120" height="45" rx="4"/>
+  <text class="title" x="550" y="82">DJI log</text>
+  <rect class="box" x="620" y="55" width="120" height="45" rx="4"/>
+  <text class="title" x="680" y="82">PX4 ULog</text>
+  <rect class="box" x="750" y="55" width="120" height="45" rx="4"/>
+  <text class="title" x="810" y="82">ArduPilot log</text>
+
+  <path d="M550 100 C 550 120, 670 130, 670 140" class="conn"/>
+  <path d="M680 100 L680 140" class="conn"/>
+  <path d="M810 100 C 810 120, 690 130, 690 140" class="conn"/>
+
+  <rect class="box-accent" x="590" y="140" width="180" height="50" rx="4"/>
+  <text class="title" x="680" y="163">Canonical L2 schema</text>
+  <text class="sub" x="680" y="178">position · attitude · battery</text>
+
+  <path d="M680 190 L680 230" class="conn"/>
+
+  <rect class="box-accent" x="580" y="230" width="200" height="55" rx="4"/>
+  <text class="title" x="680" y="254">One detector</text>
+  <text class="sub" x="680" y="270">speed / battery / attitude / gap thresholds</text>
+
+  <text class="verdict" x="680" y="320" fill="#128c84">1 detector, covers every normalized platform</text>
+</svg>

@@ -13,8 +13,9 @@ from app.detectors import detect_incidents
 from app.incidents import index_flight, rebuild_patterns
 from app.schemas import new_id
 
-# Conservative laptop/SBC budgets. Hermes/Orbiter/UGV ingest is bursty, not a
-# 100 kHz stream. Missing these means the index is too heavy for the edge box.
+# Conservative laptop/SBC budgets. A DJI/PX4/ArduPilot flight log lands as a bursty
+# batch ingest, not a 100 kHz stream. Missing these means the index is too heavy for
+# the edge box a cheap-fleet operator is actually running.
 MAX_DETECT_MS_PER_2K = 750
 MAX_INDEX_MS = 1500
 MAX_PATTERN_QUERY_MS = 200
