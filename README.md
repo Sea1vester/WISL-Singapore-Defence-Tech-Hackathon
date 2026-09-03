@@ -1,9 +1,8 @@
 # WISL — Singapore Defence Tech Hackathon
 
-Multi-vendor drone telemetry: parse recorded logs, normalize to one JSON schema, store in SQLite, index incidents across missions, and replay them in 3D.
+Multi-vendor drone telemetry: parse recorded logs, normalize to one JSON schema, store in SQLite, index incidents across missions, and replay them in 3D. Focused on cheap, commercial-off-the-shelf drone fleets (DJI, PX4/Auterion, ArduPilot — the flight stacks behind most budget and DIY/FPV builds), where fragmentation across brands is worse and fleets are far larger than a handful of named platforms.
 
-Target parser coverage: DJI, PX4/Auterion, ArduPilot, Elbit Hermes 900, Aeronautics Orbiter 4, aunav.NEO HD (Taurus UGV).
-Hermes, Orbiter, and aunav parsers are format-coverage claims from sample logs, not hardware-validated flights.
+Target parser coverage: DJI, PX4/Auterion, ArduPilot. Elbit Hermes 900, Aeronautics Orbiter 4, and aunav.NEO HD (Taurus UGV) remain supported as legacy format-coverage claims from sample logs, not hardware-validated flights, but are no longer the project's headline target.
 
 ## Layout
 
