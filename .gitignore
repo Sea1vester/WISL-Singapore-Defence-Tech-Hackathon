@@ -12,5 +12,6 @@ __pycache__/
 package-lock.json
 treehouse.toml
 raw_telemetry-datasets
+datasets/
 sdth-replay/build/
 sdth-telemetry/demo-output/
