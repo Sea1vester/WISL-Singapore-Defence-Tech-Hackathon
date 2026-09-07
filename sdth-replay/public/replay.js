@@ -542,6 +542,88 @@ async function loadOsmTrees(bounds, limit = 80) {
   return trees;
 }
 
+UXO_INCIDENT_TYPES = new Set(["mission_incomplete", "last_known_position", "operator_marked_debris"]);
+
+let _hazardAnimationCancelled = false;
+
+async function _animateHazardCircle(hazardCircle) {
+  const material = hazardCircle.ellipse.material;
+  const startTime = performance.now();
+  const duration = 3000;
+  function tick() {
+    if (_hazardAnimationCancelled) return;
+    const elapsed = (performance.now() - startTime) % duration;
+    const t = elapsed / duration;
+    const pulse = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * Math.PI * 2));
+    if (material.color) {
+      material.color.alpha = pulse * 0.65;
+    }
+    if (material.outline) {
+      const outlineAlpha = 0.5 + 0.5 * pulse;
+      material.outlineAlpha = outlineAlpha;
+    }
+    hazardCircle.ellipse.extrudedHeight = globeAltM(
+      state.flights[state.active],
+      hazardCircle.altOffset || 0,
+      0,
+    ) + pulse * 2;
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+function _makePulsingHazardMaterial() {
+  return new Cesium.ColorMaterialProperty(
+    new Cesium.Color(0.85, 0.05, 0.05, 0.45),
+  );
+}
+
+async function addHazardCircles(flight, incidentHeights) {
+  const hazards = flight.incidents.filter(
+    (incident) =>
+      incident.lat != null &&
+      incident.lon != null &&
+      UXO_INCIDENT_TYPES.has(incident.type),
+  );
+  if (!hazards.length) return [];
+  const circleEntities = [];
+  const radiusM = 50;
+  for (const hazard of hazards) {
+    const alt = globeAltM(flight, hazard.alt_m, incidentHeights[0] || 0);
+    const center = Cesium.Cartesian3.fromDegrees(hazard.lon, hazard.lat, alt);
+    const circle = state.viewer.entities.add({
+      id: `hazard-${hazard.id || hazard.type}-${flight.flight_id}`,
+      position: center,
+      ellipse: {
+        semiMinorAxis: radiusM,
+        semiMajorAxis: radiusM,
+        height: alt,
+        material: _makePulsingHazardMaterial(),
+        outline: true,
+        outlineColor: Cesium.Color.fromCssColorString("#ff1a1a"),
+        outlineWidth: 2,
+        extrudedHeight: alt + 1,
+      },
+      label: {
+        text: `UXO hazard zone (${radiusM}m radius)`,
+        font: "12px sans-serif",
+        fillColor: Cesium.Color.RED,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 2,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cesium.Cartesian2(0, -radiusM - 10),
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
+    circleEntities.push(circle);
+  }
+  for (const circle of circleEntities) {
+    _animateHazardCircle(circle);
+  }
+  return circleEntities;
+}
+
 function addTreeToGlobe(tree, index) {
   const trunk = state.viewer.entities.add({
     id: `tree-trunk-${index}`,
@@ -667,7 +749,8 @@ async function addFlightToGlobe(flight, color, track) {
   } catch {
     // OSM trees are decorative; a blocked Overpass query should not break replay.
   }
-  state.entities.push(pathEntity, uav, ...markers, ...trees);
+  const hazardCircles = await addHazardCircles(flight, incidentHeights);
+  state.entities.push(pathEntity, uav, ...markers, ...trees, ...hazardCircles);
   if (track) {
     state.viewer.trackedEntity = undefined;
     state.viewer.flyTo(pathEntity, { duration: 1.2 }).then(() => {

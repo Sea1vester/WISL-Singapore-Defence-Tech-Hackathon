@@ -47,6 +47,16 @@ def dji_l1(flight_id: str = "flight-dji", *, inject: str | None = "warning") -> 
         if inject == "battery_low" and i >= 5:
             record["battery_pct"] = 12.0
         records.append(record)
+    if inject is None:
+        records.append({
+            "timestamp_utc": _ts(8),
+            "lat": 1.3521,
+            "lon": 103.8198,
+            "alt_m": 35.0,
+            "flight_mode": "LAND",
+            "battery_pct": 50,
+            "drone_model": "Mini 4 Pro",
+        })
     return _payload(flight_id, "dji-csv", records)
 
 

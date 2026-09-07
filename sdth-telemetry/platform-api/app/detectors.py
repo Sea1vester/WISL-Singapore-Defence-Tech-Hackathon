@@ -39,6 +39,11 @@ ATTITUDE_CRIT_DEG = 70.0
 GAP_S = 15.0
 MERGE_GAP_S = 5.0
 EARTH_RADIUS_M = 6_371_000.0
+UXO_FROZEN_POSITION_S = 30.0
+AIRBORNE_MODES = ("P-GPS", "ATTI", "LOITER", "ALTHOLD", "RTL", "SMART_RTH", "POSITION", "GUIDED", "AUTO", "ORBIT", "LAND", "FBWA", "FLIP", "ACRO", "STABILIZE", "SPORT", "MOVIE", "CINE", "TRIP")
+LAND_MODES = ("LAND", "AUTO_LAND", "LANDING", "RTH_LAND")
+
+UXO_INCIDENT_TYPES = {"mission_incomplete", "last_known_position", "operator_marked_debris"}
 
 WARNING_KEYWORDS = (
     "gps",
@@ -145,13 +150,197 @@ def _warning_text(sample: dict[str, Any]) -> str:
     return " ".join(str(part) for part in parts if part).strip()
 
 
-def detect_incidents(series: list[dict[str, Any]]) -> list[DetectedIncident]:
+def _is_airborne(flight_mode: str | None) -> bool:
+    if not flight_mode:
+        return False
+    upper = flight_mode.upper().strip()
+    if upper in LAND_MODES:
+        return False
+    return upper in AIRBORNE_MODES or upper not in {"GROUNDED", "ON_GROUND", "DISARMED"}
+
+
+def _velocity_from_series(series: list[dict[str, Any]], i: int) -> float:
+    if i < 1:
+        return 0.0
+    prev = series[i - 1]
+    curr = series[i]
+    dt = _dt_seconds(prev, curr, fallback=1.0)
+    if dt <= 0:
+        return 0.0
+    prev_pos = prev.get("position") or {}
+    curr_pos = curr.get("position") or {}
+    lat1, lon1 = _num(prev_pos.get("lat")), _num(prev_pos.get("lon"))
+    lat2, lon2 = _num(curr_pos.get("lat")), _num(curr_pos.get("lon"))
+    if None not in (lat1, lon1, lat2, lon2):
+        return _haversine_m(lat1, lon1, lat2, lon2) / dt
+    n1, e1 = _num(prev.get("sensors") or {}).get("north_m"), _num(prev.get("sensors") or {}).get("east_m")
+    n2, e2 = _num((curr.get("sensors") or {})).get("north_m"), _num((curr.get("sensors") or {})).get("east_m")
+    if None not in (n1, e1, n2, e2):
+        return math.hypot(n2 - n1, e2 - e1) / dt
+    return 0.0
+
+
+def _imu_indicates_motion(series: list[dict[str, Any]], i: int) -> bool:
+    """Heuristic: yaw or attitude is actively changing, suggesting IMU detects motion."""
+    if i < 1:
+        return False
+    prev = series[i - 1]
+    curr = series[i]
+    attitude_prev = prev.get("attitude")
+    attitude_curr = curr.get("attitude")
+    if not isinstance(attitude_prev, dict):
+        attitude_prev = {}
+    if not isinstance(attitude_curr, dict):
+        attitude_curr = {}
+    yaw_prev = _num(attitude_prev.get("yaw_deg")) if attitude_prev else None
+    yaw_curr = _num(attitude_curr.get("yaw_deg")) if attitude_curr else None
+    roll_prev = _num(attitude_prev.get("roll_deg")) if attitude_prev else None
+    roll_curr = _num(attitude_curr.get("roll_deg")) if attitude_curr else None
+    if yaw_prev is not None and yaw_curr is not None and abs(yaw_curr - yaw_prev) > 2.0:
+        return True
+    if roll_prev is not None and roll_curr is not None and abs(roll_curr - roll_prev) > 2.0:
+        return True
+    return False
+
+
+def _position_changed(pos1: dict[str, Any], pos2: dict[str, Any], threshold_m: float = 0.5) -> bool:
+    lat1, lon1 = _num(pos1.get("lat")), _num(pos1.get("lon"))
+    lat2, lon2 = _num(pos2.get("lat")), _num(pos2.get("lon"))
+    if None in (lat1, lon1, lat2, lon2):
+        return False
+    return _haversine_m(lat1, lon1, lat2, lon2) > threshold_m
+
+
+def _detect_mission_incomplete(series: list[dict[str, Any]]) -> list[DetectedIncident]:
     if not series:
         return []
-
     found: list[DetectedIncident] = []
-    speed_limit = _speed_limit_mps(series)
+    last_sample = series[-1]
+    last_position = last_sample.get("position") or {}
+    flight_mode = last_sample.get("flight_mode") or last_sample.get("sensors", {}).get("flight_mode")
+    airborne = _is_airborne(str(flight_mode) if flight_mode else None)
 
+    has_landing = False
+    for sample in reversed(series):
+        fm = sample.get("flight_mode") or sample.get("sensors", {}).get("flight_mode")
+        if _is_airborne(str(fm) if fm else None):
+            landing_fm = (fm or "").upper().strip() in LAND_MODES
+            if landing_fm:
+                has_landing = True
+                break
+        elif fm is None and not has_landing:
+            continue
+        else:
+            break
+
+    if airborne and not has_landing:
+        lat = _num(last_position.get("lat"))
+        lon = _num(last_position.get("lon"))
+        alt = _num(last_position.get("alt_m"))
+        ts = last_sample.get("timestamp_utc") or ""
+        incident = DetectedIncident(
+            incident_type="mission_incomplete",
+            severity="critical",
+            started_at=series[0].get("timestamp_utc", ts),
+            ended_at=ts,
+            signature="mission_incomplete",
+            summary="Telemetry stopped while airborne; no landing record found. Possible UXO at last-known position.",
+            evidence={
+                "sample": {
+                    "timestamp_utc": ts,
+                    "flight_mode": flight_mode,
+                    "position": {"lat": lat, "lon": lon, "alt_m": alt},
+                },
+                "limitations": "warhead state unknown, treat as potential UXO, do not approach",
+            },
+        )
+        if None not in (lat, lon):
+            incident.evidence["last_known_position"] = {"lat": lat, "lon": lon, "alt_m": alt}
+        found.append(incident)
+    return found
+
+
+def _detect_last_known_position(series: list[dict[str, Any]]) -> list[DetectedIncident]:
+    if len(series) < 3:
+        return []
+    found: list[DetectedIncident] = []
+    frozen_start_idx: int | None = None
+    frozen_start_ts: str = ""
+    position = series[0].get("position") or {}
+    prev_lat = _num(position.get("lat"))
+    prev_lon = _num(position.get("lon"))
+
+    for i in range(1, len(series)):
+        curr = series[i]
+        curr_pos = curr.get("position") or {}
+        curr_lat = _num(curr_pos.get("lat"))
+        curr_lon = _num(curr_pos.get("lon"))
+        ts = curr.get("timestamp_utc") or ""
+        vel = _velocity_from_series(series, i)
+        imu_moving = _imu_indicates_motion(series, i)
+        effective_vel = max(vel, 0.5) if imu_moving else vel
+
+        if frozen_start_idx is not None:
+            elapsed = (parse_timestamp(ts) - parse_timestamp(frozen_start_ts)).total_seconds() if (parse_timestamp(ts) and parse_timestamp(frozen_start_ts)) else 0
+            if elapsed > UXO_FROZEN_POSITION_S and (effective_vel > 0.5 or imu_moving):
+                incident = DetectedIncident(
+                    incident_type="last_known_position",
+                    severity="critical",
+                    started_at=frozen_start_ts,
+                    ended_at=ts,
+                    signature="last_known_position",
+                    summary=f"Position frozen for {elapsed:.0f}s while IMU indicated motion. Possible mid-air failure at last-known fix.",
+                    evidence={
+                        "frozen_start": {"timestamp_utc": frozen_start_ts, "lat": prev_lat, "lon": prev_lon},
+                        "frozen_end": {"timestamp_utc": ts, "lat": curr_lat, "lon": curr_lon},
+                        "elapsed_s": elapsed,
+                        "velocity_at_freeze": vel,
+                        "limitations": "warhead state unknown, treat as potential UXO, do not approach",
+                    },
+                )
+                found.append(incident)
+                frozen_start_idx = None
+        else:
+            pos_changed = _position_changed({"lat": prev_lat, "lon": prev_lon}, {"lat": curr_lat, "lon": curr_lon})
+            if not pos_changed and (vel > 0.5 or imu_moving):
+                frozen_start_idx = i
+                frozen_start_ts = ts
+            else:
+                prev_lat = curr_lat
+                prev_lon = curr_lon
+
+    return found
+
+
+def _detect_operator_marked(series: list[dict[str, Any]], user_markers: list[dict[str, Any]] | None = None) -> list[DetectedIncident]:
+    if not user_markers:
+        return []
+    found: list[DetectedIncident] = []
+    for marker in user_markers:
+        incident = DetectedIncident(
+            incident_type="operator_marked_debris",
+            severity="warning",
+            started_at=marker.get("timestamp_utc", ""),
+            ended_at=marker.get("timestamp_utc", ""),
+            signature="operator_marked_debris",
+            summary=f"Operator marked debris at ({marker.get('lat')}, {marker.get('lon')}) alt={marker.get('alt_m', 0)} m.",
+            evidence={
+                "marker": marker,
+                "limitations": "warhead state unknown, treat as potential UXO, do not approach",
+            },
+        )
+        found.append(incident)
+    return found
+
+
+def detect_incidents(series: list[dict[str, Any]], user_markers: list[dict[str, Any]] | None = None) -> list[DetectedIncident]:
+    found: list[DetectedIncident] = []
+    if not series:
+        rule_c = _detect_operator_marked(series, user_markers)
+        found.extend(rule_c)
+        return found
+
+    speed_limit = _speed_limit_mps(series)
     for i, sample in enumerate(series):
         ts = sample.get("timestamp_utc") or ""
         battery = sample.get("battery") or {}
@@ -331,5 +520,12 @@ def detect_incidents(series: list[dict[str, Any]]) -> list[DetectedIncident]:
                             evidence={"drop_pct": drop, "percent": percent, "peak_pct": peak},
                         )
                     )
+
+    rule_a = _detect_mission_incomplete(series)
+    rule_b = _detect_last_known_position(series)
+    rule_c = _detect_operator_marked(series, user_markers)
+    found.extend(rule_a)
+    found.extend(rule_b)
+    found.extend(rule_c)
 
     return _merge(found)
