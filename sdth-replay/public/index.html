@@ -20,10 +20,18 @@
         <div id="bannerTitle">NO INCIDENTS</div>
         <div id="bannerMeta"></div>
         <div id="bannerDescription">Loading replay...</div>
+        <div id="jumpButtons" class="jump-buttons" hidden></div>
       </div>
       <aside id="panel">
         <button class="chip" id="failureChip" type="button" hidden>MISSION FAILURE</button>
         <h1>SDTH Flight Replay</h1>
+        <div id="flightLegend" class="flight-legend"></div>
+        <div class="layer-toggles">
+          <button class="layer-toggle active" data-layer="paths" type="button">Paths</button>
+          <button class="layer-toggle active" data-layer="incidents" type="button">Incidents</button>
+          <button class="layer-toggle hazard-toggle active" data-layer="hazard" type="button">Hazard</button>
+          <button class="layer-toggle multi-toggle" id="multiFlightToggle" type="button">All Missions</button>
+        </div>
         <label class="field">
           API token
           <input id="tokenInput" type="password" autocomplete="off" placeholder="INGEST_API_KEYS" />
@@ -55,7 +63,13 @@
       </aside>
       <div id="transport">
         <button id="playButton" type="button">Play</button>
+        <div id="timeline-scrubber">
+          <div id="timeline-progress"></div>
+          <div id="timeline-head"></div>
+          <div id="timeline-incidents"></div>
+        </div>
         <div id="speeds"></div>
+        <span id="timeline-time">00:00:00</span>
       </div>
     </div>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Cesium.js"></script>
