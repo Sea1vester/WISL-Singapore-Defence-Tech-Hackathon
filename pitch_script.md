@@ -5,9 +5,8 @@ audience; this runs closer to 6 minutes as written, so trim the bracketed asides
 "what's next" validation detail live if you're running long)*
 *(Enabler framing / fleet-wide-leads structure preserved per NUS DVL feedback — this
 pass adds real component names, endpoints, and numbers to the technical middle section)*
-*(Updated for the cheap/COTS-fleet pivot: target platforms are now DJI, PX4/Auterion,
-and ArduPilot, not the three named tactical platforms; "what's next" reflects the
-multi-dataset validation and the vision-layer work actually done this quarter)*
+*(Updated for the cheap/COTS-fleet pivot: DJI, PX4/Auterion, ArduPilot.
+Closer matches shipped parsers and vision sidecar; VisDrone DET fine-tune is still dry-run.)*
 
 **Diagrams** (source: `docs/diagrams/`) — bring these up on screen at the marked points,
 don't narrate them; let the audience read while you talk over them:
@@ -60,10 +59,21 @@ Once a log is `ready`, the replay client — a CesiumJS globe, real WGS84 terrai
 
 Step two is the fleet layer, and it's the part we lead with. Every incident carries a signature — incident type plus detector — and once a signature recurs across two or more flights, it surfaces in a patterns endpoint: flight count, incident count, first seen, last seen. One call against that signature generates a mitigation bulletin: affected flights, what to check, what to brief before the next sortie — explicitly not a firmware push or a command channel, just a reviewable document. Failure log to fleet-wide fix, and every hop from upload to bulletin is the same pipeline that ran the single-flight demo, not a shortcut.
 
-**[4:30 – 5:00] What's next, honestly**
+**[4:30 – 5:00] Future expansion**
 
-Every piece of that loop runs today, and we've already started validating against real data instead of only synthetic: real per-flight GPS and battery telemetry, a corpus of over 1,800 actual DJI in-flight warning messages, and 554 real mission logs with labeled failures — zero false positives, and the threshold logic correctly stayed quiet on every real failure that wasn't a battery event. What's still open: a raw PX4 ULog or ArduPilot DataFlash binary file, which carries idiosyncrasies synthetic data can't surface, and a vision layer — we've pulled over 30,000 annotated camera frames to train an onboard object detector that will feed the same incident timeline as a stored camera frame.
+The loop runs today.
+The live demo is DJI CSV through `/v1/logs/upload` (two controller fixtures, recurring `operator_warning`).
+`px4_ulg` and `ardupilot_bin` parse recorded files under `raw_telemetry-datasets/`: 3 ULogs, 2 DataFlash `.bin`, 1 `.tlog`.
 
-WISL doesn't need to win the engagement to be valuable. Making the next mission better informed is enough — and owning a record no vendor can take from you is what makes that value last.
+Vision is a sidecar on the Cesium clock: `camera_frame` plus `frame_census`.
+It reports ground-object counts.
+It does not replace L2 telemetry.
+YOLOv8n has not been fine-tuned on VisDrone DET.
+`finetune_eval.json` is still `dry_run` true.
+
+Next slice is landing-zone occupancy: census plus altitude from L2.
+
+WISL does not need to win the engagement.
+A better-informed next sortie is the claim we can defend.
 
 That's WISL.

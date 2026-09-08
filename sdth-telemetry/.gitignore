@@ -9,3 +9,8 @@ venv/
 *.db
 .lavish
 .wfw
+.DS_Store
+demo-output/
+visuals/
+*.pt
+VisDrone-Dataset/
