@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sdth-vision"
+version = "0.1.0"
+description = "Vision sidecar: VisDrone convert/train/infer and camera_frame ingest client"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.28.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+]
+train = [
+    "ultralytics>=8.3.0",
+]
+
+[project.scripts]
+finetune_detector = "sdth_vision.finetune:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sdth_vision"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

@@ -1,9 +1,15 @@
 import {
   alignIncidents,
   bannerState,
+  cameraFrameAt,
+  cameraFrameForIncident,
+  censusAt,
+  formatCensusLine,
   formatIso8601Utc,
   globeAltM,
   interpolate,
+  parseCameraFrames,
+  parseCensusList,
   parseFlightPath,
   parseIncidents,
   sampleEvent,
@@ -68,6 +74,10 @@ const state = {
   scrubbing: false,
   timelineFlightStart: null,
   timelineFlightStop: null,
+  // Camera-frame PiP (blob URL cache)
+  pipVisualId: null,
+  pipRequestId: null,
+  pipObjectUrl: null,
 };
 
 const els = {
@@ -79,6 +89,10 @@ const els = {
   timeLine: document.getElementById("timeLine"),
   poseLine: document.getElementById("poseLine"),
   eventLine: document.getElementById("eventLine"),
+  censusLine: document.getElementById("censusLine"),
+  cameraPip: document.getElementById("cameraPip"),
+  cameraPipImg: document.getElementById("cameraPipImg"),
+  cameraPipCap: document.getElementById("cameraPipCap"),
   flightList: document.getElementById("flightList"),
   flightLegend: document.getElementById("flightLegend"),
   datasetList: document.getElementById("datasetList"),
@@ -498,8 +512,28 @@ function setupClickToFollow(viewer) {
         return;
       }
     }
-    // If clicking on path or incident markers, select the flight
-    if (id && (id.startsWith("path-") || id.startsWith("incident-"))) {
+    // Incident marker: select flight (if needed) and load nearest camera_frame into PiP
+    if (id && id.startsWith("incident-")) {
+      for (const flight of state.flights) {
+        for (let index = 0; index < flight.incidents.length; index += 1) {
+          const incident = flight.incidents[index];
+          const key = `incident-${incident.id || incident.type}-${flight.flight_id}-${index}`;
+          if (key !== id) {
+            continue;
+          }
+          const flightIdx = state.flights.indexOf(flight);
+          if (flightIdx >= 0 && flightIdx !== state.active) {
+            state.active = flightIdx;
+            showActiveFlight().then(() => seekIncidentAndLoadCamera(flight, incident));
+            return;
+          }
+          seekIncidentAndLoadCamera(flight, incident);
+          return;
+        }
+      }
+    }
+    // Path markers: select the flight
+    if (id && id.startsWith("path-")) {
       const flightIdMatch = id.match(/-(flight-[a-f0-9-]+)$/);
       if (flightIdMatch) {
         const flightId = flightIdMatch[1];
@@ -1258,12 +1292,28 @@ function renderHud(flight, pose) {
   els.timeLine.textContent = `${formatIso8601Utc(pose.time_s)}   alt ${pose.alt_m.toFixed(1)} m`;
   els.poseLine.textContent = `${pose.lat.toFixed(6)}, ${pose.lon.toFixed(6)}`;
   els.eventLine.textContent = sampleEvent(flight, pose.lower_sample);
-  els.incidentList.innerHTML = flight.incidents.length
-    ? flight.incidents
-        .slice(0, 6)
-        .map((item) => `<p>[${item.severity}] ${item.type}<br />${item.summary || ""}</p>`)
-        .join("")
-    : "<p>No indexed incidents</p>";
+  if (els.censusLine) {
+    const nearest = censusAt(flight.census || [], pose.time_s);
+    els.censusLine.textContent = nearest
+      ? formatCensusLine(nearest.cars, nearest.people)
+      : formatCensusLine(0, 0);
+  }
+  updateCameraPip(cameraFrameAt(flight.cameraFrames || [], pose.time_s));
+  els.incidentList.innerHTML = "";
+  if (!flight.incidents.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No indexed incidents";
+    els.incidentList.append(empty);
+  } else {
+    for (const item of flight.incidents.slice(0, 6)) {
+      const row = document.createElement("button");
+      row.type = "button";
+      row.className = "incident-jump";
+      row.innerHTML = `[${item.severity}] ${item.type}<br />${item.summary || ""}`;
+      row.addEventListener("click", () => seekIncidentAndLoadCamera(flight, item));
+      els.incidentList.append(row);
+    }
+  }
   els.reportText.textContent = flight.mission_summary || flight.report_text || "No report yet.";
 
   // Jump-to buttons for incidents in banner
@@ -1271,18 +1321,13 @@ function renderHud(flight, pose) {
     const jumpContainer = els.jumpButtons;
     if (!jumpContainer.children.length) {
       jumpContainer.hidden = false;
-      const flightSample = flight.samples[banner.incident.sample_index || 0];
-      if (flightSample) {
-        const btn = document.createElement("button");
-        btn.className = "jump-btn";
-        btn.textContent = `Jump to [${banner.incident.type}]`;
-        btn.addEventListener("click", () => {
-          const targetTime = Cesium.JulianDate.fromIso8601(flightSample.timestamp);
-          state.viewer.clock.currentTime = targetTime;
-          renderHud(flight, interpolate(flight, flightSample.time_s));
-        });
-        jumpContainer.appendChild(btn);
-      }
+      const btn = document.createElement("button");
+      btn.className = "jump-btn";
+      btn.textContent = `Jump to [${banner.incident.type}]`;
+      btn.addEventListener("click", () => {
+        seekIncidentAndLoadCamera(flight, banner.incident);
+      });
+      jumpContainer.appendChild(btn);
     }
   } else {
     els.jumpButtons.hidden = true;
@@ -1406,6 +1451,90 @@ function maybeCaptureIncidentScreenshot(flight, banner, isoTimestamp) {
   );
 }
 
+function clearCameraPip() {
+  if (!els.cameraPip || !els.cameraPipImg) {
+    return;
+  }
+  els.cameraPip.hidden = true;
+  if (state.pipObjectUrl) {
+    URL.revokeObjectURL(state.pipObjectUrl);
+    state.pipObjectUrl = null;
+  }
+  state.pipVisualId = null;
+  state.pipRequestId = null;
+  els.cameraPipImg.removeAttribute("src");
+  if (els.cameraPipCap) {
+    els.cameraPipCap.textContent = "camera frame";
+  }
+}
+
+async function updateCameraPip(frame) {
+  if (!els.cameraPip || !els.cameraPipImg) {
+    return;
+  }
+  if (!frame) {
+    clearCameraPip();
+    return;
+  }
+  els.cameraPip.hidden = false;
+  if (els.cameraPipCap) {
+    els.cameraPipCap.textContent = frame.caption || formatIso8601Utc(frame.time_s);
+  }
+  if (state.pipVisualId === frame.id) {
+    return;
+  }
+  const requestedId = frame.id;
+  state.pipRequestId = requestedId;
+  if (!state.token) {
+    if (frame.file_url && !frame.file_url.startsWith("/v1/")) {
+      state.pipVisualId = requestedId;
+      els.cameraPipImg.src = frame.file_url;
+    }
+    return;
+  }
+  try {
+    const response = await fetch(`${apiBase()}${frame.file_url}`, { headers: headers() });
+    if (!response.ok || state.pipRequestId !== requestedId) {
+      return;
+    }
+    const blob = await response.blob();
+    if (state.pipRequestId !== requestedId) {
+      return;
+    }
+    if (state.pipObjectUrl) {
+      URL.revokeObjectURL(state.pipObjectUrl);
+    }
+    state.pipVisualId = requestedId;
+    state.pipObjectUrl = URL.createObjectURL(blob);
+    els.cameraPipImg.src = state.pipObjectUrl;
+  } catch {
+    // Leave prior frame visible on transient fetch errors.
+  }
+}
+
+/** Seek fake clock to incident time and load nearest camera_frame into PiP. */
+function seekIncidentAndLoadCamera(flight, incident) {
+  if (!flight || !incident || !state.viewer) {
+    return;
+  }
+  let targetIso = incident.started_at;
+  if (!targetIso && incident.sample_index != null && flight.samples[incident.sample_index]) {
+    targetIso = flight.samples[incident.sample_index].timestamp;
+  }
+  if (!targetIso) {
+    return;
+  }
+  const targetTime = Cesium.JulianDate.fromIso8601(targetIso);
+  state.viewer.clock.currentTime = targetTime;
+  const timeS = Date.parse(targetIso.endsWith("Z") ? targetIso : `${targetIso}Z`) / 1000;
+  const pose = interpolate(flight, timeS);
+  const frame =
+    cameraFrameForIncident(flight.cameraFrames || [], incident) ||
+    cameraFrameAt(flight.cameraFrames || [], pose.time_s);
+  updateCameraPip(frame);
+  renderHud(flight, pose);
+}
+
 function attachClock() {
   if (state.clockListener) {
     state.clockListener();
@@ -1443,6 +1572,10 @@ async function hydrateFlight(document, extras = {}) {
   if (!flight.report_text) {
     flight.report_text = flight.mission_summary;
   }
+  flight.census = parseCensusList(extras.census || document.census || []);
+  flight.cameraFrames = parseCameraFrames(
+    extras.camera_frames || document.camera_frames || extras.visuals || document.visuals || [],
+  );
   alignIncidents(flight);
   return flight;
 }
@@ -1452,10 +1585,17 @@ async function loadLiveFlight(flightId) {
   const path = await apiGet(`/v1/flights/${flightId}/path`);
   const incidents = await apiGet(`/v1/flights/${flightId}/incidents`, true);
   const report = await apiGet(`/v1/flights/${flightId}/incident-report`, true);
+  const census = await apiGet(`/v1/flights/${flightId}/census`, true);
+  const visuals = await apiGet(
+    `/v1/flights/${flightId}/visuals?kind=camera_frame&limit=500`,
+    true,
+  );
   const flight = await hydrateFlight(path, {
     incidents,
     mission_summary: report?.mission_summary,
     report_text: report?.report || report?.mission_summary,
+    census,
+    camera_frames: visuals,
   });
   flight.upload_status = "ready";
   return flight;

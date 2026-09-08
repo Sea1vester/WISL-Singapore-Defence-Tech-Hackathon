@@ -7,10 +7,16 @@ import { fileURLToPath } from "node:url";
 import {
   alignIncidents,
   bannerState,
+  cameraFrameAt,
+  cameraFrameForIncident,
+  censusAt,
+  formatCensusLine,
   formatIso8601Utc,
   globeAltM,
   globeAltitudeOffsetM,
   interpolate,
+  parseCameraFrames,
+  parseCensusList,
   parseFlightPath,
   parseIncidents,
   parseIso8601Utc,
@@ -167,4 +173,99 @@ test("WGS84 globe altitude drapes as AGL on the surface", () => {
   assert.equal(globeAltM(path, 10), 1);
   assert.equal(globeAltM(path, 30), 21);
   assert.equal(globeAltM(path, 10, 400), 401);
+});
+
+test("census_at picks nearest prefetched row in memory", () => {
+  const rows = parseCensusList({
+    flight_id: "test-flight",
+    total: 2,
+    items: [
+      {
+        visual_id: "vis-a",
+        flight_id: "test-flight",
+        recorded_at: "2026-07-11T10:00:00Z",
+        census: { cars: 1, people: 0, class_counts: {} },
+      },
+      {
+        visual_id: "vis-b",
+        flight_id: "test-flight",
+        recorded_at: "2026-07-11T10:00:10Z",
+        census: { cars: 4, people: 2, class_counts: {} },
+      },
+    ],
+  });
+  assert.equal(rows.length, 2);
+  assert.equal(censusAt(rows, parseIso8601Utc("2026-07-11T10:00:01Z")).visual_id, "vis-a");
+  assert.equal(censusAt(rows, parseIso8601Utc("2026-07-11T10:00:08Z")).visual_id, "vis-b");
+  assert.equal(censusAt(rows, parseIso8601Utc("2026-07-11T10:00:05Z")).visual_id, "vis-a");
+  assert.equal(censusAt([], 0), null);
+  assert.equal(formatCensusLine(4, 2), "cars 4 · people 2");
+  assert.equal(
+    formatCensusLine(
+      censusAt(rows, parseIso8601Utc("2026-07-11T10:00:10Z")).cars,
+      censusAt(rows, parseIso8601Utc("2026-07-11T10:00:10Z")).people,
+    ),
+    "cars 4 · people 2",
+  );
+});
+
+test("cameraFrameAt picks nearest prefetched camera_frame for PiP", () => {
+  const frames = parseCameraFrames({
+    flight_id: "test-flight",
+    total: 3,
+    items: [
+      {
+        id: "frame-a",
+        flight_id: "test-flight",
+        recorded_at: "2026-07-11T10:00:00Z",
+        kind: "camera_frame",
+        mime_type: "image/jpeg",
+      },
+      {
+        id: "frame-b",
+        flight_id: "test-flight",
+        recorded_at: "2026-07-11T10:00:10Z",
+        kind: "camera_frame",
+        mime_type: "image/jpeg",
+      },
+      {
+        id: "shot-x",
+        flight_id: "test-flight",
+        recorded_at: "2026-07-11T10:00:05Z",
+        kind: "cesium_screenshot",
+        mime_type: "image/png",
+      },
+    ],
+  });
+  assert.equal(frames.length, 2);
+  assert.equal(frames[0].file_url, "/v1/visuals/frame-a/file");
+  assert.equal(cameraFrameAt(frames, parseIso8601Utc("2026-07-11T10:00:01Z")).id, "frame-a");
+  assert.equal(cameraFrameAt(frames, parseIso8601Utc("2026-07-11T10:00:08Z")).id, "frame-b");
+  assert.equal(cameraFrameAt(frames, parseIso8601Utc("2026-07-11T10:00:05Z")).id, "frame-a");
+  assert.equal(cameraFrameAt([], 0), null);
+});
+
+test("incident click loads nearest camera_frame", () => {
+  const frames = parseCameraFrames({
+    items: [
+      {
+        id: "frame-a",
+        flight_id: "test-flight",
+        recorded_at: "2026-07-11T10:00:00Z",
+        kind: "camera_frame",
+      },
+      {
+        id: "frame-b",
+        flight_id: "test-flight",
+        recorded_at: "2026-07-11T10:00:10Z",
+        kind: "camera_frame",
+      },
+    ],
+  });
+  const nearA = { id: "inc-1", started_at: "2026-07-11T10:00:02Z", type: "operator_warning" };
+  const nearB = { id: "inc-2", started_at: "2026-07-11T10:00:09Z", type: "battery_drop" };
+  assert.equal(cameraFrameForIncident(frames, nearA).id, "frame-a");
+  assert.equal(cameraFrameForIncident(frames, nearB).id, "frame-b");
+  assert.equal(cameraFrameForIncident(frames, { id: "no-time" }), null);
+  assert.equal(cameraFrameForIncident([], nearA), null);
 });

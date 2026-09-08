@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.db import run_migrations
 from app.analytics import router as analytics_router
+from app.census_api import router as census_router
 from app.datasets import router as datasets_router
 from app.incident_api import router as incident_router
 from app.ingest import router as ingest_router
@@ -48,6 +49,7 @@ app.include_router(analytics_router)
 app.include_router(incident_router)
 app.include_router(datasets_router)
 app.include_router(visual_router)
+app.include_router(census_router)
 
 
 @app.get("/health")

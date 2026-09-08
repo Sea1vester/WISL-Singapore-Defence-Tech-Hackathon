@@ -1,0 +1,28 @@
+{
+  "base_weights": "yolov8n.pt",
+  "data_yaml": null,
+  "dry_run": true,
+  "epochs": 0,
+  "imgsz": 640,
+  "metrics": {
+    "mAP50": null,
+    "mAP50-95": null,
+    "note": "smoke/dry-run; run without --dry-run when ultralytics+GPU available",
+    "precision": null,
+    "recall": null
+  },
+  "names": [
+    "pedestrian",
+    "people",
+    "bicycle",
+    "car",
+    "van",
+    "truck",
+    "tricycle",
+    "awning-tricycle",
+    "bus",
+    "motor"
+  ],
+  "nc": 10,
+  "pretrained": "coco"
+}

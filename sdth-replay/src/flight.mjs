@@ -365,3 +365,141 @@ export function sampleEvent(path, index) {
   }
   return "No event at current sample";
 }
+
+/**
+ * Normalize a GET /v1/flights/{id}/census prefetch payload into sorted rows.
+ * Accepts either ``{ items: [...] }`` or a bare array of census rows.
+ */
+export function parseCensusList(document) {
+  const items = Array.isArray(document)
+    ? document
+    : Array.isArray(document?.items)
+      ? document.items
+      : [];
+  const rows = items
+    .map((item) => {
+      if (item == null || typeof item !== "object") {
+        return null;
+      }
+      const recordedAt = optionalString(item, "recorded_at");
+      if (!recordedAt) {
+        return null;
+      }
+      let timeS;
+      try {
+        timeS = parseIso8601Utc(recordedAt);
+      } catch {
+        return null;
+      }
+      const census = item.census && typeof item.census === "object" ? item.census : item;
+      return {
+        visual_id: optionalString(item, "visual_id"),
+        flight_id: optionalString(item, "flight_id"),
+        recorded_at: recordedAt,
+        time_s: timeS,
+        cars: Number(census.cars) || 0,
+        people: Number(census.people) || 0,
+        census,
+      };
+    })
+    .filter(Boolean);
+  rows.sort((a, b) => a.time_s - b.time_s);
+  return rows;
+}
+
+/**
+ * Nearest-in-memory census row for replay ``onTick``.
+ * Prefetch via GET /v1/flights/{id}/census, then call this each tick.
+ */
+export function censusAt(rows, timeS) {
+  if (!Array.isArray(rows) || rows.length === 0 || !Number.isFinite(timeS)) {
+    return null;
+  }
+  let best = rows[0];
+  let bestDelta = Math.abs(rows[0].time_s - timeS);
+  for (let i = 1; i < rows.length; i += 1) {
+    const delta = Math.abs(rows[i].time_s - timeS);
+    if (delta < bestDelta) {
+      best = rows[i];
+      bestDelta = delta;
+    }
+  }
+  return best;
+}
+
+/** HUD string for ``#censusLine``: ``cars N · people M``. */
+export function formatCensusLine(cars, people) {
+  return `cars ${Number(cars) || 0} · people ${Number(people) || 0}`;
+}
+
+/**
+ * Normalize a GET /v1/flights/{id}/visuals?kind=camera_frame prefetch payload.
+ * Accepts either ``{ items: [...] }`` or a bare array of visual records.
+ */
+export function parseCameraFrames(document) {
+  const items = Array.isArray(document)
+    ? document
+    : Array.isArray(document?.items)
+      ? document.items
+      : [];
+  const rows = items
+    .map((item) => {
+      if (item == null || typeof item !== "object") {
+        return null;
+      }
+      const kind = optionalString(item, "kind", "camera_frame");
+      if (kind && kind !== "camera_frame") {
+        return null;
+      }
+      const id = optionalString(item, "id") || optionalString(item, "visual_id");
+      const recordedAt = optionalString(item, "recorded_at");
+      if (!id || !recordedAt) {
+        return null;
+      }
+      let timeS;
+      try {
+        timeS = parseIso8601Utc(recordedAt);
+      } catch {
+        return null;
+      }
+      return {
+        id,
+        visual_id: id,
+        flight_id: optionalString(item, "flight_id"),
+        recorded_at: recordedAt,
+        time_s: timeS,
+        kind: "camera_frame",
+        mime_type: optionalString(item, "mime_type", "image/jpeg"),
+        caption: optionalString(item, "caption"),
+        file_url: optionalString(item, "file_url") || `/v1/visuals/${id}/file`,
+      };
+    })
+    .filter(Boolean);
+  rows.sort((a, b) => a.time_s - b.time_s);
+  return rows;
+}
+
+/**
+ * Nearest-in-memory camera_frame for replay PiP ``onTick``.
+ * Prefetch via GET /v1/flights/{id}/visuals?kind=camera_frame, then call each tick.
+ */
+export function cameraFrameAt(rows, timeS) {
+  return censusAt(rows, timeS);
+}
+
+/**
+ * Nearest prefetched camera_frame for an incident click (PiP).
+ * Uses ``incident.started_at``; returns null if missing/unparseable or no frames.
+ */
+export function cameraFrameForIncident(frames, incident) {
+  if (!incident?.started_at) {
+    return null;
+  }
+  let timeS;
+  try {
+    timeS = parseIso8601Utc(incident.started_at);
+  } catch {
+    return null;
+  }
+  return cameraFrameAt(frames, timeS);
+}
