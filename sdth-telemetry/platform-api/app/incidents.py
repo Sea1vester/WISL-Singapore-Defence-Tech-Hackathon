@@ -14,6 +14,59 @@ from app.schemas import new_id
 
 _SEVERITY_RANK = {"info": 0, "warning": 1, "critical": 2}
 
+UXO_INCIDENT_TYPES = {"mission_incomplete", "last_known_position", "operator_marked_debris"}
+
+
+def upsert_operator_marker(marker: dict[str, Any]) -> str:
+    """Persist an operator-marked debris pin and return its id."""
+    marker_id = new_id()
+    with db_session() as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS operator_markers (
+              id              TEXT PRIMARY KEY,
+              flight_id       TEXT NOT NULL,
+              lat             REAL NOT NULL,
+              lon             REAL NOT NULL,
+              alt_m           REAL NOT NULL DEFAULT 0,
+              timestamp_utc   TEXT NOT NULL,
+              note            TEXT,
+              created_at      TEXT DEFAULT (datetime('now'))
+            )
+            """
+        )
+        conn.execute(
+            """
+            INSERT INTO operator_markers (id, flight_id, lat, lon, alt_m, timestamp_utc, note)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                marker_id,
+                marker["flight_id"],
+                marker["lat"],
+                marker["lon"],
+                marker.get("alt_m", 0),
+                marker["timestamp_utc"],
+                marker.get("note"),
+            ),
+        )
+    return marker_id
+
+
+def _get_operator_markers(flight_id: str) -> list[dict[str, Any]]:
+    """Fetch operator markers for a flight, if the table exists."""
+    with db_session() as conn:
+        exists = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='operator_markers'"
+        ).fetchone()
+        if not exists:
+            return []
+        rows = conn.execute(
+            "SELECT id, flight_id, lat, lon, alt_m, timestamp_utc, note FROM operator_markers WHERE flight_id = ?",
+            (flight_id,),
+        ).fetchall()
+        return [dict(row) for row in rows]
+
 
 def _max_severity(values: list[str]) -> str:
     return max(values, key=lambda item: _SEVERITY_RANK.get(item, 0), default="info")
@@ -102,7 +155,8 @@ def index_flight(flight_id: str, *, include_llm_report: str | None = None) -> di
 
         series, origin = load_flight_series(conn, flight_id)
         brand = identify_brand(series[0] if series else {}, source=flight["source"])
-        detected = detect_incidents(series)
+        user_markers = _get_operator_markers(flight_id)
+        detected = detect_incidents(series, user_markers=user_markers)
 
         conn.execute(
             "DELETE FROM incidents WHERE flight_id = ? AND detector = 'rule'",

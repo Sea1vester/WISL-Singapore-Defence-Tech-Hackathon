@@ -106,3 +106,121 @@ def test_dataset_list_and_load(client, tmp_path, monkeypatch):
         json={"path": "../secret.csv"},
     )
     assert blocked.status_code == 400
+
+
+def test_replay_has_dark_space_theme():
+    """Cesium replay uses dark space theme with gold/cyan accents."""
+    css = REPLAY_PUBLIC.joinpath("replay.css").read_text()
+    assert "--gold: #c9a227" in css
+    assert "--cyan: #3ecfc2" in css
+    assert "background: #0a0a12" in css
+    assert "font-family" in css and "monospace" in css
+
+
+def test_replay_has_layer_toggles():
+    """Layer toggle buttons for paths/incidents/hazard are present."""
+    html = REPLAY_PUBLIC.joinpath("index.html").read_text()
+    assert 'data-layer="paths"' in html
+    assert 'data-layer="incidents"' in html
+    assert 'data-layer="hazard"' in html
+    assert "layer-toggle" in html
+
+
+def test_replay_has_timeline_scrubber():
+    """Timeline scrubber UI elements are present in the replay page."""
+    html = REPLAY_PUBLIC.joinpath("index.html").read_text()
+    assert 'id="timeline-scrubber"' in html
+    assert 'id="timeline-progress"' in html
+    assert 'id="timeline-head"' in html
+    assert 'id="timeline-incidents"' in html
+    assert 'id="timeline-time"' in html
+
+
+def test_replay_has_failure_banner_with_jump_buttons():
+    """Failure banner includes jump-to buttons for incidents."""
+    html = REPLAY_PUBLIC.joinpath("index.html").read_text()
+    assert 'id="bannerClose"' in html
+    assert 'id="jumpButtons"' in html
+    assert "jump-buttons" in html
+    assert "banner-close" in html
+
+
+def test_replay_js_has_camera_follow():
+    """Replay JS includes camera follow / orbit functionality."""
+    js = REPLAY_PUBLIC.joinpath("replay.js").read_text()
+    assert "setupClickToFollow" in js
+    assert "startOrbitFromCamera" in js
+    assert "trackedEntity" in js
+    assert "followEntity" in js
+    assert "LEFT_CLICK" in js
+
+
+def test_replay_js_has_multi_flight_support():
+    """Replay JS supports multiple color-coded flights on one globe."""
+    js = REPLAY_PUBLIC.joinpath("replay.js").read_text()
+    assert "COLORS" in js
+    assert "showAllFlights" in js
+    assert "uav-" in js
+    assert "trail-" in js
+
+
+def test_replay_has_glowing_drone_markers():
+    """Drone markers use glow effects with neon-style points."""
+    js = REPLAY_PUBLIC.joinpath("replay.js").read_text()
+    assert "uavVisual" in js
+    assert "disableDepthTestDistance" in js
+    assert "scaleByDistance" in js
+
+
+def test_replay_css_has_timeline_tick_styles():
+    """CSS includes timeline tick styles for incidents and GPS warnings."""
+    css = REPLAY_PUBLIC.joinpath("replay.css").read_text()
+    assert ".timeline-tick.warning" in css
+    assert ".timeline-tick.critical" in css
+    assert ".timeline-tick.gps-warning" in css
+
+
+def test_replay_has_multi_flight_toggle():
+    """Multi-flight toggle button is in the replay UI."""
+    html = REPLAY_PUBLIC.joinpath("index.html").read_text()
+    assert "multiFlightToggle" in html
+    assert "All Missions" in html
+    css = REPLAY_PUBLIC.joinpath("replay.css").read_text()
+    assert ".layer-toggle.multi-toggle" in css
+
+
+def test_replay_has_flight_legend():
+    """Flight legend panel for color-coded missions is present."""
+    html = REPLAY_PUBLIC.joinpath("index.html").read_text()
+    assert 'id="flightLegend"' in html
+    css = REPLAY_PUBLIC.joinpath("replay.css").read_text()
+    assert ".flight-legend" in css
+    assert ".flight-legend-dot" in css
+    assert ".flight-legend-label" in css
+
+
+def test_replay_js_has_incident_tooltip():
+    """Replay JS includes incident hover tooltip functionality."""
+    js = REPLAY_PUBLIC.joinpath("replay.js").read_text()
+    assert "setupIncidentTooltip" in js
+    assert "incident-tooltip" in js
+
+
+def test_replay_js_has_unified_timeline():
+    """Replay JS supports unified multi-flight timeline."""
+    js = REPLAY_PUBLIC.joinpath("replay.js").read_text()
+    assert "unifiedStart" in js
+    assert "unifiedStop" in js
+    assert "followFlightId" in js
+
+
+def test_replay_js_uxo_constant_declared():
+    """UXO_INCIDENT_TYPES is a properly declared const."""
+    js = REPLAY_PUBLIC.joinpath("replay.js").read_text()
+    assert "const UXO_INCIDENT_TYPES" in js
+
+
+def test_replay_has_hazard_animation_cleanup():
+    """Hazard circle animations are properly cleaned up on entity clear."""
+    js = REPLAY_PUBLIC.joinpath("replay.js").read_text()
+    assert "stopHazardAnimations" in js

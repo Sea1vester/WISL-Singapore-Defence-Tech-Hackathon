@@ -12,7 +12,16 @@ from app.brands import brand_catalog
 from app.bulletins import build_mitigation_bulletin, list_bulletins
 from app.db import db_session
 from app.edge_bench import run_edge_benchmark
-from app.incidents import index_flight, list_flight_incidents, list_patterns, reliability_report
+from app.incidents import index_flight, list_flight_incidents, list_patterns, reliability_report, upsert_operator_marker
+
+
+class DropDebrisPinRequest(BaseModel):
+    flight_id: str = Field(..., description="Flight to attach the debris pin to")
+    lat: float = Field(..., description="Latitude of the marked position")
+    lon: float = Field(..., description="Longitude of the marked position")
+    alt_m: float = Field(default=0.0, description="Altitude in metres")
+    timestamp_utc: str = Field(..., description="When the marker was placed")
+    note: str | None = Field(default=None, description="Optional operator note")
 
 router = APIRouter(prefix="/v1", tags=["incidents"])
 
@@ -136,3 +145,36 @@ def edge_benchmark(
     _: str = Depends(require_api_key),
 ) -> dict[str, Any]:
     return run_edge_benchmark(sample_count=sample_count)
+
+
+@router.post("/flights/{flight_id}/debris-pin", response_model=dict[str, Any])
+def drop_debris_pin(
+    flight_id: str,
+    body: DropDebrisPinRequest,
+    _: str = Depends(require_api_key),
+) -> dict[str, Any]:
+    """Operator marks a debris location. Triggers UXO incident detection (Rule C)."""
+    with db_session() as conn:
+        flight = conn.execute("SELECT id FROM flights WHERE id = ?", (flight_id,)).fetchone()
+        if not flight:
+            raise HTTPException(status_code=404, detail="Flight not found")
+
+    marker = {
+        "lat": body.lat,
+        "lon": body.lon,
+        "alt_m": body.alt_m,
+        "timestamp_utc": body.timestamp_utc,
+        "note": body.note,
+        "flight_id": flight_id,
+    }
+    marker_id = upsert_operator_marker(marker)
+
+    return {
+        "debris_pin_id": marker_id,
+        "flight_id": flight_id,
+        "lat": body.lat,
+        "lon": body.lon,
+        "alt_m": body.alt_m,
+        "status": "recorded",
+        "uxo_flag": "warhead state unknown, treat as potential UXO, do not approach",
+    }

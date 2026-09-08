@@ -10,8 +10,8 @@ import {
 } from "/replay/lib/flight.mjs";
 
 const CESIUM_VERSION = "1.125";
-const SPEED_VALUES = [0.25, 0.5, 1, 2, 4];
-const COLORS = ["#2463b0", "#c45c16", "#2e8c40", "#7a48a8", "#b8941c"];
+const SPEED_VALUES = [0.25, 0.5, 1, 2, 4, 8, 15, 30, 60];
+const COLORS = ["#c9a227", "#3ecfc2", "#e06070", "#6a8fff", "#a070e0"];
 const UAV_MODEL_URI = "./assets/drone.glb";
 const INGEST_PROGRESS = {
   received: 10,
@@ -44,6 +44,30 @@ const state = {
     range: 80,
   },
   globeDraw: 0,
+  layers: {
+    paths: true,
+    incidents: true,
+    hazard: true,
+  },
+  // Entity groups for layer toggling
+  layerEntities: {
+    paths: [],
+    incidents: [],
+    hazard: [],
+  },
+  // Camera follow
+  followEntity: null,
+  followOffset: new Cesium.Cartesian3(-40, -32, 24),
+  followFlightId: null,
+  // Multi-flight display
+  showAllFlights: false,
+  // Unified multi-flight timeline
+  unifiedStart: null,
+  unifiedStop: null,
+  // Timeline scrubber
+  scrubbing: false,
+  timelineFlightStart: null,
+  timelineFlightStop: null,
 };
 
 const els = {
@@ -56,6 +80,7 @@ const els = {
   poseLine: document.getElementById("poseLine"),
   eventLine: document.getElementById("eventLine"),
   flightList: document.getElementById("flightList"),
+  flightLegend: document.getElementById("flightLegend"),
   datasetList: document.getElementById("datasetList"),
   datasetFilter: document.getElementById("datasetFilter"),
   datasetHint: document.getElementById("datasetHint"),
@@ -69,9 +94,15 @@ const els = {
   bannerTitle: document.getElementById("bannerTitle"),
   bannerMeta: document.getElementById("bannerMeta"),
   bannerDescription: document.getElementById("bannerDescription"),
+  jumpButtons: document.getElementById("jumpButtons"),
   failureChip: document.getElementById("failureChip"),
   playButton: document.getElementById("playButton"),
   speeds: document.getElementById("speeds"),
+  scrubber: document.getElementById("timeline-scrubber"),
+  scrubberProgress: document.getElementById("timeline-progress"),
+  scrubberHead: document.getElementById("timeline-head"),
+  scrubberIncidents: document.getElementById("timeline-incidents"),
+  timelineTime: document.getElementById("timeline-time"),
 };
 
 function apiBase() {
@@ -99,7 +130,7 @@ async function apiGet(path, optional = false) {
 }
 
 async function apiPost(path, body) {
-  const response = await fetch(`${apiBase()}${path}`, {
+  const response = fetch(`${apiBase()}${path}`, {
     method: "POST",
     headers: { ...headers(), "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -187,27 +218,44 @@ async function createViewer() {
   if (window.Cesium?.Ion) {
     window.Cesium.Ion.defaultAccessToken = "";
   }
+  // Dark basemap: use a dark OSM-style approach
   const osm = new Cesium.OpenStreetMapImageryProvider({
     url: "https://tile.openstreetmap.org/",
   });
   const terrainProvider = await createTerrainProvider();
   const viewer = new Cesium.Viewer("cesiumContainer", {
-    animation: true,
-    timeline: true,
+    animation: false,
+    timeline: false,
     baseLayerPicker: false,
     geocoder: false,
     homeButton: true,
-    sceneModePicker: true,
+    sceneModePicker: false,
     navigationHelpButton: true,
     fullscreenButton: true,
     vrButton: false,
     terrainProvider,
     baseLayer: new Cesium.ImageryLayer(osm),
     shouldAnimate: false,
+    requestRenderMode: true,
   });
-  viewer.scene.globe.enableLighting = true;
+  // Dark space environment
+  viewer.scene.skyBox = new Cesium.SkyBox({
+    sources: {
+      positiveX: "",
+      negativeX: "",
+      positiveY: "",
+      negativeY: "",
+      positiveZ: "",
+      negativeZ: "",
+    },
+  });
+  viewer.scene.skyAtmosphere = new Cesium.SkyAtmosphere();
+  viewer.scene.globe.enableLighting = false;
   viewer.scene.globe.depthTestAgainstTerrain = true;
+  viewer.scene.backgroundColor = new Cesium.Color(0.039, 0.039, 0.071, 1.0);
   viewer.scene.fog.enabled = true;
+  viewer.scene.fog.density = 0.00015;
+  viewer.scene.highDynamicRange = true;
   viewer.clock.shouldAnimate = false;
   enableInspectCamera(viewer);
   return viewer;
@@ -218,11 +266,11 @@ function clamp(value, min, max) {
 }
 
 function getUavWorldPosition() {
-  const flight = state.flights[state.active];
-  if (!flight || !state.viewer) {
+  const flightId = state.followFlightId || (state.flights[state.active]?.flight_id);
+  if (!flightId || !state.viewer) {
     return undefined;
   }
-  const uav = state.viewer.entities.getById(`uav-${flight.flight_id}`);
+  const uav = state.viewer.entities.getById(`uav-${flightId}`);
   if (!uav?.position) {
     return undefined;
   }
@@ -241,6 +289,9 @@ function applyOrbitCamera() {
     target,
     new Cesium.HeadingPitchRange(state.orbit.heading, state.orbit.pitch, state.orbit.range),
   );
+  if (state.viewer.requestRender) {
+    state.viewer.requestRender();
+  }
 }
 
 function setGlobeCollision(controller, enabled) {
@@ -406,45 +457,192 @@ function enableInspectCamera(viewer) {
   }
 }
 
+// ---- Click-to-follow drone (single unified handler) ----
+
+function clearClickHandler() {
+  if (state._clickHandler) {
+    state._clickHandler.destroy();
+    state._clickHandler = null;
+  }
+}
+
+function setupClickToFollow(viewer) {
+  clearClickHandler();
+  state._clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+  state._clickHandler.setInputAction((click) => {
+    const picked = viewer.scene.pick(click.position);
+    if (!Cesium.defined(picked) || !picked.id) return;
+    const id = picked.id.id || picked.id;
+    // Check if clicked entity is a uav entity
+    if (id && id.startsWith("uav-")) {
+      const flightId = id.replace("uav-", "");
+      const flightIdx = state.flights.findIndex((f) => f.flight_id === flightId);
+      if (flightIdx >= 0) {
+        state.active = flightIdx;
+        showActiveFlight();
+        // Enable smooth camera follow using Cesium trackedEntity + orbit blend
+        const uavEntity = viewer.entities.getById(id);
+        if (uavEntity) {
+          state.followEntity = uavEntity;
+          state.followFlightId = flightId;
+          // Use Cesium's built-in trackedEntity for smooth following
+          viewer.trackedEntity = uavEntity;
+          // Switch to orbit mode after a short delay for smooth transition
+          setTimeout(() => {
+            if (state.followFlightId === flightId) {
+              viewer.trackedEntity = undefined;
+              startOrbitFromCamera();
+            }
+          }, 800);
+        }
+        return;
+      }
+    }
+    // If clicking on path or incident markers, select the flight
+    if (id && (id.startsWith("path-") || id.startsWith("incident-"))) {
+      const flightIdMatch = id.match(/-(flight-[a-f0-9-]+)$/);
+      if (flightIdMatch) {
+        const flightId = flightIdMatch[1];
+        const flightIdx = state.flights.findIndex((f) => f.flight_id === flightId);
+        if (flightIdx >= 0 && flightIdx !== state.active) {
+          state.active = flightIdx;
+          showActiveFlight();
+          return;
+        }
+      }
+    }
+    // Click on empty space: unfollow
+    if (state.orbit.enabled || state.followEntity) {
+      state.followFlightId = null;
+      state.followEntity = null;
+      viewer.trackedEntity = undefined;
+      state.orbit.enabled = false;
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+}
+
+// ---- Incident hover tooltip ----
+let _tooltipEl = null;
+
+function getOrCreateTooltip() {
+  if (!_tooltipEl) {
+    _tooltipEl = document.createElement("div");
+    _tooltipEl.className = "incident-tooltip";
+    _tooltipEl.style.cssText = `
+      position: fixed;
+      pointer-events: none;
+      background: rgba(15, 15, 20, 0.95);
+      border: 1px solid var(--gold);
+      color: var(--ink);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-family: "SF Mono", "Cascadia Code", "Fira Code", "Consolas", monospace;
+      z-index: 1000;
+      display: none;
+      max-width: 220px;
+      box-shadow: 0 0 12px rgba(201, 162, 39, 0.3);
+    `;
+    document.body.appendChild(_tooltipEl);
+  }
+  return _tooltipEl;
+}
+
+function setupIncidentTooltip(viewer) {
+  const tooltip = getOrCreateTooltip();
+  const handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+  handler.setInputAction((movement) => {
+    const picked = viewer.scene.pick(movement.position);
+    if (!Cesium.defined(picked) || !picked.id) {
+      tooltip.style.display = "none";
+      return;
+    }
+    const id = picked.id.id || picked.id;
+    if (id && id.startsWith("incident-")) {
+      // Find the matching incident data
+      for (const flight of state.flights) {
+        const incident = flight.incidents.find((inc) => {
+          const key = `incident-${inc.id || inc.type}-${flight.flight_id}-${flight.incidents.indexOf(inc)}`;
+          return key === id || id.includes(flight.flight_id);
+        });
+        if (incident) {
+          tooltip.textContent = `[${incident.severity}] ${incident.type}${incident.summary ? " · " + incident.summary : ""}`;
+          tooltip.style.display = "block";
+          tooltip.style.left = movement.position.x + 16 + "px";
+          tooltip.style.top = movement.position.y - 10 + "px";
+          return;
+        }
+      }
+    }
+    tooltip.style.display = "none";
+  }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+  state._tooltipHandler = handler;
+}
+
+function clearTooltip() {
+  if (state._tooltipHandler) {
+    state._tooltipHandler.destroy();
+    state._tooltipHandler = null;
+  }
+  if (_tooltipEl) {
+    _tooltipEl.style.display = "none";
+  }
+}
+
 function clearEntities() {
-  for (const entity of state.entities) {
-    state.viewer.entities.remove(entity);
+  _trailAnimationCancel = true;
+  stopHazardAnimations();
+  clearClickHandler();
+  clearTooltip();
+  // Track entities by layer before clearing
+  for (const layer of Object.keys(state.layerEntities)) {
+    for (const entity of state.layerEntities[layer]) {
+      if (entity && state.viewer) {
+        state.viewer.entities.remove(entity);
+      }
+    }
+    state.layerEntities[layer] = [];
   }
   state.entities = [];
 }
 
 function uavVisual(color) {
   const cesiumColor = Cesium.Color.fromCssColorString(color);
-  const marker = {
+  // Primary glow point
+  const primaryGlow = cesiumColor.clone();
+  primaryGlow.alpha = 0.9;
+  // Outer halo - wider, dimmer
+  const haloColor = Cesium.Color.fromCssColorString("#c9a227").clone();
+  haloColor.alpha = 0.3;
+  return {
     point: {
-      pixelSize: 14,
-      color: cesiumColor,
-      outlineColor: Cesium.Color.WHITE,
-      outlineWidth: 2,
+      pixelSize: 22,
+      color: primaryGlow,
+      outlineColor: Cesium.Color.fromCssColorString("#c9a227"),
+      outlineWidth: 3,
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      scaleByDistance: new Cesium.NearFarScalar(50, 1.2, 20000, 0.3),
+      translucencyByDistance: new Cesium.NearFarScalar(500, 1.0, 20000, 0.5),
+    },
+    // Secondary outer glow ring
+    pointOuter: {
+      pixelSize: 40,
+      color: haloColor,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      scaleByDistance: new Cesium.NearFarScalar(50, 1.5, 20000, 0.2),
+      translucencyByDistance: new Cesium.NearFarScalar(500, 0.8, 20000, 0.15),
     },
     label: {
       text: "UAV",
-      font: "12px sans-serif",
-      showBackground: true,
-      pixelOffset: new Cesium.Cartesian2(0, -28),
+      font: "10px monospace",
+      fillColor: Cesium.Color.fromCssColorString("#c9a227"),
+      outlineColor: Cesium.Color.BLACK,
+      outlineWidth: 2,
+      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+      showBackground: false,
+      pixelOffset: new Cesium.Cartesian2(0, -36),
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
-    },
-  };
-  if (!state.uavModelReady) {
-    return marker;
-  }
-  return {
-    ...marker,
-    model: {
-      uri: UAV_MODEL_URI,
-      scale: 0.012,
-      minimumPixelSize: 64,
-      color: cesiumColor,
-      colorBlendMode: Cesium.ColorBlendMode.MIX,
-      colorBlendAmount: 0.45,
-      silhouetteColor: Cesium.Color.WHITE,
-      silhouetteSize: 1.5,
+      scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 5000, 0.5),
     },
   };
 }
@@ -457,10 +655,11 @@ function attachModelFallback(entity, color) {
   const fallback = () => {
     entity.model = undefined;
     entity.point = new Cesium.PointGraphics({
-      pixelSize: 16,
+      pixelSize: 22,
       color: Cesium.Color.fromCssColorString(color),
-      outlineColor: Cesium.Color.WHITE,
-      outlineWidth: 2,
+      outlineColor: Cesium.Color.fromCssColorString("#c9a227"),
+      outlineWidth: 3,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
     });
   };
   const promise = graphics.readyPromise;
@@ -542,6 +741,150 @@ async function loadOsmTrees(bounds, limit = 80) {
   return trees;
 }
 
+const UXO_INCIDENT_TYPES = new Set(["mission_incomplete", "last_known_position", "operator_marked_debris"]);
+
+let _hazardAnimations = new Set();
+
+function _animateHazardCircle(hazardCircle, flightRef) {
+  const material = hazardCircle.ellipse.material;
+  const startTime = performance.now();
+  const duration = 3000;
+  let cancelled = false;
+  _hazardAnimations.add(cancelled);
+
+  function tick() {
+    if (cancelled) {
+      _hazardAnimations.delete(cancelled);
+      return;
+    }
+    const elapsed = (performance.now() - startTime) % duration;
+    const t = elapsed / duration;
+    const pulse = 0.45 + 0.55 * (0.5 + 0.5 * Math.sin(t * Math.PI * 2));
+    if (material.color) {
+      material.color.alpha = pulse * 0.65;
+    }
+    if (material.outline) {
+      const outlineAlpha = 0.5 + 0.5 * pulse;
+      material.outlineAlpha = outlineAlpha;
+    }
+    const refFlight = flightRef || state.flights[state.active];
+    if (refFlight) {
+      hazardCircle.ellipse.extrudedHeight = globeAltM(
+        refFlight,
+        hazardCircle.altOffset || 0,
+        0,
+      ) + pulse * 2;
+    }
+    if (state.viewer?.requestRender) state.viewer.requestRender();
+    const animId = requestAnimationFrame(tick);
+    hazardCircle._animFrame = animId;
+  }
+  const animId = requestAnimationFrame(tick);
+  hazardCircle._animFrame = animId;
+}
+
+function stopHazardAnimations() {
+  for (const entity of state.viewer?.entities.values() || []) {
+    if (entity._animFrame != null) {
+      cancelAnimationFrame(entity._animFrame);
+      entity._animFrame = null;
+    }
+  }
+}
+
+function _makePulsingHazardMaterial() {
+  return new Cesium.ColorMaterialProperty(
+    new Cesium.Color(0.85, 0.05, 0.05, 0.45),
+  );
+}
+
+async function addHazardCircles(flight, incidentHeights) {
+  const hazards = flight.incidents.filter(
+    (incident) =>
+      incident.lat != null &&
+      incident.lon != null &&
+      UXO_INCIDENT_TYPES.has(incident.type),
+  );
+  if (!hazards.length) return [];
+  const circleEntities = [];
+  const radiusM = 50;
+  for (const hazard of hazards) {
+    const alt = globeAltM(flight, hazard.alt_m, incidentHeights[0] || 0);
+    const center = Cesium.Cartesian3.fromDegrees(hazard.lon, hazard.lat, alt);
+    const circle = state.viewer.entities.add({
+      id: `hazard-${hazard.id || hazard.type}-${flight.flight_id}`,
+      position: center,
+      ellipse: {
+        semiMinorAxis: radiusM,
+        semiMajorAxis: radiusM,
+        height: alt,
+        material: _makePulsingHazardMaterial(),
+        outline: true,
+        outlineColor: Cesium.Color.fromCssColorString("#ff1a1a"),
+        outlineWidth: 2,
+        extrudedHeight: alt + 1,
+      },
+      label: {
+        text: `UXO hazard zone (${radiusM}m radius)`,
+        font: "10px monospace",
+        fillColor: Cesium.Color.RED,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 2,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cesium.Cartesian2(0, -radiusM - 10),
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
+    circleEntities.push(circle);
+  }
+  for (const circle of circleEntities) {
+    _animateHazardCircle(circle, flight);
+  }
+  return circleEntities;
+}
+
+// ---- Trail animation: fade trail behind drone, bright ahead ----
+
+let _trailAnimationCancel = false;
+
+function animateTrailGlow(flightId, viewer) {
+  const trailEntity = viewer.entities.getById(`trail-${flightId}`);
+  const pathEntity = viewer.entities.getById(`path-${flightId}`);
+  if (!trailEntity || !pathEntity) return;
+  _trailAnimationCancel = false;
+
+  function tick() {
+    if (_trailAnimationCancel || !viewer) return;
+    const currentTime = viewer.clock.currentTime;
+    const startTime = viewer.clock.startTime;
+    const stopTime = viewer.clock.stopTime;
+    if (!startTime || !stopTime) return;
+
+    const totalDuration = Cesium.JulianDate.totalSeconds(stopTime) - Cesium.JulianDate.totalSeconds(startTime);
+    const currentSeconds = Cesium.JulianDate.totalSeconds(currentTime) - Cesium.JulianDate.totalSeconds(startTime);
+    const progress = Math.max(0, Math.min(1, currentSeconds / totalDuration));
+
+    // Fade the full path based on progress (dim ahead of drone)
+    const pathAlpha = progress * 0.5;
+    const pathColor = Cesium.Color.fromCssColorString(COLORS[state.flights.indexOf(state.flights.find((f) => f.flight_id === flightId))] || COLORS[0]);
+    pathEntity.polyline.material = new Cesium.ColorMaterialProperty(
+      pathColor.withAlpha(Math.max(0.1, pathAlpha)),
+    );
+
+    // Brighten trail entity (shown behind drone)
+    const trailAlpha = 0.8 + 0.2 * (1 - progress);
+    const trailColor = Cesium.Color.fromCssColorString(COLORS[state.flights.indexOf(state.flights.find((f) => f.flight_id === flightId))] || COLORS[0]);
+    trailEntity.polyline.material = new Cesium.ColorMaterialProperty(
+      trailColor.withAlpha(trailAlpha),
+    );
+
+    if (viewer.requestRender) viewer.requestRender();
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
 function addTreeToGlobe(tree, index) {
   const trunk = state.viewer.entities.add({
     id: `tree-trunk-${index}`,
@@ -575,7 +918,8 @@ async function addFlightToGlobe(flight, color, track) {
     state.viewer.clock.currentTime = Cesium.JulianDate.clone(start);
     state.viewer.clock.clockRange = Cesium.ClockRange.CLAMPED;
     state.viewer.clock.multiplier = state.viewer.clock.multiplier || 1;
-    state.viewer.timeline.zoomTo(start, stop);
+    state.timelineFlightStart = Cesium.JulianDate.clone(start);
+    state.timelineFlightStop = Cesium.JulianDate.clone(stop);
   }
   const sampled = new Cesium.SampledPositionProperty();
   const positions = [];
@@ -593,21 +937,52 @@ async function addFlightToGlobe(flight, color, track) {
     sampled.addSample(time, position);
     positions.push(position);
   }
+
+  // ---- Full path (complete flight trace, dim) ----
   const pathEntity = state.viewer.entities.add({
     id: `path-${flight.flight_id}`,
     polyline: {
       positions,
-      width: 3.5,
-      material: Cesium.Color.fromCssColorString(color),
+      width: 2,
+      material: new Cesium.ColorMaterialProperty(
+        Cesium.Color.fromCssColorString(color).withAlpha(0.35),
+      ),
     },
   });
+  state.layerEntities.paths.push(pathEntity);
+
+  // ---- Animated glow trail (visible portion ahead of drone) ----
+  const trailSampled = new Cesium.SampledPositionProperty();
+  const trailTimes = [];
+  for (let idx = 0; idx < flight.samples.length; idx += 1) {
+    const s = flight.samples[idx];
+    const t = Cesium.JulianDate.fromIso8601(s.timestamp);
+    trailSampled.addSample(t, positions[idx]);
+    trailTimes.push(t);
+  }
+
+  const trailEntity = state.viewer.entities.add({
+    id: `trail-${flight.flight_id}`,
+    availability: new Cesium.TimeIntervalCollection([
+      new Cesium.TimeInterval({ start, stop }),
+    ]),
+    position: trailSampled,
+    polyline: {
+      width: 3,
+      material: new Cesium.ColorMaterialProperty(
+        Cesium.Color.fromCssColorString(color).withAlpha(0.85),
+      ),
+      outlineColor: Cesium.Color.fromCssColorString("#c9a227"),
+      outlineWidth: 1,
+    },
+  });
+  state.layerEntities.paths.push(trailEntity);
+
+  // ---- UAV marker with glow ----
   const uav = state.viewer.entities.add({
     id: `uav-${flight.flight_id}`,
     availability: new Cesium.TimeIntervalCollection([
-      new Cesium.TimeInterval({
-        start,
-        stop,
-      }),
+      new Cesium.TimeInterval({ start, stop }),
     ]),
     position: sampled,
     orientation: new Cesium.VelocityOrientationProperty(sampled),
@@ -615,12 +990,16 @@ async function addFlightToGlobe(flight, color, track) {
     ...uavVisual(color),
     path: {
       leadTime: 0,
-      trailTime: 90,
+      trailTime: 30,
       width: 3,
-      material: Cesium.Color.fromCssColorString(color).withAlpha(0.55),
+      material: new Cesium.ColorMaterialProperty(
+        Cesium.Color.fromCssColorString(color).withAlpha(0.6),
+      ),
     },
   });
   attachModelFallback(uav, color);
+
+  // ---- Incident markers ----
   const markers = [];
   const locatedIncidents = flight.incidents.filter(
     (incident) => incident.lat != null && incident.lon != null,
@@ -637,27 +1016,34 @@ async function addFlightToGlobe(flight, color, track) {
         globeAltM(flight, incident.alt_m, incidentHeights[index] || 0),
       ),
       point: {
-        pixelSize: 14,
+        pixelSize: 12,
         color:
           incident.severity === "critical"
-            ? Cesium.Color.RED
+            ? Cesium.Color.fromCssColorString("#dc3545")
             : incident.severity === "warning"
-              ? Cesium.Color.ORANGE
-              : Cesium.Color.GOLD,
+              ? Cesium.Color.fromCssColorString("#c9a227")
+              : Cesium.Color.fromCssColorString("#3ecfc2"),
         outlineColor: Cesium.Color.WHITE,
         outlineWidth: 2,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 10000, 0.5),
       },
       label: {
         text: `${incident.severity} ${incident.type}`,
-        font: "14px sans-serif",
-        showBackground: true,
+        font: "10px monospace",
+        fillColor: Cesium.Color.fromCssColorString("#e8e0d0"),
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 2,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
         pixelOffset: new Cesium.Cartesian2(0, -22),
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
     });
     markers.push(marker);
+    state.layerEntities.incidents.push(marker);
   });
+
+  // ---- Trees ----
   const trees = [];
   try {
     const osmTrees = await loadOsmTrees(flightBounds(flight));
@@ -667,12 +1053,54 @@ async function addFlightToGlobe(flight, color, track) {
   } catch {
     // OSM trees are decorative; a blocked Overpass query should not break replay.
   }
-  state.entities.push(pathEntity, uav, ...markers, ...trees);
+
+  // ---- Hazard circles ----
+  const hazardCircles = await addHazardCircles(flight, incidentHeights);
+  for (const hc of hazardCircles) {
+    state.layerEntities.hazard.push(hc);
+  }
+
+  state.entities.push(pathEntity, uav, ...markers, ...trees, ...hazardCircles);
+
+  // Start trail glow animation
+  animateTrailGlow(flight.flight_id, state.viewer);
+
   if (track) {
     state.viewer.trackedEntity = undefined;
     state.viewer.flyTo(pathEntity, { duration: 1.2 }).then(() => {
       startOrbitFromCamera();
     });
+  }
+}
+
+function updateLayerVisibility() {
+  for (const [layer, visible] of Object.entries(state.layers)) {
+    const entities = state.layerEntities[layer] || [];
+    for (const entity of entities) {
+      if (entity) {
+        entity.show = visible;
+      }
+    }
+  }
+  if (state.viewer?.requestRender) state.viewer.requestRender();
+}
+
+// ---- Flight legend (color-coded mission list) ----
+
+function renderFlightLegend() {
+  els.flightLegend.innerHTML = "";
+  if (state.flights.length < 2) return;
+  for (let i = 0; i < state.flights.length; i++) {
+    const flight = state.flights[i];
+    const color = COLORS[i % COLORS.length];
+    const row = document.createElement("div");
+    row.className = `flight-legend-row${i === state.active ? " active" : ""}`;
+    row.innerHTML = `<span class="flight-legend-dot" style="background:${color};color:${color};"></span><span class="flight-legend-label">${flight.flight_id}</span>`;
+    row.addEventListener("click", () => {
+      state.active = i;
+      showActiveFlight();
+    });
+    els.flightLegend.append(row);
   }
 }
 
@@ -682,7 +1110,8 @@ function renderFlightList() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = index === state.active ? "active" : "";
-    button.textContent = flight.flight_id;
+    const color = COLORS[index % COLORS.length];
+    button.innerHTML = `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${color};margin-right:6px;vertical-align:middle;"></span>${flight.flight_id}`;
     button.addEventListener("click", () => {
       state.active = index;
       void showActiveFlight();
@@ -732,6 +1161,85 @@ function renderDatasets() {
   }
 }
 
+function renderTimelineTicks(flight) {
+  els.scrubberIncidents.innerHTML = "";
+  if (!state.timelineFlightStart || !state.timelineFlightStop) return;
+
+  const startTime = Cesium.JulianDate.toDate(state.timelineFlightStart).getTime();
+  const stopTime = Cesium.JulianDate.toDate(state.timelineFlightStop).getTime();
+  const duration = stopTime - startTime;
+
+  // Incident-based ticks
+  const incidents = flight.incidents.filter((inc) => inc.sample_index != null && inc.sample_index >= 0);
+  for (const inc of incidents) {
+    const flightSample = flight.samples[inc.sample_index];
+    if (!flightSample) continue;
+    const incTime = Cesium.JulianDate.toDate(
+      Cesium.JulianDate.fromIso8601(flightSample.timestamp)
+    ).getTime();
+    const pct = ((incTime - startTime) / duration) * 100;
+    if (pct < 0 || pct > 100) continue;
+
+    const tick = document.createElement("div");
+    tick.className = `timeline-tick ${inc.severity === "critical" ? "critical" : "warning"}`;
+    tick.style.left = `${pct}%`;
+    tick.title = `[${inc.severity}] ${inc.type}`;
+    els.scrubberIncidents.appendChild(tick);
+  }
+
+  // GPS warning ticks from flight samples
+  const seenWarnings = new Set();
+  for (let i = 0; i < flight.samples.length; i++) {
+    const sample = flight.samples[i];
+    if (sample.warning && !seenWarnings.has(sample.warning)) {
+      seenWarnings.add(sample.warning);
+      const sampleTime = Cesium.JulianDate.toDate(
+        Cesium.JulianDate.fromIso8601(sample.timestamp)
+      ).getTime();
+      const pct = ((sampleTime - startTime) / duration) * 100;
+      if (pct < 0 || pct > 100) continue;
+
+      const tick = document.createElement("div");
+      tick.className = "timeline-tick gps-warning";
+      tick.style.left = `${pct}%`;
+      tick.title = `GPS: ${sample.warning}`;
+      els.scrubberIncidents.appendChild(tick);
+    }
+  }
+}
+
+function updateTimelineUI() {
+  if (!state.timelineFlightStart || !state.timelineFlightStop) return;
+  const currentTime = state.viewer.clock.currentTime;
+  const startMs = Cesium.JulianDate.toDate(state.timelineFlightStart).getTime();
+  const stopMs = Cesium.JulianDate.toDate(state.timelineFlightStop).getTime();
+  const currentMs = Cesium.JulianDate.toDate(currentTime).getTime();
+  const total = stopMs - startMs;
+  const elapsed = Math.max(0, Math.min(total, currentMs - startMs));
+  const pct = total > 0 ? (elapsed / total) * 100 : 0;
+
+  els.scrubberProgress.style.width = `${pct}%`;
+  els.scrubberHead.style.left = `${pct}%`;
+
+  // Format time
+  const totalSeconds = Math.floor(elapsed / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  els.timelineTime.textContent =
+    `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+function scrubToPercent(pct) {
+  if (!state.timelineFlightStart || !state.timelineFlightStop) return;
+  const startMs = Cesium.JulianDate.toDate(state.timelineFlightStart).getTime();
+  const stopMs = Cesium.JulianDate.toDate(state.timelineFlightStop).getTime();
+  const total = stopMs - startMs;
+  const targetMs = startMs + (total * pct / 100);
+  const targetDate = new Date(targetMs);
+  state.viewer.clock.currentTime = Cesium.GregorianDate.toJulianDate(targetDate);
+}
+
 function renderHud(flight, pose) {
   const banner = bannerState(flight, pose.time_s);
   const key = incidentKey(banner);
@@ -757,6 +1265,33 @@ function renderHud(flight, pose) {
         .join("")
     : "<p>No indexed incidents</p>";
   els.reportText.textContent = flight.mission_summary || flight.report_text || "No report yet.";
+
+  // Jump-to buttons for incidents in banner
+  if (banner.failed && banner.incident) {
+    const jumpContainer = els.jumpButtons;
+    if (!jumpContainer.children.length) {
+      jumpContainer.hidden = false;
+      const flightSample = flight.samples[banner.incident.sample_index || 0];
+      if (flightSample) {
+        const btn = document.createElement("button");
+        btn.className = "jump-btn";
+        btn.textContent = `Jump to [${banner.incident.type}]`;
+        btn.addEventListener("click", () => {
+          const targetTime = Cesium.JulianDate.fromIso8601(flightSample.timestamp);
+          state.viewer.clock.currentTime = targetTime;
+          renderHud(flight, interpolate(flight, flightSample.time_s));
+        });
+        jumpContainer.appendChild(btn);
+      }
+    }
+  } else {
+    els.jumpButtons.hidden = true;
+    els.jumpButtons.innerHTML = "";
+  }
+
+  // Render timeline ticks
+  renderTimelineTicks(flight);
+
   // Auto-capture a screenshot the first time each incident becomes visible
   const isoTimestamp = formatIso8601Utc(pose.time_s);
   maybeCaptureIncidentScreenshot(flight, banner, isoTimestamp);
@@ -770,38 +1305,67 @@ async function showActiveFlight() {
   const drawId = (state.globeDraw += 1);
   state.bannerClosed = false;
   state.dismissedIncidentId = null;
+  state.followEntity = null;
+  state.followFlightId = null;
   clearEntities();
   renderFlightList();
+  renderFlightLegend();
   const pose = interpolate(flight, flight.samples[0].time_s);
   renderHud(flight, pose);
   setStatus("Draping path on terrain...");
-  await addFlightToGlobe(flight, COLORS[state.active % COLORS.length], true);
+
+  // Compute unified timeline when showing all missions
+  if (state.showAllFlights && state.flights.length > 1) {
+    let earliestStart = null;
+    let latestStop = null;
+    for (let i = 0; i < state.flights.length; i++) {
+      const f = state.flights[i];
+      const s = Cesium.JulianDate.fromIso8601(f.samples[0].timestamp);
+      const st = Cesium.JulianDate.fromIso8601(f.samples[f.samples.length - 1].timestamp);
+      if (!earliestStart || Cesium.JulianDate.compare(s, earliestStart) < 0) earliestStart = s;
+      if (!latestStop || Cesium.JulianDate.compare(st, latestStop) > 0) latestStop = st;
+    }
+    state.unifiedStart = Cesium.JulianDate.clone(earliestStart);
+    state.unifiedStop = Cesium.JulianDate.clone(latestStop);
+  }
+
+  // Check if multiple flights should be rendered together
+  const showAll = state.showAllFlights && state.flights.length > 1;
+  if (showAll) {
+    setStatus("Draping all missions on globe...");
+    for (let i = 0; i < state.flights.length; i++) {
+      const f = state.flights[i];
+      await addFlightToGlobe(f, COLORS[i % COLORS.length], i === 0);
+    }
+    // Apply unified timeline
+    if (state.unifiedStart && state.unifiedStop) {
+      state.viewer.clock.startTime = Cesium.JulianDate.clone(state.unifiedStart);
+      state.viewer.clock.stopTime = Cesium.JulianDate.clone(state.unifiedStop);
+      state.viewer.clock.currentTime = Cesium.JulianDate.clone(state.unifiedStart);
+      state.timelineFlightStart = Cesium.JulianDate.clone(state.unifiedStart);
+      state.timelineFlightStop = Cesium.JulianDate.clone(state.unifiedStop);
+    }
+  } else {
+    state.unifiedStart = null;
+    state.unifiedStop = null;
+    await addFlightToGlobe(flight, COLORS[state.active % COLORS.length], true);
+  }
   if (drawId !== state.globeDraw) {
     return;
   }
   setStatus(flight.upload_status || "ready");
+  updateLayerVisibility();
 }
 
 // ---------------------------------------------------------------------------
 // Visual records: screenshot capture
 // ---------------------------------------------------------------------------
 
-// Track which incident ids we have already captured so we don't duplicate.
 const _capturedIncidents = new Set();
 
-/**
- * Capture the current Cesium canvas and POST it to the visuals API.
- * Silent on failure - never interrupts the replay.
- *
- * @param {string} flightId
- * @param {string} isoTimestamp  - recorded_at for the visual record
- * @param {string|null} incidentId
- * @param {string} caption
- */
 async function captureAndUploadScreenshot(flightId, isoTimestamp, incidentId, caption) {
   if (!state.token) return;
   try {
-    // Force Cesium to render a fresh frame before capturing
     state.viewer.scene.render();
     const dataUrl = await new Promise((resolve, reject) => {
       state.viewer.scene.canvas.toBlob(
@@ -826,14 +1390,10 @@ async function captureAndUploadScreenshot(flightId, isoTimestamp, incidentId, ca
       })(),
     });
   } catch {
-    // Silent - screenshot capture is best-effort
+    // Silent
   }
 }
 
-/**
- * Called from renderHud when an incident banner transitions to a new incident.
- * Captures a screenshot once per unique incident id.
- */
 function maybeCaptureIncidentScreenshot(flight, banner, isoTimestamp) {
   if (!banner.failed) return;
   const incidentId = banner.incident?.id || null;
@@ -841,7 +1401,6 @@ function maybeCaptureIncidentScreenshot(flight, banner, isoTimestamp) {
   if (_capturedIncidents.has(dedupeKey)) return;
   _capturedIncidents.add(dedupeKey);
   const caption = `[${banner.severity}] ${banner.type} at ${isoTimestamp}`;
-  // Schedule capture on next animation frame so Cesium has drawn the current state
   requestAnimationFrame(() =>
     captureAndUploadScreenshot(flight.flight_id, isoTimestamp, incidentId, caption),
   );
@@ -856,11 +1415,16 @@ function attachClock() {
     if (!flight) {
       return;
     }
-    const iso = Cesium.JulianDate.toIso8601(clock.currentTime, 0);
-    const timeS = Date.parse(iso.endsWith("Z") ? iso : `${iso}Z`) / 1000;
-    renderHud(flight, interpolate(flight, timeS));
+    renderHud(flight, interpolate(flight, getPoseFromClock(clock).time_s));
+    updateTimelineUI();
     applyOrbitCamera();
   });
+}
+
+function getPoseFromClock(clock) {
+  const iso = Cesium.JulianDate.toIso8601(clock.currentTime, 0);
+  const timeS = Date.parse(iso.endsWith("Z") ? iso : `${iso}Z`) / 1000;
+  return interpolate(state.flights[state.active], timeS);
 }
 
 async function hydrateFlight(document, extras = {}) {
@@ -904,8 +1468,8 @@ async function loadOfflineDemo() {
   return [flight];
 }
 
-async function refreshFlightsFromApi(selectedIds) {
-  const ids = [...selectedIds];
+async function refreshFlightsFromApi(requested) {
+  const ids = [...requested];
   if (params.get("latest") === "1") {
     const listed = await apiGet("/v1/flights?limit=5");
     if (listed.items?.[0]?.id) {
@@ -1130,10 +1694,10 @@ function bindControls() {
       els.banner.hidden = true;
       return;
     }
+    state.bannerClosed = true;
     const iso = Cesium.JulianDate.toIso8601(state.viewer.clock.currentTime, 0);
     const timeS = Date.parse(iso.endsWith("Z") ? iso : `${iso}Z`) / 1000;
     const banner = bannerState(flight, timeS);
-    state.bannerClosed = true;
     state.dismissedIncidentId = incidentKey(banner);
     els.banner.hidden = true;
   });
@@ -1143,6 +1707,7 @@ function bindControls() {
     if (!flight) {
       return;
     }
+    els.jumpButtons.innerHTML = "";
     const iso = Cesium.JulianDate.toIso8601(state.viewer.clock.currentTime, 0);
     const timeS = Date.parse(iso.endsWith("Z") ? iso : `${iso}Z`) / 1000;
     renderHud(flight, interpolate(flight, timeS));
@@ -1171,6 +1736,59 @@ function bindControls() {
     }
     els.speeds.append(button);
   }
+
+  // ---- Layer toggles ----
+  document.querySelectorAll(".layer-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const layer = btn.dataset.layer;
+      // Multi-flight toggle
+      if (btn.id === "multiFlightToggle") {
+        state.showAllFlights = btn.classList.toggle("active");
+        void showActiveFlight();
+        return;
+      }
+      if (layer && state.layers[layer] !== undefined) {
+        state.layers[layer] = !state.layers[layer];
+        btn.classList.toggle("active", state.layers[layer]);
+        updateLayerVisibility();
+      }
+    });
+  });
+
+  // ---- Timeline scrubber ----
+  function handleScrub(clientX) {
+    const rect = els.scrubber.getBoundingClientRect();
+    const pct = clamp((clientX - rect.left) / rect.width, 0, 1) * 100;
+    scrubToPercent(pct);
+    updateTimelineUI();
+  }
+
+  els.scrubber.addEventListener("mousedown", (e) => {
+    state.scrubbing = true;
+    handleScrub(e.clientX);
+  });
+  document.addEventListener("mousemove", (e) => {
+    if (state.scrubbing) {
+      handleScrub(e.clientX);
+    }
+  });
+  document.addEventListener("mouseup", () => {
+    state.scrubbing = false;
+  });
+
+  // Touch support for scrubber
+  els.scrubber.addEventListener("touchstart", (e) => {
+    state.scrubbing = true;
+    handleScrub(e.touches[0].clientX);
+  }, { passive: true });
+  document.addEventListener("touchmove", (e) => {
+    if (state.scrubbing) {
+      handleScrub(e.touches[0].clientX);
+    }
+  }, { passive: true });
+  document.addEventListener("touchend", () => {
+    state.scrubbing = false;
+  });
 }
 
 async function bootstrap(create = true) {
@@ -1179,6 +1797,8 @@ async function bootstrap(create = true) {
     state.viewer = await createViewer();
     bindControls();
     attachClock();
+    setupClickToFollow(state.viewer);
+    setupIncidentTooltip(state.viewer);
   }
   const requested = (params.get("flights") || "")
     .split(",")
