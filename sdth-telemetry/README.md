@@ -1,6 +1,9 @@
 # SDTH Telemetry Platform
 
-Mac-first drone telemetry platform: ingest normalized JSON (via Tailscale), store in SQLite, translate to canonical JSON with local Ollama/DeepSeek.
+Mac-first drone telemetry platform: ingest recorded vendor logs (via Tailscale), store in SQLite, normalize to canonical L2 JSON, index incidents, and serve Cesium replay.
+
+Parsers and `persist_canonical_series` write canonical JSON.
+Ollama/DeepSeek is optional enrichment for incident write-ups, not the normalizer.
 
 ## Progress
 
@@ -9,6 +12,13 @@ Azure is not used. Tailscale is private transport, not accreditation.
 
 The supported demo is recorded-log upload from Laptop A to Laptop B.
 See [`docs/two-laptop-demo.md`](docs/two-laptop-demo.md).
+
+The checked demo fixtures are `fixtures/demo/controller_mission_alpha.csv` and `controller_mission_bravo.csv`.
+Both raise `operator_warning` with evidence `GPS signal weak`.
+A second flight makes the signature show up on `/v1/incidents/patterns?min_flights=2`.
+
+Vision is a sidecar: [`sdth-vision`](../sdth-vision/README.md) posts `camera_frame` visuals and `frame_census`.
+The API does not run YOLO.
 
 **Important:** nobody connects to SQLite directly.
 Yall both use the HTTP API.
@@ -177,6 +187,7 @@ curl -X POST -H "Authorization: Bearer <API_KEY>" \
 Rule detectors run on L2-shaped JSON only (position, attitude, battery, sensors).
 Vendor packets are never read directly.
 Thresholds are physics/ops bands (low battery, altitude spike, GPS jump, attitude shock, telemetry gap).
+The live demo signature is `operator_warning` from APP.warning keywords, not a battery incident.
 
 Index a flight after ingest (also runs automatically when translation finishes):
 
@@ -221,12 +232,14 @@ The demo-facing workflow uses:
 - `GET /v1/flights/{flight_id}/path` for visualization-ready flight path data.
 - `POST /v1/flights/{flight_id}/index-incidents` and `GET /v1/flights/{flight_id}/incidents` for incident analysis.
 - `POST /v1/flights/{flight_id}/incident-report` for the local-LLM report.
+- `POST /v1/flights/{flight_id}/visuals?kind=camera_frame` to store a JPEG against a flight.
+- `POST /v1/flights/{flight_id}/census` and `GET /v1/flights/{flight_id}/census` for HUD counts.
 
 The launchers assume these contracts even when the raw-upload backend is being implemented concurrently.
 Their raw upload and status paths can be overridden with environment variables.
 
 The demo is limited to recorded logs.
-Live airframe/GCS connections, edge VLM inference, microburst/EW/LPI functionality, automated fleet fixes, accreditation, Azure, and Orcrist are explicitly deferred.
+Live airframe/GCS connections, onboard or edge inference, globe-projected boxes, microburst/EW/LPI functionality, automated fleet fixes, accreditation, Azure, and Orcrist are explicitly deferred.
 
 ---
 
@@ -387,6 +400,8 @@ python -m app.worker
 
 Set `OLLAMA_BASE_URL=http://127.0.0.1:11434` when running outside Docker.
 
-## Azure (later)
+## Azure
 
-Same `docker-compose.yml` deploys to an Azure VM in the final hackathon month. No code changes expected.
+Not used.
+Same Compose file could run on a VM later.
+That is not part of the demo.

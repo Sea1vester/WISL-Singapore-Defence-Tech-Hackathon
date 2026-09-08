@@ -2,6 +2,7 @@
 
 Laptop A simulates a controller by dropping a recorded raw log into a watched directory.
 Laptop B receives the file, parses it, normalizes it, detects incidents, and opens the Cesium replay in a browser.
+The checked fixtures are two DJI CSVs that both emit `operator_warning` (`GPS signal weak`).
 
 Both laptops should be on the same Tailscale tailnet.
 The API stays private to that tailnet. Do not expose it with Tailscale Funnel.
@@ -95,12 +96,20 @@ Select one to parse it and visualize it on the globe.
 - Laptop B parses server-side, stores a full canonical series, and indexes geolocated incidents.
 - Replay animates the GPS path on an OSM globe and places the GPS-warning marker.
 - Live GPS logs use Cesium camera controls and a mission-failure banner when incidents exist.
-- Two missions with the same signature produce a reviewable mitigation bulletin, not a vehicle command.
+- Two missions with the same `operator_warning` signature produce a reviewable mitigation bulletin, not a vehicle command.
+
+Optional vision beat (laptop sidecar, not required for the two-CSV demo):
+
+- `POST /v1/flights/{id}/visuals?kind=camera_frame` stores a JPEG.
+- `POST /v1/flights/{id}/census` stores 10 VisDrone class counts plus `cars` / `people` roll-ups.
+- Replay `#censusLine` shows `cars N · people M` from the nearest `recorded_at`.
+- Detection runs in [`sdth-vision`](../../sdth-vision/README.md). Fine-tune is still a dry-run.
 
 ## Explicitly out of scope
 
 - Live MAVLink, QGroundControl, or Android controller plugins
-- Edge VLM / camera visual tags
+- Onboard or edge VLM/YOLO
+- Globe-projected boxes or landing-zone occupancy
 - Microburst, EW, or LPI radio behavior
 - Automated firmware or configuration push to a fleet
 - Formal accreditation, sovereign-cloud assurance, or defense approval

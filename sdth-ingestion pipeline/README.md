@@ -45,6 +45,10 @@ Two independent things live here:
 Ingestion is built entirely in-house — the team is no longer working with Orcrist on
 this (see git history for that decision).
 
+Camera frames and census are not this package.
+They live in [`sdth-vision`](../sdth-vision/README.md) and post to the platform API
+after a flight already exists.
+
 ## Usage
 
 Edge uploader (the path that actually feeds the live platform + 3D replay viewer):

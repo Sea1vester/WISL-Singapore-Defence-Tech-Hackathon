@@ -4,6 +4,8 @@ CesiumJS 3D replay for recorded WISL flights.
 
 Laptop B serves the viewer at `/replay/` from the telemetry API.
 It draws WGS84 path samples on an ellipsoid globe with OpenStreetMap imagery, animates the UAV on the recorded clock, and overlays indexed incidents.
+When `camera_frame` visuals have `frame_census` rows, `#censusLine` shows `cars N · people M` from the nearest `recorded_at` on that clock.
+That HUD is a laptop sidecar join, not an onboard detector.
 
 This is not a live airframe or GCS client.
 No Cesium Ion token is required.
@@ -54,3 +56,4 @@ Cesium camera: pinch to zoom, drag to orbit the UAV (including from below), Home
 The globe uses real world elevation where available, drapes OSM imagery on that terrain, and plants OpenStreetMap trees near the flight.
 Play/pause and speed buttons drive the Cesium clock.
 Pick an ingested flight or a local dataset from the side panel.
+Census HUD updates with the clock when census rows exist for that flight.

@@ -1,5 +1,8 @@
 # Drone Flight Simulator / Log Visualizer (C++/OpenGL)
 
+Leftover OpenGL visualizer.
+The supported hackathon replay is [`sdth-replay`](../../sdth-replay/README.md) (CesiumJS served by the telemetry API).
+
 A lightweight C++ 3D environment for visualizing UAV flight paths (from PX4
 `.ulg` logs) over terrain, with a free-fly camera and GPS-anchored world
 coordinates.
