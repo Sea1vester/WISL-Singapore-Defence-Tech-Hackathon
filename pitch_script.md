@@ -1,79 +1,259 @@
-# WISL — 5-Minute Pitch Script (Technical)
+# WISL — 5-Minute Pitch Script
 
-*(~1,030 words — denser than a standard 5-minute pace even at ~165 wpm for a technical
-audience; this runs closer to 6 minutes as written, so trim the bracketed asides and the
-"what's next" validation detail live if you're running long)*
-*(Enabler framing / fleet-wide-leads structure preserved per NUS DVL feedback — this
-pass adds real component names, endpoints, and numbers to the technical middle section)*
-*(Updated for the cheap/COTS-fleet pivot: DJI, PX4/Auterion, ArduPilot.
-Closer matches shipped parsers and vision sidecar; VisDrone DET fine-tune is still dry-run.)*
+*(Spoken, ~820 words. About 5 minutes at a slightly brisk pace.*
+*Leave air on slide 6 for the live replay.)*
+*(Slides 01-08 are the talk. Appendix is for questions.*
+*Don't read the slide. The slide has the numbers. You have the story.)*
 
-**Diagrams** (source: `docs/diagrams/`) — bring these up on screen at the marked points,
-don't narrate them; let the audience read while you talk over them:
+**Diagrams** if you're presenting with extras besides the deck:
 
-| When | Diagram | What it's doing on screen |
+| When | Diagram | Why |
 |---|---|---|
-| ~1:00, during "Where the value concentrates" | [`04-impact-matrix.svg`](docs/diagrams/04-impact-matrix.svg) | Up as you say "we're deliberately not chasing the other three" — the 2×2 makes the excluded quadrants visible instead of just asserted |
-| ~2:00, during "The mechanism" | [`01-ingest-pipeline.svg`](docs/diagrams/01-ingest-pipeline.svg) | Up for the whole edge→queue→worker→schema paragraph — this is the one diagram doing real work, don't rush past it |
-| ~2:50, right after "not guessed vendor opcodes" | [`03-physics-vs-opcodes.svg`](docs/diagrams/03-physics-vs-opcodes.svg) | Swap to this exactly on that line — it's the visual payoff for the sentence you just said |
-| ~3:45, during "The demo, end to end" | [`02-fleet-payoff.svg`](docs/diagrams/02-fleet-payoff.svg) | Up alongside (or right before) the live replay/patterns-panel demo, as a map of what they're about to watch happen |
-
-If you have a live screen to demo from, `02-fleet-payoff.svg` is the one diagram worth
-cutting in favor of the real thing — a live screenshot or screen-share of the CesiumJS
-viewer + Fleet Patterns panel is more persuasive than the abstract version, since it
-proves it's real rather than describing it.
+| Slide 3, "one place" | `docs/diagrams/04-impact-matrix.svg` | Only if the 2x2 isn't already on the slide |
+| Slide 4, while you walk the pipeline | `docs/diagrams/01-ingest-pipeline.svg` | Skip if it doubles the mechanism slide |
+| Slide 4, "not vendor error codes" | `docs/diagrams/03-physics-vs-opcodes.svg` | Visual payoff for that line |
+| Slide 6 | Live Cesium replay, or `docs/diagrams/02-fleet-payoff.svg` | Prefer the live thing |
 
 ---
 
-**[0:00 – 0:45] The honest claim**
+**[Slide 1 | 0:00 – 0:20] Title**
 
-Robotic failures are valuable data — but only if you can get to it. Today that data is trapped: locked in vendor-specific binary formats — PX4's ULog, ArduPilot's DataFlash, proprietary hex fault codes — scattered across disconnected silos, unreadable without an engineer in the loop.
+Hi, we're team WISL.
 
-WISL exists to fix exactly that: it turns transient mission failures into a permanent, queryable institutional record. We want to be precise about what that is. WISL doesn't win an engagement. It doesn't defend a site or take out a target. What it does is make the next mission better informed. That's a smaller claim than "real-time tactical advantage" — and it's the one we can actually defend.
+One line: we give cheap drone fleets a memory.
 
-**[0:45 – 1:45] Where the value concentrates**
+Not during the fight.
 
-That value concentrates in one specific place, and we're deliberately not chasing the other three. Losing one $2,000 DJI unit to a random crash is an expected cost of flying at that price point. Losing an expensive, small-fleet platform to a one-off failure is diagnosable the old way, with an engineer and enough time. And an expensive fleet failing systematically is rare in practice — you don't field hundreds of a multi-million-dollar UAV.
+After.
 
-The value concentrates where cheap, large fleets fail systematically: a batch firmware bug, a bad ESC batch, a common jamming vulnerability — caught once, on one log, from one DJI, PX4, or ArduPilot unit, and propagated across the other three hundred before it happens to them too. That's why the brand catalog leads with DJI, PX4/Auterion, and ArduPilot instead of three named tactical platforms: there are enough of them, flying often enough, that a shared failure signature becomes real institutional value the moment it repeats twice.
+I'll explain what that actually means.
 
-What we're not claiming: that this rescues a single unit mid-flight, or that most crashes are mysterious enough to need reconstructing. Most aren't. The payoff sits specifically on the repeat failure, over days and weeks of fleet-wide learning.
+---
 
-**[1:45 – 3:30] The mechanism**
+**[Slide 2 | 0:20 – 0:55] The claim**
 
-Here's the actual pipeline, live today.
+When a drone fails, that failure is useful.
 
-On the controller, an edge process watches the log directory, SHA-256-hashes every completed file, and POSTs it as multipart form data to a `/v1/logs/upload` endpoint the moment the flight ends — no SD card, no specialist. The hash makes it idempotent: the same file is never processed twice, even across a reboot, and the server independently de-dupes on the same hash.
+Most of the time you just can't get to it.
 
-Ingest is asynchronous: the upload lands on a Redis queue, a worker picks it up, and the operator can poll a status endpoint that moves through `received → parsing → normalizing → detecting → ready` — typically single-digit seconds for a flight-sized log.
+The log is sitting on the controller, in a format only that brand knows how to read.
 
-On the parsing side, a format registry sniffs the file — ULog, DataFlash or MAVLink telemetry log, CSV, Excel, hex codes — and maps every one of them into the same canonical schema: `position`, `attitude`, `battery`, `sensors`, `metadata`. That schema is schema-validated on the way in and is the part we treat as the actual product, not the renderer on top of it. It's what lets one operator query a DJI, a PX4 build, and an ArduPilot build through one API, without touching vendor tooling again — and it's where we think the real defensibility sits, because a forensic viewer alone is just a feature a drone-OS vendor bolts on.
+DJI dumps a spreadsheet.
 
-On top of the canonical record, rule-based detectors run — pure threshold checks against real platform physics, not a model, and not guessed vendor opcodes. Ground speed above 120 m/s between GPS samples is flagged, because a DJI multirotor or a PX4/ArduPilot FPV build cruises well under 30 m/s; a ground rig gets a 15 m/s ceiling, because it physically cannot exceed that. A battery drop past 15 points in a minute is flagged — normal cruise drain is a few percent. A 15-second gap in an otherwise steady stream is a dropout. Same five rules, zero brand-specific code, because everything upstream already agrees on one schema.
+PX4 writes one kind of file.
 
-For anything past a threshold — a narrative summary, a contributing-factor hypothesis — we route through a self-hosted language model, never a cloud API, with its output schema-validated and auto-retried against a repair prompt on failure. Same grammar-constrained discipline, applied to the layer that actually needs it.
+ArduPilot writes another.
 
-**[3:30 – 4:30] The demo, end to end**
+Fly mixed fleets, which people do because these things are cheap, and those logs never talk to each other.
 
-Once a log is `ready`, the replay client — a CesiumJS globe, real WGS84 terrain, OpenStreetMap imagery — pulls the trajectory from `/v1/flights/{id}/path` and animates the airframe along its recorded path, with incident markers dropped at the flagged timestamps and a plain-English summary alongside. Raw log in, 3D reconstruction and a readable incident report out. No specialist. That's step one, fully working.
+That's the gap.
 
-Step two is the fleet layer, and it's the part we lead with. Every incident carries a signature — incident type plus detector — and once a signature recurs across two or more flights, it surfaces in a patterns endpoint: flight count, incident count, first seen, last seen. One call against that signature generates a mitigation bulletin: affected flights, what to check, what to brief before the next sortie — explicitly not a firmware push or a command channel, just a reviewable document. Failure log to fleet-wide fix, and every hop from upload to bulletin is the same pipeline that ran the single-flight demo, not a shortcut.
+WISL takes a mission that already happened and turns it into a record you can actually search later.
 
-**[4:30 – 5:00] Future expansion**
+Same shape, whole fleet, and it stays with you.
+
+We're quite clear about what this is not.
+
+We're not real-time.
+
+We don't defend a site.
+
+We don't hit a target.
+
+We can't catch a drone while it's falling.
+
+What we can do is make sure the next mission already knows what went wrong on this one.
+
+Smaller claim than "we win the fight".
+
+That's the one we can stand behind.
+
+---
+
+**[Slide 3 | 0:55 – 1:35] Where it pays off**
+
+And that value sits in one place.
+
+We're not chasing the other three.
+
+Lose one two-thousand-dollar DJI to a random crash?
+
+That's just the cost of flying at that price.
+
+Lose an expensive platform to a one-off?
+
+You already have an engineer who can go look.
+
+Expensive fleets failing the same way across hundreds of units?
+
+Almost never happens.
+
+The interesting case is cheap and systematic.
+
+Bad firmware batch.
+
+Bad motor-controller batch.
+
+Jamming that shows up on more than one unit.
+
+You catch it once, on one log, and you warn the rest of the fleet before it happens to them too.
+
+That's why we lead with DJI, PX4, and ArduPilot.
+
+There are enough of them that the same failure actually repeats.
+
+Most crashes aren't mysterious.
+
+The payoff is the one that happens twice.
+
+---
+
+**[Slide 4 | 1:35 – 2:40] The mechanism**
+
+So what does that look like.
+
+This is running today.
+
+I'm not going to read the table.
+
+After the flight, something on the controller watches the log folder, hashes the file, and uploads it.
+
+No pulling the SD card.
+
+Same file never gets processed twice.
+
+A worker figures out the format and maps it into one common record: position, attitude, battery, sensors, metadata.
+
+That common record is the actual product.
+
+The globe is just how we show it.
+
+Once everything's in one shape, you can ask about a DJI, a PX4, and an ArduPilot through the same interface.
+
+On top of that we run simple checks against physics, not guessed vendor error codes.
+
+120 metres a second between GPS points isn't the drone going supersonic.
+
+That's a GPS jump.
+
+Ground vehicle is capped at 15.
+
+Battery through the failsafe bands.
+
+A climb the airframe can't actually do.
+
+A 15-second hole in the stream.
+
+Same rules for every brand, because everything upstream already agrees on the schema.
+
+If we need a written summary, that goes through a model we host ourselves, not a cloud API.
+
+---
+
+**[Slide 5 | 2:40 – 3:10] What we actually ran**
+
+I want to be honest about what we've actually run.
+
+This slide is the receipt.
+
+The live demo is two DJI controller logs.
+
+Both raise the same GPS-weak warning.
+
+Once that shows up on two flights, it counts as a pattern.
+
+On disk we also parse three PX4 ULogs, two ArduPilot DataFlash files, and one MAVLink tlog.
+
+Real recorded files, with tests.
+
+Vision is a sidecar.
+
+We can attach camera frames and a ground-object count to the replay clock.
+
+We have not fine-tuned the detector.
+
+We're not going to stand here and say we have.
+
+---
+
+**[Slide 6 | 3:10 – 4:20] The demo**
+
+End to end, this is what you're looking at.
+
+I'll talk over it.
+
+Raw log goes in.
+
+A few seconds later: path on a globe, markers where things went wrong, plain-English write-up.
+
+That's step one, and it works.
+
+Step two is the part we actually care about.
+
+Every incident gets a signature.
+
+The moment that shows up on two or more flights, it surfaces as a pattern.
+
+From that we generate a briefing note: what was affected, what to check, what to tell the next team before they fly.
+
+It's not a firmware push.
+
+It's not a command to the drone.
+
+It's a document a person can read.
+
+Failure log in, fleet-wide note out.
+
+Same pipeline.
+
+No shortcut behind the demo.
+
+---
+
+**[Slide 7 | 4:20 – 4:40] Future expansion**
 
 The loop runs today.
-The live demo is DJI CSV through `/v1/logs/upload` (two controller fixtures, recurring `operator_warning`).
-`px4_ulg` and `ardupilot_bin` parse recorded files under `raw_telemetry-datasets/`: 3 ULogs, 2 DataFlash `.bin`, 1 `.tlog`.
 
-Vision is a sidecar on the Cesium clock: `camera_frame` plus `frame_census`.
-It reports ground-object counts.
-It does not replace L2 telemetry.
-YOLOv8n has not been fine-tuned on VisDrone DET.
-`finetune_eval.json` is still `dry_run` true.
+What's still open is the vision fine-tune.
 
-Next slice is landing-zone occupancy: census plus altitude from L2.
+After that, landing-zone occupancy: take the ground-object count and combine it with altitude from the same record.
 
-WISL does not need to win the engagement.
-A better-informed next sortie is the claim we can defend.
+We're not claiming boxes on the globe.
+
+That needs camera data we don't have on the log yet.
+
+---
+
+**[Slide 8 | 4:40 – 5:00] Close**
+
+WISL doesn't need to win the engagement.
+
+If the next sortie is better informed, that's enough, and that's the claim we can defend.
 
 That's WISL.
+
+Happy to take questions.
+
+Appendix is behind this if you want architecture, detectors, or the datasets.
+
+---
+
+**If they ask (appendix, don't pre-empt)**
+
+- Architecture: upload is hashed so the same file isn't processed twice.
+  Status moves received, parsing, normalizing, detecting, ready.
+  Patterns are signatures that recur on at least two flights.
+  Bulletin is a briefing document, not a vehicle command.
+- Why thresholds: they're explainable, they're the same across brands, and they sit on published failsafe bands.
+  The model is reserved for the write-up and the optional ground-object count.
+- Why not named tactical platforms: cheap large fleets are where a systematic failure actually repeats often enough for a shared record to be worth keeping.
+- PX4 / ArduPilot: parsers and tests exist on real files.
+  Three ULogs, two DataFlash, one tlog.
+- Cloud: only the narrative layer uses a model, and that model is self-hosted.
+- Vision: HUD and census are wired.
+  Fine-tune has not been run.
+  Nothing runs on the airframe.
+  No boxes on the globe.
+- Dataset slides A3-A5: those are offline looks at real logs and warning messages.
+  They are not the ingest demo.
+  Don't treat them as proof that `/v1/logs/upload` ate 554 missions.
