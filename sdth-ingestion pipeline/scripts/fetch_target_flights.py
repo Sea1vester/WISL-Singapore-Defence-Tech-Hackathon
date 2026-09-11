@@ -26,8 +26,9 @@ from pathlib import Path
 
 # Substring patterns (lowercase) used to match a flight's "source" field to a target
 # platform. Add aliases here if the API's naming convention doesn't match a real flight.
-# Cheap/COTS brands are the focus; the two tactical-platform entries stay only for
-# backward-compat with flights already ingested under those labels.
+# Both segments are targets: cheap/COTS brands for fleet-wide systematic-failure
+# detection, and the tactical platforms for the small, expensive fleets where a
+# single-airframe loss is worth reconstructing on its own.
 TARGET_PLATFORMS: dict[str, list[str]] = {
     "DJI": ["dji", "mavic", "phantom", "mini 4", "air 3", "matrice"],
     "PX4 / Auterion (FPV, DIY, budget autopilot builds)": ["px4", "auterion"],

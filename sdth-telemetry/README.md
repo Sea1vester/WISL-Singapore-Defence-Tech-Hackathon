@@ -212,7 +212,7 @@ curl -H "Authorization: Bearer <API_KEY>" \
   http://MyIPAddress:8000/v1/hardware/brands
 ```
 
-Hardware brands currently in the log set, cheap/COTS first: DJI, PX4/Auterion, ArduPilot. Elbit Hermes 900, Aeronautics Orbiter 4, and aunav.NEO HD (Taurus UGV) remain supported as legacy entries, not the target segment.
+Hardware brands in the catalog, both fleet segments in scope: DJI, PX4/Auterion, ArduPilot (cheap/COTS) alongside Elbit Hermes 900, Aeronautics Orbiter 4, and aunav.NEO HD/Taurus UGV (expensive, small-fleet tactical platforms).
 
 ### 8. API reference
 

@@ -21,9 +21,12 @@ class Brand:
 
 
 # Order matters: first match wins. More specific markers before generic ones.
-# Cheap/COTS brands lead the catalog — that's the fleet we're actually sized for.
-# The two tactical-platform entries stay for format coverage and backward-compat with
-# already-ingested test flights, but are no longer the headline target segment.
+# Both segments are in scope: cheap/COTS brands (DJI, PX4/Auterion, ArduPilot) for
+# fleet-wide systematic-failure detection, and the tactical-platform entries
+# (Hermes 900, Orbiter 4, aunav/Taurus UGV) for the small, expensive fleets where a
+# single-airframe loss is worth reconstructing on its own. Cheap brands are listed
+# first because their markers are the ones most likely to collide with a generic
+# substring; it is not a priority ranking between the two segments.
 BRANDS: tuple[Brand, ...] = (
     Brand(
         id="dji",

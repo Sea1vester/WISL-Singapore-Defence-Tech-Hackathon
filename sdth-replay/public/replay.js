@@ -17,7 +17,7 @@ import {
 
 const CESIUM_VERSION = "1.125";
 const SPEED_VALUES = [0.25, 0.5, 1, 2, 4, 8, 15, 30, 60];
-const COLORS = ["#c9a227", "#3ecfc2", "#e06070", "#6a8fff", "#a070e0"];
+const COLORS = ["#4fd8c4", "#e0a95c", "#e0707a", "#7ea0d8", "#a58cd8"];
 const UAV_MODEL_URI = "./assets/drone.glb";
 const INGEST_PROGRESS = {
   received: 10,
@@ -252,17 +252,15 @@ async function createViewer() {
     shouldAnimate: false,
     requestRenderMode: true,
   });
-  // Dark space environment
-  viewer.scene.skyBox = new Cesium.SkyBox({
-    sources: {
-      positiveX: "",
-      negativeX: "",
-      positiveY: "",
-      negativeY: "",
-      positiveZ: "",
-      negativeZ: "",
-    },
-  });
+  // Dark space environment. This previously built a Cesium.SkyBox with an
+  // empty string as the image source for all six cube faces -- Cesium tries
+  // to actually fetch/decode those, an empty URL resolves to this HTML
+  // document, and decoding that as an image is exactly what threw
+  // "InvalidStateError: source image could not be decoded" and halted
+  // rendering before the base imagery layer ever loaded. Disabling the
+  // skybox outright gets the same dark-space look from backgroundColor
+  // below, without a broken image load.
+  viewer.scene.skyBox = undefined;
   viewer.scene.skyAtmosphere = new Cesium.SkyAtmosphere();
   viewer.scene.globe.enableLighting = false;
   viewer.scene.globe.depthTestAgainstTerrain = true;
@@ -565,17 +563,16 @@ function getOrCreateTooltip() {
     _tooltipEl.style.cssText = `
       position: fixed;
       pointer-events: none;
-      background: rgba(15, 15, 20, 0.95);
-      border: 1px solid var(--gold);
+      background: rgba(10, 14, 22, 0.95);
+      border: 1px solid var(--line);
       color: var(--ink);
       padding: 6px 10px;
-      border-radius: 4px;
+      border-radius: 2px;
       font-size: 10px;
-      font-family: "SF Mono", "Cascadia Code", "Fira Code", "Consolas", monospace;
+      font-family: "IBM Plex Mono", "SF Mono", "Cascadia Code", "Consolas", monospace;
       z-index: 1000;
       display: none;
       max-width: 220px;
-      box-shadow: 0 0 12px rgba(201, 162, 39, 0.3);
     `;
     document.body.appendChild(_tooltipEl);
   }
@@ -642,39 +639,31 @@ function clearEntities() {
 
 function uavVisual(color) {
   const cesiumColor = Cesium.Color.fromCssColorString(color);
-  // Primary glow point
-  const primaryGlow = cesiumColor.clone();
-  primaryGlow.alpha = 0.9;
-  // Outer halo - wider, dimmer
-  const haloColor = Cesium.Color.fromCssColorString("#c9a227").clone();
-  haloColor.alpha = 0.3;
+  const primary = cesiumColor.clone();
+  primary.alpha = 0.9;
+  // Note: this previously also spread a `pointOuter` property meant as a second,
+  // wider glow ring. Cesium's Entity only renders recognized graphics types
+  // (point, label, billboard, ...) -- "pointOuter" isn't one, so it was stored on
+  // the entity but never rendered. Removed as dead weight, not a behavior change.
   return {
     point: {
-      pixelSize: 22,
-      color: primaryGlow,
-      outlineColor: Cesium.Color.fromCssColorString("#c9a227"),
-      outlineWidth: 3,
+      pixelSize: 16,
+      color: primary,
+      outlineColor: Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.7),
+      outlineWidth: 1.5,
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
       scaleByDistance: new Cesium.NearFarScalar(50, 1.2, 20000, 0.3),
       translucencyByDistance: new Cesium.NearFarScalar(500, 1.0, 20000, 0.5),
     },
-    // Secondary outer glow ring
-    pointOuter: {
-      pixelSize: 40,
-      color: haloColor,
-      disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      scaleByDistance: new Cesium.NearFarScalar(50, 1.5, 20000, 0.2),
-      translucencyByDistance: new Cesium.NearFarScalar(500, 0.8, 20000, 0.15),
-    },
     label: {
       text: "UAV",
       font: "10px monospace",
-      fillColor: Cesium.Color.fromCssColorString("#c9a227"),
+      fillColor: Cesium.Color.fromCssColorString("#8891a6"),
       outlineColor: Cesium.Color.BLACK,
-      outlineWidth: 2,
+      outlineWidth: 1.5,
       style: Cesium.LabelStyle.FILL_AND_OUTLINE,
       showBackground: false,
-      pixelOffset: new Cesium.Cartesian2(0, -36),
+      pixelOffset: new Cesium.Cartesian2(0, -30),
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
       scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 5000, 0.5),
     },
@@ -689,10 +678,10 @@ function attachModelFallback(entity, color) {
   const fallback = () => {
     entity.model = undefined;
     entity.point = new Cesium.PointGraphics({
-      pixelSize: 22,
+      pixelSize: 16,
       color: Cesium.Color.fromCssColorString(color),
-      outlineColor: Cesium.Color.fromCssColorString("#c9a227"),
-      outlineWidth: 3,
+      outlineColor: Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.7),
+      outlineWidth: 1.5,
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
     });
   };
@@ -818,7 +807,11 @@ function _animateHazardCircle(hazardCircle, flightRef) {
 }
 
 function stopHazardAnimations() {
-  for (const entity of state.viewer?.entities.values() || []) {
+  // Cesium's EntityCollection exposes `values` as an array property, not a
+  // method -- calling it as `.values()` throws, which was aborting
+  // clearEntities() (and therefore the whole flight-load path) before the
+  // globe ever rendered.
+  for (const entity of state.viewer?.entities.values || []) {
     if (entity._animFrame != null) {
       cancelAnimationFrame(entity._animFrame);
       entity._animFrame = null;
@@ -854,16 +847,16 @@ async function addHazardCircles(flight, incidentHeights) {
         height: alt,
         material: _makePulsingHazardMaterial(),
         outline: true,
-        outlineColor: Cesium.Color.fromCssColorString("#ff1a1a"),
-        outlineWidth: 2,
+        outlineColor: Cesium.Color.fromCssColorString("#e8564f"),
+        outlineWidth: 1.5,
         extrudedHeight: alt + 1,
       },
       label: {
         text: `UXO hazard zone (${radiusM}m radius)`,
         font: "10px monospace",
-        fillColor: Cesium.Color.RED,
+        fillColor: Cesium.Color.fromCssColorString("#e8564f"),
         outlineColor: Cesium.Color.BLACK,
-        outlineWidth: 2,
+        outlineWidth: 1.5,
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
         pixelOffset: new Cesium.Cartesian2(0, -radiusM - 10),
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
@@ -895,8 +888,10 @@ function animateTrailGlow(flightId, viewer) {
     const stopTime = viewer.clock.stopTime;
     if (!startTime || !stopTime) return;
 
-    const totalDuration = Cesium.JulianDate.totalSeconds(stopTime) - Cesium.JulianDate.totalSeconds(startTime);
-    const currentSeconds = Cesium.JulianDate.totalSeconds(currentTime) - Cesium.JulianDate.totalSeconds(startTime);
+    // Cesium.JulianDate has no `totalSeconds` static -- secondsDifference(a, b) is
+    // the real API for "a minus b, in seconds".
+    const totalDuration = Cesium.JulianDate.secondsDifference(stopTime, startTime);
+    const currentSeconds = Cesium.JulianDate.secondsDifference(currentTime, startTime);
     const progress = Math.max(0, Math.min(1, currentSeconds / totalDuration));
 
     // Fade the full path based on progress (dim ahead of drone)
@@ -1006,7 +1001,7 @@ async function addFlightToGlobe(flight, color, track) {
       material: new Cesium.ColorMaterialProperty(
         Cesium.Color.fromCssColorString(color).withAlpha(0.85),
       ),
-      outlineColor: Cesium.Color.fromCssColorString("#c9a227"),
+      outlineColor: Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.4),
       outlineWidth: 1,
     },
   });
@@ -1053,12 +1048,12 @@ async function addFlightToGlobe(flight, color, track) {
         pixelSize: 12,
         color:
           incident.severity === "critical"
-            ? Cesium.Color.fromCssColorString("#dc3545")
+            ? Cesium.Color.fromCssColorString("#e8564f")
             : incident.severity === "warning"
-              ? Cesium.Color.fromCssColorString("#c9a227")
-              : Cesium.Color.fromCssColorString("#3ecfc2"),
-        outlineColor: Cesium.Color.WHITE,
-        outlineWidth: 2,
+              ? Cesium.Color.fromCssColorString("#f2a93b")
+              : Cesium.Color.fromCssColorString("#4fd8c4"),
+        outlineColor: Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.8),
+        outlineWidth: 1.5,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
         scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 10000, 0.5),
       },

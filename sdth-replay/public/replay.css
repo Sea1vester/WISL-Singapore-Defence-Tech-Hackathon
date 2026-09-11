@@ -1,14 +1,14 @@
 :root {
-  --ink: #e8e0d0;
-  --muted: #8a8578;
-  --panel: rgba(15, 15, 20, 0.92);
-  --gold: #c9a227;
-  --cyan: #3ecfc2;
-  --danger: #dc3545;
-  --line: rgba(201, 162, 39, 0.25);
-  --glow-gold: rgba(201, 162, 39, 0.6);
-  --glow-cyan: rgba(62, 207, 194, 0.5);
-  font-family: "SF Mono", "Cascadia Code", "Fira Code", "Consolas", monospace;
+  --ink: #e9edf5;
+  --muted: #8891a6;
+  --dim: #4e5872;
+  --panel: rgba(10, 14, 22, 0.86);
+  --signal: #4fd8c4;
+  --warn: #f2a93b;
+  --danger: #e8564f;
+  --line: #1e2635;
+  --line-soft: rgba(30, 38, 53, 0.7);
+  font-family: "IBM Plex Mono", "SF Mono", "Cascadia Code", "Consolas", monospace;
   font-size: 12px;
 }
 
@@ -23,11 +23,11 @@ body {
   margin: 0;
   height: 100%;
   color: var(--ink);
-  background: #0a0a12;
+  background: #0a0e16;
   overflow: hidden;
 }
 
-/* ---- Cesium overrides: dark space look ---- */
+/* ---- Cesium overrides: flat dark look ---- */
 .cesium-widget-container,
 .cesium-viewer,
 .cesium-viewer-animationContainer,
@@ -47,12 +47,12 @@ body {
 }
 
 .cesium-timeline-main {
-  background: rgba(10, 10, 18, 0.85) !important;
+  background: rgba(10, 14, 22, 0.85) !important;
   border-top: 1px solid var(--line) !important;
 }
 
 .cesium-timeline-base {
-  background: rgba(20, 20, 30, 0.9) !important;
+  background: rgba(16, 20, 30, 0.9) !important;
 }
 
 .cesium-timeline-marker {
@@ -60,59 +60,60 @@ body {
 }
 
 .cesium-timeline-currentTime {
-  color: var(--gold) !important;
+  color: var(--signal) !important;
 }
 
 .cesium-navigation-help-instructions,
 .cesium-navigation-help-view-button,
 .cesium-navigation-help-quit-button {
-  background: rgba(15, 15, 20, 0.95) !important;
+  background: rgba(10, 14, 22, 0.95) !important;
   border-color: var(--line) !important;
   color: var(--ink) !important;
 }
 
 .cesium-button {
-  background: rgba(20, 20, 30, 0.85) !important;
+  background: rgba(16, 20, 30, 0.8) !important;
   border: 1px solid var(--line) !important;
-  color: var(--ink) !important;
+  color: var(--muted) !important;
   font-family: inherit !important;
   font-size: 11px !important;
-  border-radius: 3px !important;
+  border-radius: 2px !important;
 }
 
 .cesium-button:hover {
-  background: rgba(201, 162, 39, 0.15) !important;
-  border-color: var(--gold) !important;
+  background: rgba(79, 216, 196, 0.1) !important;
+  border-color: var(--signal) !important;
+  color: var(--ink) !important;
 }
 
 .cesium-button:active {
-  background: rgba(201, 162, 39, 0.3) !important;
+  background: rgba(79, 216, 196, 0.18) !important;
 }
 
 .cesium-geocoder-input {
-  background: rgba(20, 20, 30, 0.85) !important;
+  background: rgba(16, 20, 30, 0.8) !important;
   border: 1px solid var(--line) !important;
   color: var(--ink) !important;
 }
 
 .cesium-list-selection {
-  background: rgba(201, 162, 39, 0.1) !important;
+  background: rgba(79, 216, 196, 0.1) !important;
 }
 
 .cesium-scene-mode-picker-dropdown-list {
-  background: rgba(15, 15, 20, 0.95) !important;
+  background: rgba(10, 14, 22, 0.95) !important;
   border-color: var(--line) !important;
 }
 
 .cesium-scene-mode-picker-button {
-  background: rgba(20, 20, 30, 0.85) !important;
+  background: rgba(16, 20, 30, 0.8) !important;
   border-color: var(--line) !important;
-  color: var(--ink) !important;
+  color: var(--muted) !important;
 }
 
 .cesium-scene-mode-picker-button-active {
-  background: rgba(201, 162, 39, 0.25) !important;
-  border-color: var(--gold) !important;
+  background: rgba(79, 216, 196, 0.15) !important;
+  border-color: var(--signal) !important;
 }
 
 .cesium-base-layer-picker-container {
@@ -129,7 +130,7 @@ body {
 
 .cesium-credit-expandLink,
 .cesium-credit-link {
-  color: var(--muted) !important;
+  color: var(--dim) !important;
 }
 
 /* ---- HUD layout ---- */
@@ -156,54 +157,56 @@ body {
   position: absolute;
   top: 0;
   right: 0;
-  width: 340px;
+  width: 320px;
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 12px 14px 100px;
+  padding: 20px 18px 110px;
   box-sizing: border-box;
   background: var(--panel);
   border-left: 1px solid var(--line);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 #panel h1 {
-  margin: 0 0 8px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--gold);
-  letter-spacing: 0.06em;
+  margin: 0 0 18px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 #panel h2 {
-  margin: 14px 0 6px;
-  font-size: 10px;
+  margin: 22px 0 8px;
+  font-size: 9.5px;
+  font-weight: 500;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--muted);
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 3px;
+  color: var(--dim);
+  border-bottom: 1px solid var(--line-soft);
+  padding-bottom: 6px;
 }
 
 /* ---- Banner (failure/incident) ---- */
 .banner {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  right: 356px;
-  min-height: 56px;
-  padding: 10px 40px 10px 16px;
-  border-radius: 4px;
+  top: 16px;
+  left: 16px;
+  right: 336px;
+  min-height: 52px;
+  padding: 12px 40px 12px 16px;
+  border-radius: 2px;
   border: 1px solid var(--line);
-  background: rgba(15, 15, 20, 0.92);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  border-left: 2px solid var(--line);
+  background: rgba(10, 14, 22, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 2px;
+  gap: 3px;
 }
 
 .banner[hidden] {
@@ -212,27 +215,26 @@ body {
 
 .banner-close {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 3px 8px;
+  top: 10px;
+  right: 10px;
+  padding: 3px 9px;
   border: 1px solid var(--line);
-  background: rgba(30, 30, 40, 0.9);
-  color: var(--muted);
+  background: transparent;
+  color: var(--dim);
   cursor: pointer;
-  font-size: 11px;
+  font-size: 10px;
   font-family: inherit;
-  border-radius: 3px;
+  border-radius: 2px;
   line-height: 1.4;
 }
 
 .banner-close:hover {
   color: var(--ink);
-  border-color: var(--gold);
+  border-color: var(--muted);
 }
 
 .banner.fail {
-  border-color: var(--danger);
-  background: rgba(30, 10, 12, 0.94);
+  border-left-color: var(--danger);
 }
 
 .banner.fail #bannerTitle {
@@ -240,23 +242,24 @@ body {
 }
 
 .banner.ok #bannerTitle {
-  color: var(--gold);
+  color: var(--signal);
 }
 
 #bannerTitle {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
 }
 
 #bannerMeta {
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--muted);
 }
 
 #bannerDescription {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--ink);
+  line-height: 1.5;
 }
 
 /* Failure jump-to buttons */
@@ -264,23 +267,24 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .banner .jump-btn {
-  padding: 3px 8px;
-  border: 1px solid var(--danger);
-  background: rgba(220, 53, 69, 0.12);
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  background: transparent;
   color: var(--danger);
   cursor: pointer;
   font-size: 10px;
   font-family: inherit;
-  border-radius: 3px;
+  border-radius: 2px;
   white-space: nowrap;
 }
 
 .banner .jump-btn:hover {
-  background: rgba(220, 53, 69, 0.25);
+  border-color: var(--danger);
+  background: rgba(232, 86, 79, 0.1);
 }
 
 #incidentList .incident-jump {
@@ -289,52 +293,51 @@ body {
   text-align: left;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  color: inherit;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--muted);
   font: inherit;
-  padding: 6px 0;
+  padding: 7px 0;
   cursor: pointer;
 }
 
 #incidentList .incident-jump:hover {
-  color: var(--gold);
+  color: var(--signal);
 }
 
 /* ---- Flight legend ---- */
 .flight-legend {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  margin: 6px 0 8px;
+  gap: 2px;
+  margin: 0 0 14px;
 }
 
 .flight-legend-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px 6px;
-  border-radius: 3px;
+  gap: 7px;
+  padding: 4px 6px;
+  border-radius: 2px;
   cursor: pointer;
-  font-size: 10px;
+  font-size: 10.5px;
   transition: background 0.15s ease;
   border: 1px solid transparent;
 }
 
 .flight-legend-row:hover {
-  background: rgba(201, 162, 39, 0.08);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .flight-legend-row.active {
-  border-color: var(--gold);
-  background: rgba(201, 162, 39, 0.12);
+  border-color: var(--line);
+  background: rgba(79, 216, 196, 0.06);
 }
 
 .flight-legend-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 0 4px currentColor;
 }
 
 .flight-legend-label {
@@ -347,68 +350,69 @@ body {
 /* ---- Chip ---- */
 .chip {
   display: inline-block;
-  margin-bottom: 8px;
-  padding: 4px 10px;
-  border: 0;
-  background: var(--danger);
-  color: #fff;
+  margin-bottom: 14px;
+  padding: 5px 11px;
+  border: 1px solid var(--danger);
+  background: rgba(232, 86, 79, 0.1);
+  color: var(--danger);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: 2px;
   font-family: inherit;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 /* ---- Layer toggles ---- */
 .layer-toggles {
   display: flex;
-  gap: 6px;
-  margin: 8px 0;
+  gap: 5px;
+  margin: 0 0 16px;
   flex-wrap: wrap;
 }
 
 .layer-toggle {
-  padding: 4px 10px;
+  padding: 4px 9px;
   border: 1px solid var(--line);
-  background: rgba(20, 20, 30, 0.7);
-  color: var(--muted);
+  background: transparent;
+  color: var(--dim);
   cursor: pointer;
-  font-size: 10px;
+  font-size: 9.5px;
   font-family: inherit;
-  border-radius: 3px;
+  border-radius: 2px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  transition: all 0.15s ease;
+  letter-spacing: 0.05em;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.layer-toggle:hover {
+  color: var(--muted);
 }
 
 .layer-toggle.active {
-  border-color: var(--gold);
-  color: var(--gold);
-  background: rgba(201, 162, 39, 0.1);
+  border-color: var(--muted);
+  color: var(--ink);
 }
 
 .layer-toggle.hazard-toggle.active {
   border-color: var(--danger);
   color: var(--danger);
-  background: rgba(220, 53, 69, 0.1);
 }
 
 .layer-toggle.multi-toggle.active {
-  border-color: var(--cyan);
-  color: var(--cyan);
-  background: rgba(62, 207, 194, 0.1);
+  border-color: var(--signal);
+  color: var(--signal);
 }
 
 /* ---- Dataset / list rows ---- */
 .dataset-row {
   display: grid;
   gap: 4px;
-  padding: 6px 8px;
-  border: 1px solid var(--line);
-  background: rgba(25, 25, 35, 0.6);
-  border-radius: 3px;
+  padding: 7px 8px;
+  border: 1px solid var(--line-soft);
+  background: transparent;
+  border-radius: 2px;
 }
 
 .dataset-row button {
@@ -416,14 +420,14 @@ body {
   border: 0;
   background: transparent;
   text-align: left;
-  color: var(--ink);
+  color: var(--muted);
   font-family: inherit;
   font-size: 11px;
   cursor: pointer;
 }
 
 .dataset-row button:hover {
-  color: var(--gold);
+  color: var(--ink);
 }
 
 .dataset-row button:disabled {
@@ -436,8 +440,8 @@ body {
 }
 
 .progress {
-  height: 4px;
-  background: rgba(40, 40, 55, 0.8);
+  height: 3px;
+  background: var(--line-soft);
   overflow: hidden;
   border-radius: 2px;
 }
@@ -445,7 +449,7 @@ body {
 .progress > span {
   display: block;
   height: 100%;
-  background: var(--cyan);
+  background: var(--signal);
   width: 0;
   transition: width 0.3s ease;
 }
@@ -453,44 +457,55 @@ body {
 .progress-label {
   margin: 0;
   font-size: 10px;
-  color: var(--muted);
+  color: var(--dim);
 }
 
 /* ---- Fields ---- */
 .field {
   display: grid;
-  gap: 3px;
-  margin-bottom: 10px;
-  font-size: 10px;
-  color: var(--muted);
+  gap: 4px;
+  margin-bottom: 14px;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dim);
 }
 
 .field input {
   width: 100%;
   box-sizing: border-box;
-  padding: 6px 8px;
+  padding: 7px 9px;
   border: 1px solid var(--line);
-  background: rgba(20, 20, 30, 0.7);
+  background: transparent;
   color: var(--ink);
   font-family: inherit;
   font-size: 11px;
-  border-radius: 3px;
+  border-radius: 2px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--muted);
 }
 
 .field input::placeholder {
-  color: var(--muted);
+  color: var(--dim);
 }
 
 .status {
-  color: var(--cyan);
+  color: var(--signal);
   font-size: 11px;
   margin: 4px 0;
 }
 
 #playState {
-  font-size: 11px;
-  color: var(--gold);
-  margin: 4px 0;
+  font-size: 10px;
+  color: var(--dim);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 4px 0 10px;
 }
 
 #flightMeta,
@@ -500,25 +515,25 @@ body {
 #eventLine,
 #censusLine {
   font-size: 11px;
-  margin: 2px 0;
-  color: var(--ink);
+  margin: 3px 0;
+  color: var(--muted);
 }
 
 #timeLine {
-  color: var(--cyan);
+  color: var(--signal);
 }
 
 /* ---- Lists ---- */
 .hint,
 .report {
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.4;
+  color: var(--dim);
+  font-size: 10.5px;
+  line-height: 1.5;
 }
 
 .list {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   max-height: 140px;
   overflow: auto;
 }
@@ -526,29 +541,31 @@ body {
 .list button,
 #speeds button,
 #playButton {
-  padding: 6px 8px;
+  padding: 6px 9px;
   border: 1px solid var(--line);
-  background: rgba(25, 25, 35, 0.6);
-  color: var(--ink);
+  background: transparent;
+  color: var(--muted);
   text-align: left;
   cursor: pointer;
   font-family: inherit;
   font-size: 11px;
-  border-radius: 3px;
+  border-radius: 2px;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
 .list button:hover,
 #speeds button:hover,
 #playButton:hover {
-  border-color: var(--gold);
+  color: var(--ink);
+  border-color: var(--muted);
 }
 
 .list button.active,
 #speeds button.active,
 #playButton.active {
-  background: rgba(201, 162, 39, 0.2);
-  color: var(--gold);
-  border-color: var(--gold);
+  color: var(--signal);
+  border-color: var(--signal);
+  background: rgba(79, 216, 196, 0.06);
 }
 
 .list .dataset-row button {
@@ -561,40 +578,42 @@ body {
 /* ---- Transport bar (bottom) ---- */
 #transport {
   position: absolute;
-  left: 12px;
+  left: 16px;
   bottom: 0;
-  right: 356px;
+  right: 336px;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
-  padding: 8px 0;
+  padding: 12px 0;
   z-index: 20;
   border-top: 1px solid var(--line);
-  background: rgba(10, 10, 18, 0.8);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(10, 14, 22, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 #transport #playButton {
-  min-width: 64px;
+  min-width: 60px;
   text-align: center;
-  font-weight: 700;
+  font-weight: 500;
   font-size: 11px;
 }
 
 #transport #speeds {
   display: flex;
-  gap: 4px;
+  gap: 3px;
 }
 
 /* ---- Camera frame PiP (nearest onTick) ---- */
 .camera-pip {
   position: absolute;
-  left: 12px;
-  bottom: 56px;
-  width: 220px;
-  background: rgba(10, 10, 18, 0.92);
+  left: 16px;
+  bottom: 60px;
+  width: 200px;
+  background: rgba(10, 14, 22, 0.9);
   border: 1px solid var(--line);
+  border-radius: 2px;
+  overflow: hidden;
   z-index: 15;
 }
 
@@ -605,29 +624,29 @@ body {
 .camera-pip img {
   display: block;
   width: 100%;
-  height: 118px;
+  height: 110px;
   object-fit: cover;
-  background: linear-gradient(#1c2834, #121820);
+  background: #10141e;
 }
 
 .camera-pip-cap {
   margin: 0;
   padding: 6px 8px;
   font-size: 10px;
-  color: var(--muted);
+  color: var(--dim);
 }
 
 /* ---- Custom timeline scrubber bar ---- */
 #timeline-scrubber {
   flex: 1;
-  height: 32px;
+  height: 28px;
   position: relative;
-  background: rgba(20, 20, 30, 0.7);
+  background: transparent;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 2px;
   cursor: pointer;
   overflow: hidden;
-  margin: 0 8px;
+  margin: 0 4px;
 }
 
 #timeline-progress {
@@ -636,7 +655,7 @@ body {
   top: 0;
   bottom: 0;
   width: 0%;
-  background: linear-gradient(90deg, rgba(201, 162, 39, 0.2), rgba(201, 162, 39, 0.35));
+  background: rgba(79, 216, 196, 0.1);
   transition: width 0.05s linear;
 }
 
@@ -644,9 +663,8 @@ body {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 2px;
-  background: var(--gold);
-  box-shadow: 0 0 6px var(--glow-gold);
+  width: 1.5px;
+  background: var(--signal);
   left: 0%;
   pointer-events: none;
 }
@@ -661,12 +679,11 @@ body {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 2px;
-  border-radius: 1px;
+  width: 1.5px;
 }
 
 .timeline-tick.warning {
-  background: var(--gold);
+  background: var(--warn);
 }
 
 .timeline-tick.critical {
@@ -674,23 +691,23 @@ body {
 }
 
 .timeline-tick.gps-warning {
-  background: var(--cyan);
-  opacity: 0.7;
-  width: 1.5px;
+  background: var(--signal);
+  opacity: 0.6;
+  width: 1px;
 }
 
 #timeline-time {
   font-size: 10px;
-  color: var(--cyan);
+  color: var(--dim);
   font-family: inherit;
-  min-width: 80px;
+  min-width: 76px;
   text-align: right;
 }
 
 /* ---- Scrollbar styling ---- */
 #panel::-webkit-scrollbar,
 .list::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
 
 #panel::-webkit-scrollbar-track,
@@ -705,6 +722,6 @@ body {
 }
 
 .cesium-viewer-bottom {
-  left: 12px !important;
-  right: 356px !important;
+  left: 16px !important;
+  right: 336px !important;
 }
