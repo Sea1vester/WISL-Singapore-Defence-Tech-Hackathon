@@ -9,7 +9,7 @@ from typing import Any
 from app.brands import identify_brand
 from app.canonical_series import load_flight_series
 from app.db import db_session
-from app.detectors import detect_incidents, parse_timestamp
+from app.detectors import detect_incidents, hazard_label, parse_timestamp
 from app.schemas import new_id
 
 _SEVERITY_RANK = {"info": 0, "warning": 1, "critical": 2}
@@ -167,6 +167,9 @@ def index_flight(flight_id: str, *, include_llm_report: str | None = None) -> di
             position = nearest_position(series, item.started_at)
             if position:
                 evidence.setdefault("position", position)
+            label = hazard_label(item, series, detected)
+            if label:
+                evidence["hazard"] = label
             conn.execute(
                 """
                 INSERT INTO incidents (

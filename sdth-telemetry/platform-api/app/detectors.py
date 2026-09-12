@@ -529,3 +529,47 @@ def detect_incidents(series: list[dict[str, Any]], user_markers: list[dict[str, 
     found.extend(rule_c)
 
     return _merge(found)
+
+
+JAMMING_WARNING_HINTS = ("gps", "weak", "link")
+
+
+def _incident_warning_text(incident: DetectedIncident) -> str:
+    parts = [incident.summary or ""]
+    evidence = incident.evidence or {}
+    sample = evidence.get("sample") if isinstance(evidence.get("sample"), dict) else {}
+    parts.append(str(sample.get("warning") or ""))
+    return " ".join(parts).lower()
+
+
+def _series_lands(series: list[dict[str, Any]]) -> bool:
+    if not series:
+        return False
+    last = series[-1]
+    flight_mode = last.get("flight_mode") or (last.get("sensors") or {}).get("flight_mode")
+    upper = str(flight_mode or "").upper().strip()
+    return upper in LAND_MODES or upper == "LAND"
+
+
+def hazard_label(
+    incident: DetectedIncident,
+    series: list[dict[str, Any]],
+    all_incidents: list[DetectedIncident] | None = None,
+) -> str | None:
+    """Name a detector hit for the demo. Does not invent new physics."""
+    del all_incidents
+    kind = incident.incident_type
+    if kind == "telemetry_gap":
+        return None
+    if kind == "last_known_position":
+        return "jamming"
+    if kind == "operator_warning":
+        text = _incident_warning_text(incident)
+        if any(hint in text for hint in JAMMING_WARNING_HINTS):
+            return "jamming"
+        return None
+    if kind == "attitude_shock" and _series_lands(series):
+        return "mechanical_failure"
+    if kind == "mission_incomplete":
+        return "kinetic_loss"
+    return None

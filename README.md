@@ -11,6 +11,7 @@ Target parser coverage: DJI, PX4/Auterion, ArduPilot, Elbit Hermes 900, Aeronaut
 - [`sdth-ingestion pipeline/`](sdth-ingestion%20pipeline/README.md) — in-house parsers plus the controller directory watcher.
 - [`sdth-replay/`](sdth-replay/README.md) — CesiumJS 3D replay served by the Laptop B API.
 - [`sdth-vision/`](sdth-vision/README.md) — laptop sidecar for `camera_frame` ingest and `frame_census`. Not onboard inference.
+- [`sdth-synth/`](sdth-synth/README.md) — generate new vendor-native logs from a kinematic core. Gold corpus stays frozen.
 - `sdth-telemetry/fixtures/demo/` — two DJI CSV fixtures for the hackathon demo.
 - `isaac-3d/` — leftover OpenGL visualizer. The supported replay is Cesium.
 
