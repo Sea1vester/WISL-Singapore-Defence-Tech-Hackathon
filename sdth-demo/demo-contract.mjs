@@ -26,6 +26,18 @@ export function simulationProvenance(flight) {
 
 export function flightDisplayName(flight) {
   const filename = flight?.original_filename || flight?.filename || flight?.upload_filename;
+  const syntheticNames = {
+    "synthetic_dji_csv_battery_critical_021.csv": "Synthetic · Critical battery",
+    "synthetic_dji_csv_battery_critical_logger_dropout_027.csv": "Synthetic · Low battery + recording gap",
+    "synthetic_dji_csv_gps_denied_frozen_023.csv": "Synthetic · Frozen reported position",
+    "synthetic_dji_csv_gps_jamming_022.csv": "Synthetic · GPS-weak warning",
+    "synthetic_dji_csv_gps_weak_midair_end_028.csv": "Synthetic · GPS warning + airborne ending",
+    "synthetic_dji_csv_logger_dropout_025.csv": "Synthetic · Recording gap",
+    "synthetic_dji_csv_lost_airborne_026.csv": "Synthetic · Recording ends airborne",
+    "synthetic_dji_csv_motor_fail_recover_024.csv": "Synthetic · Attitude excursion + warning",
+    "synthetic_dji_csv_v2_normal_control.csv": "Synthetic · Normal control",
+  };
+  if (syntheticNames[filename]) return syntheticNames[filename];
   const knownNames = {
     "flight-1a1b914dc70e6d0c1b45": "GPS-weak mission",
     "flight-b7ee5f98110be03e6576": "Telemetry-dropout mission",

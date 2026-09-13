@@ -1,0 +1,997 @@
+{
+  "fixtures": [
+    {
+      "kind": "independent_synthetic_failure_fixture",
+      "base_scenario_card": "/Users/sylvesterlim/CodingFun/SDTH/sdth-synth/scenarios/hazards/battery_critical.yaml",
+      "variant_index": 21,
+      "scenario": {
+        "name": "battery_critical_021",
+        "home_lat": 51.175604748758566,
+        "home_lon": -1.8372597464590772,
+        "duration_hint_s": 0.0,
+        "phases": [
+          {
+            "name": "ground",
+            "duration_s": 8.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "takeoff",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 36.0,
+            "speed_ms": 1.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 20.0,
+            "alt_m": 36.0,
+            "speed_ms": 4.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "hover",
+            "duration_s": 18.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "cruise",
+            "duration_s": 35.0,
+            "north_m": 10.0,
+            "east_m": 110.0,
+            "alt_m": 34.0,
+            "speed_ms": 3.8
+          },
+          {
+            "name": "land",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 1.0
+          }
+        ],
+        "wind_ms": 2.4,
+        "gps_degraded_at_s": null,
+        "gps_degraded_for_s": 25.0,
+        "operator_warning_text": null,
+        "start_battery_pct": 12.0,
+        "cruise_alt_m": 36.0,
+        "dt_s": 1.0,
+        "seed": 467,
+        "aircraft_name": "Mini 4 Pro",
+        "gps_freeze_at_s": null,
+        "gps_freeze_for_s": 32.0,
+        "warning_at_s": null,
+        "warning_for_s": 25.0,
+        "tumble_at_s": null,
+        "tumble_for_s": 3.0,
+        "end_airborne_at_s": null,
+        "logger_gap_at_s": null,
+        "logger_gap_for_s": 16.0,
+        "min_battery_pct": 6.0,
+        "end_battery_pct": 7.0,
+        "extra": {}
+      },
+      "formats": [
+        "dji_csv",
+        "dji_excel",
+        "hermes900",
+        "orbiter4"
+      ],
+      "manifest": {
+        "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_021/DJI/dji_csv/dji_csv_battery_critical_021.csv",
+        "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_021/DJI/dji_excel/dji_excel_battery_critical_021.xlsx",
+        "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_021/Elbit/hermes900/hermes900_battery_critical_021.stanag",
+        "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_021/Aeronautics/orbiter4/orbiter4_battery_critical_021.json"
+      },
+      "physical_sanity_gate": {
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "kind": "independent_synthetic_failure_fixture",
+      "base_scenario_card": "/Users/sylvesterlim/CodingFun/SDTH/sdth-synth/scenarios/hazards/gps_jamming.yaml",
+      "variant_index": 22,
+      "scenario": {
+        "name": "gps_jamming_022",
+        "home_lat": 51.172604748758566,
+        "home_lon": -1.836242022516694,
+        "duration_hint_s": 0.0,
+        "phases": [
+          {
+            "name": "ground",
+            "duration_s": 8.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "takeoff",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 36.0,
+            "speed_ms": 1.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 20.0,
+            "alt_m": 36.0,
+            "speed_ms": 4.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "hover",
+            "duration_s": 18.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "cruise",
+            "duration_s": 35.0,
+            "north_m": 10.0,
+            "east_m": 110.0,
+            "alt_m": 34.0,
+            "speed_ms": 3.8
+          },
+          {
+            "name": "rth",
+            "duration_s": 40.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 34.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "land",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 1.0
+          }
+        ],
+        "wind_ms": 2.4,
+        "gps_degraded_at_s": 90.0,
+        "gps_degraded_for_s": 28.0,
+        "operator_warning_text": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008).",
+        "start_battery_pct": 88.0,
+        "cruise_alt_m": 36.0,
+        "dt_s": 1.0,
+        "seed": 478,
+        "aircraft_name": "Mini 4 Pro",
+        "gps_freeze_at_s": null,
+        "gps_freeze_for_s": 32.0,
+        "warning_at_s": null,
+        "warning_for_s": 25.0,
+        "tumble_at_s": null,
+        "tumble_for_s": 3.0,
+        "end_airborne_at_s": null,
+        "logger_gap_at_s": null,
+        "logger_gap_for_s": 16.0,
+        "min_battery_pct": 15.0,
+        "end_battery_pct": null,
+        "extra": {}
+      },
+      "formats": [
+        "dji_csv",
+        "dji_excel",
+        "hermes900",
+        "orbiter4"
+      ],
+      "manifest": {
+        "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/gps_jamming_022/DJI/dji_csv/dji_csv_gps_jamming_022.csv",
+        "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/gps_jamming_022/DJI/dji_excel/dji_excel_gps_jamming_022.xlsx",
+        "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/gps_jamming_022/Elbit/hermes900/hermes900_gps_jamming_022.stanag",
+        "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/gps_jamming_022/Aeronautics/orbiter4/orbiter4_gps_jamming_022.json"
+      },
+      "physical_sanity_gate": {
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "kind": "independent_synthetic_failure_fixture",
+      "base_scenario_card": "/Users/sylvesterlim/CodingFun/SDTH/sdth-synth/scenarios/hazards/gps_denied_frozen.yaml",
+      "variant_index": 23,
+      "scenario": {
+        "name": "gps_denied_frozen_023",
+        "home_lat": 51.17310474875857,
+        "home_lon": -1.8317252788578757,
+        "duration_hint_s": 0.0,
+        "phases": [
+          {
+            "name": "ground",
+            "duration_s": 8.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "takeoff",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 36.0,
+            "speed_ms": 1.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 20.0,
+            "alt_m": 36.0,
+            "speed_ms": 4.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "hover",
+            "duration_s": 18.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "cruise",
+            "duration_s": 35.0,
+            "north_m": 10.0,
+            "east_m": 110.0,
+            "alt_m": 34.0,
+            "speed_ms": 3.8
+          },
+          {
+            "name": "rth",
+            "duration_s": 40.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 34.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "land",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 1.0
+          }
+        ],
+        "wind_ms": 2.4,
+        "gps_degraded_at_s": null,
+        "gps_degraded_for_s": 25.0,
+        "operator_warning_text": null,
+        "start_battery_pct": 88.0,
+        "cruise_alt_m": 36.0,
+        "dt_s": 1.0,
+        "seed": 496,
+        "aircraft_name": "Mini 4 Pro",
+        "gps_freeze_at_s": 80.0,
+        "gps_freeze_for_s": 34.0,
+        "warning_at_s": null,
+        "warning_for_s": 25.0,
+        "tumble_at_s": null,
+        "tumble_for_s": 3.0,
+        "end_airborne_at_s": null,
+        "logger_gap_at_s": null,
+        "logger_gap_for_s": 16.0,
+        "min_battery_pct": 15.0,
+        "end_battery_pct": null,
+        "extra": {}
+      },
+      "formats": [
+        "dji_csv",
+        "dji_excel",
+        "hermes900",
+        "orbiter4"
+      ],
+      "manifest": {
+        "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/gps_denied_frozen_023/DJI/dji_csv/dji_csv_gps_denied_frozen_023.csv",
+        "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/gps_denied_frozen_023/DJI/dji_excel/dji_excel_gps_denied_frozen_023.xlsx",
+        "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/gps_denied_frozen_023/Elbit/hermes900/hermes900_gps_denied_frozen_023.stanag",
+        "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/gps_denied_frozen_023/Aeronautics/orbiter4/orbiter4_gps_denied_frozen_023.json"
+      },
+      "physical_sanity_gate": {
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "kind": "independent_synthetic_failure_fixture",
+      "base_scenario_card": "/Users/sylvesterlim/CodingFun/SDTH/sdth-synth/scenarios/hazards/motor_fail_recover.yaml",
+      "variant_index": 24,
+      "scenario": {
+        "name": "motor_fail_recover_024",
+        "home_lat": 51.174104748758566,
+        "home_lon": -1.8267084698530744,
+        "duration_hint_s": 0.0,
+        "phases": [
+          {
+            "name": "ground",
+            "duration_s": 8.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "takeoff",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 36.0,
+            "speed_ms": 1.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 20.0,
+            "alt_m": 36.0,
+            "speed_ms": 4.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "hover",
+            "duration_s": 18.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "cruise",
+            "duration_s": 35.0,
+            "north_m": 10.0,
+            "east_m": 110.0,
+            "alt_m": 34.0,
+            "speed_ms": 3.8
+          },
+          {
+            "name": "rth",
+            "duration_s": 40.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 34.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "land",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 1.0
+          }
+        ],
+        "wind_ms": 2.4,
+        "gps_degraded_at_s": null,
+        "gps_degraded_for_s": 25.0,
+        "operator_warning_text": "Motor error. Hovering unstable. Land immediately.",
+        "start_battery_pct": 88.0,
+        "cruise_alt_m": 36.0,
+        "dt_s": 1.0,
+        "seed": 515,
+        "aircraft_name": "Mini 4 Pro",
+        "gps_freeze_at_s": null,
+        "gps_freeze_for_s": 32.0,
+        "warning_at_s": 85.0,
+        "warning_for_s": 8.0,
+        "tumble_at_s": 85.0,
+        "tumble_for_s": 3.0,
+        "end_airborne_at_s": null,
+        "logger_gap_at_s": null,
+        "logger_gap_for_s": 16.0,
+        "min_battery_pct": 15.0,
+        "end_battery_pct": null,
+        "extra": {}
+      },
+      "formats": [
+        "dji_csv",
+        "dji_excel",
+        "hermes900",
+        "orbiter4"
+      ],
+      "manifest": {
+        "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/motor_fail_recover_024/DJI/dji_csv/dji_csv_motor_fail_recover_024.csv",
+        "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/motor_fail_recover_024/DJI/dji_excel/dji_excel_motor_fail_recover_024.xlsx",
+        "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/motor_fail_recover_024/Elbit/hermes900/hermes900_motor_fail_recover_024.stanag",
+        "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/motor_fail_recover_024/Aeronautics/orbiter4/orbiter4_motor_fail_recover_024.json"
+      },
+      "physical_sanity_gate": {
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "kind": "independent_synthetic_failure_fixture",
+      "base_scenario_card": "/Users/sylvesterlim/CodingFun/SDTH/sdth-synth/scenarios/hazards/logger_dropout.yaml",
+      "variant_index": 25,
+      "scenario": {
+        "name": "logger_dropout_025",
+        "home_lat": 51.17610474875857,
+        "home_lon": -1.8206914430051875,
+        "duration_hint_s": 0.0,
+        "phases": [
+          {
+            "name": "ground",
+            "duration_s": 8.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "takeoff",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 36.0,
+            "speed_ms": 1.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 20.0,
+            "alt_m": 36.0,
+            "speed_ms": 4.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "hover",
+            "duration_s": 18.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "cruise",
+            "duration_s": 35.0,
+            "north_m": 10.0,
+            "east_m": 110.0,
+            "alt_m": 34.0,
+            "speed_ms": 3.8
+          },
+          {
+            "name": "rth",
+            "duration_s": 40.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 34.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "land",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 1.0
+          }
+        ],
+        "wind_ms": 2.4,
+        "gps_degraded_at_s": null,
+        "gps_degraded_for_s": 25.0,
+        "operator_warning_text": null,
+        "start_battery_pct": 88.0,
+        "cruise_alt_m": 36.0,
+        "dt_s": 1.0,
+        "seed": 536,
+        "aircraft_name": "Mini 4 Pro",
+        "gps_freeze_at_s": null,
+        "gps_freeze_for_s": 32.0,
+        "warning_at_s": null,
+        "warning_for_s": 25.0,
+        "tumble_at_s": null,
+        "tumble_for_s": 3.0,
+        "end_airborne_at_s": null,
+        "logger_gap_at_s": 90.0,
+        "logger_gap_for_s": 16.0,
+        "min_battery_pct": 15.0,
+        "end_battery_pct": null,
+        "extra": {}
+      },
+      "formats": [
+        "dji_csv",
+        "dji_excel",
+        "hermes900",
+        "orbiter4"
+      ],
+      "manifest": {
+        "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/logger_dropout_025/DJI/dji_csv/dji_csv_logger_dropout_025.csv",
+        "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/logger_dropout_025/DJI/dji_excel/dji_excel_logger_dropout_025.xlsx",
+        "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/logger_dropout_025/Elbit/hermes900/hermes900_logger_dropout_025.stanag",
+        "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/logger_dropout_025/Aeronautics/orbiter4/orbiter4_logger_dropout_025.json"
+      },
+      "physical_sanity_gate": {
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "kind": "independent_synthetic_failure_fixture",
+      "base_scenario_card": "/Users/sylvesterlim/CodingFun/SDTH/sdth-synth/scenarios/hazards/lost_airborne.yaml",
+      "variant_index": 26,
+      "scenario": {
+        "name": "lost_airborne_026",
+        "home_lat": 51.177104748758566,
+        "home_lon": -1.8156741982916953,
+        "duration_hint_s": 0.0,
+        "phases": [
+          {
+            "name": "ground",
+            "duration_s": 8.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "takeoff",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 36.0,
+            "speed_ms": 1.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 20.0,
+            "alt_m": 36.0,
+            "speed_ms": 4.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 40.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "hover",
+            "duration_s": 18.0,
+            "north_m": 90.0,
+            "east_m": 110.0,
+            "alt_m": 38.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "cruise",
+            "duration_s": 35.0,
+            "north_m": 10.0,
+            "east_m": 110.0,
+            "alt_m": 34.0,
+            "speed_ms": 3.8
+          },
+          {
+            "name": "rth",
+            "duration_s": 40.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 34.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "land",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 1.0
+          }
+        ],
+        "wind_ms": 2.4,
+        "gps_degraded_at_s": null,
+        "gps_degraded_for_s": 25.0,
+        "operator_warning_text": null,
+        "start_battery_pct": 88.0,
+        "cruise_alt_m": 36.0,
+        "dt_s": 1.0,
+        "seed": 555,
+        "aircraft_name": "Mini 4 Pro",
+        "gps_freeze_at_s": null,
+        "gps_freeze_for_s": 32.0,
+        "warning_at_s": null,
+        "warning_for_s": 25.0,
+        "tumble_at_s": null,
+        "tumble_for_s": 3.0,
+        "end_airborne_at_s": 110.0,
+        "logger_gap_at_s": null,
+        "logger_gap_for_s": 16.0,
+        "min_battery_pct": 15.0,
+        "end_battery_pct": null,
+        "extra": {}
+      },
+      "formats": [
+        "dji_csv",
+        "dji_excel",
+        "hermes900",
+        "orbiter4"
+      ],
+      "manifest": {
+        "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/lost_airborne_026/DJI/dji_csv/dji_csv_lost_airborne_026.csv",
+        "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/lost_airborne_026/DJI/dji_excel/dji_excel_lost_airborne_026.xlsx",
+        "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/lost_airborne_026/Elbit/hermes900/hermes900_lost_airborne_026.stanag",
+        "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/lost_airborne_026/Aeronautics/orbiter4/orbiter4_lost_airborne_026.json"
+      },
+      "physical_sanity_gate": {
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "kind": "independent_synthetic_multi_condition_fixture",
+      "base_scenario_card": "/Users/sylvesterlim/CodingFun/SDTH/output/evidence/corpus-validation-v2/battery_critical_logger_dropout.yaml",
+      "variant_index": 27,
+      "injected_observable_conditions": [
+        "battery_percent_at_or_below_10",
+        "timestamp_gap_at_least_15_seconds"
+      ],
+      "scenario": {
+        "name": "battery_critical_logger_dropout_027",
+        "home_lat": 52.41540474875857,
+        "home_lon": -2.578777293881101,
+        "duration_hint_s": 0.0,
+        "phases": [
+          {
+            "name": "ground",
+            "duration_s": 10.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "takeoff",
+            "duration_s": 20.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 34.0,
+            "speed_ms": 1.1
+          },
+          {
+            "name": "cruise",
+            "duration_s": 65.0,
+            "north_m": 150.0,
+            "east_m": 30.0,
+            "alt_m": 34.0,
+            "speed_ms": 4.0
+          },
+          {
+            "name": "hover",
+            "duration_s": 18.0,
+            "north_m": 150.0,
+            "east_m": 30.0,
+            "alt_m": 34.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "rth",
+            "duration_s": 65.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 30.0,
+            "speed_ms": 3.5
+          },
+          {
+            "name": "land",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.9
+          }
+        ],
+        "wind_ms": 2.1,
+        "gps_degraded_at_s": null,
+        "gps_degraded_for_s": 25.0,
+        "operator_warning_text": null,
+        "start_battery_pct": 13.0,
+        "cruise_alt_m": 34.0,
+        "dt_s": 1.0,
+        "seed": 873,
+        "aircraft_name": "Mini 4 Pro",
+        "gps_freeze_at_s": null,
+        "gps_freeze_for_s": 32.0,
+        "warning_at_s": null,
+        "warning_for_s": 25.0,
+        "tumble_at_s": null,
+        "tumble_for_s": 3.0,
+        "end_airborne_at_s": null,
+        "logger_gap_at_s": 112.0,
+        "logger_gap_for_s": 18.0,
+        "min_battery_pct": 6.0,
+        "end_battery_pct": 7.0,
+        "extra": {}
+      },
+      "formats": [
+        "dji_csv",
+        "dji_excel",
+        "hermes900",
+        "orbiter4"
+      ],
+      "manifest": {
+        "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_logger_dropout_027/DJI/dji_csv/dji_csv_battery_critical_logger_dropout_027.csv",
+        "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_logger_dropout_027/DJI/dji_excel/dji_excel_battery_critical_logger_dropout_027.xlsx",
+        "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_logger_dropout_027/Elbit/hermes900/hermes900_battery_critical_logger_dropout_027.stanag",
+        "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_logger_dropout_027/Aeronautics/orbiter4/orbiter4_battery_critical_logger_dropout_027.json"
+      },
+      "physical_sanity_gate": {
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "kind": "independent_synthetic_multi_condition_fixture",
+      "base_scenario_card": "/Users/sylvesterlim/CodingFun/SDTH/output/evidence/corpus-validation-v2/gps_weak_midair_end.yaml",
+      "variant_index": 28,
+      "injected_observable_conditions": [
+        "exact_gps_weak_warning",
+        "recording_ends_while_airborne"
+      ],
+      "scenario": {
+        "name": "gps_weak_midair_end_028",
+        "home_lat": 52.41880474875857,
+        "home_lon": -2.565947096850613,
+        "duration_hint_s": 0.0,
+        "phases": [
+          {
+            "name": "ground",
+            "duration_s": 10.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "takeoff",
+            "duration_s": 20.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 33.0,
+            "speed_ms": 1.1
+          },
+          {
+            "name": "cruise",
+            "duration_s": 70.0,
+            "north_m": 170.0,
+            "east_m": 50.0,
+            "alt_m": 33.0,
+            "speed_ms": 4.1
+          },
+          {
+            "name": "hover",
+            "duration_s": 18.0,
+            "north_m": 170.0,
+            "east_m": 50.0,
+            "alt_m": 33.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "cruise",
+            "duration_s": 65.0,
+            "north_m": 40.0,
+            "east_m": 120.0,
+            "alt_m": 30.0,
+            "speed_ms": 3.7
+          },
+          {
+            "name": "rth",
+            "duration_s": 50.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 30.0,
+            "speed_ms": 3.5
+          },
+          {
+            "name": "land",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.8
+          }
+        ],
+        "wind_ms": 2.8,
+        "gps_degraded_at_s": 84.0,
+        "gps_degraded_for_s": 30.0,
+        "operator_warning_text": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008).",
+        "start_battery_pct": 85.0,
+        "cruise_alt_m": 33.0,
+        "dt_s": 1.0,
+        "seed": 896,
+        "aircraft_name": "Mini 4 Pro",
+        "gps_freeze_at_s": null,
+        "gps_freeze_for_s": 32.0,
+        "warning_at_s": null,
+        "warning_for_s": 25.0,
+        "tumble_at_s": null,
+        "tumble_for_s": 3.0,
+        "end_airborne_at_s": 140.0,
+        "logger_gap_at_s": null,
+        "logger_gap_for_s": 16.0,
+        "min_battery_pct": 68.0,
+        "end_battery_pct": 73.0,
+        "extra": {}
+      },
+      "formats": [
+        "dji_csv",
+        "dji_excel",
+        "hermes900",
+        "orbiter4"
+      ],
+      "manifest": {
+        "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/gps_weak_midair_end_028/DJI/dji_csv/dji_csv_gps_weak_midair_end_028.csv",
+        "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/gps_weak_midair_end_028/DJI/dji_excel/dji_excel_gps_weak_midair_end_028.xlsx",
+        "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/gps_weak_midair_end_028/Elbit/hermes900/hermes900_gps_weak_midair_end_028.stanag",
+        "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/gps_weak_midair_end_028/Aeronautics/orbiter4/orbiter4_gps_weak_midair_end_028.json"
+      },
+      "physical_sanity_gate": {
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "kind": "independent_synthetic_normal_control",
+      "base_scenario_card": "/Users/sylvesterlim/CodingFun/SDTH/output/evidence/corpus-validation-v2/normal_control_v2.yaml",
+      "scenario": {
+        "name": "v2_normal_control",
+        "home_lat": 52.4182,
+        "home_lon": -2.5846,
+        "duration_hint_s": 0.0,
+        "phases": [
+          {
+            "name": "ground",
+            "duration_s": 12.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "takeoff",
+            "duration_s": 20.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 30.0,
+            "speed_ms": 1.2
+          },
+          {
+            "name": "cruise",
+            "duration_s": 55.0,
+            "north_m": 130.0,
+            "east_m": 30.0,
+            "alt_m": 30.0,
+            "speed_ms": 3.8
+          },
+          {
+            "name": "hover",
+            "duration_s": 16.0,
+            "north_m": 130.0,
+            "east_m": 30.0,
+            "alt_m": 30.0,
+            "speed_ms": 0.0
+          },
+          {
+            "name": "cruise",
+            "duration_s": 50.0,
+            "north_m": 25.0,
+            "east_m": 100.0,
+            "alt_m": 26.0,
+            "speed_ms": 3.2
+          },
+          {
+            "name": "rth",
+            "duration_s": 40.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 26.0,
+            "speed_ms": 3.4
+          },
+          {
+            "name": "land",
+            "duration_s": 22.0,
+            "north_m": 0.0,
+            "east_m": 0.0,
+            "alt_m": 0.0,
+            "speed_ms": 0.8
+          }
+        ],
+        "wind_ms": 1.7,
+        "gps_degraded_at_s": null,
+        "gps_degraded_for_s": 25.0,
+        "operator_warning_text": null,
+        "start_battery_pct": 86.0,
+        "cruise_alt_m": 30.0,
+        "dt_s": 1.0,
+        "seed": 301,
+        "aircraft_name": "Mini 4 Pro",
+        "gps_freeze_at_s": null,
+        "gps_freeze_for_s": 32.0,
+        "warning_at_s": null,
+        "warning_for_s": 25.0,
+        "tumble_at_s": null,
+        "tumble_for_s": 3.0,
+        "end_airborne_at_s": null,
+        "logger_gap_at_s": null,
+        "logger_gap_for_s": 16.0,
+        "min_battery_pct": 74.0,
+        "end_battery_pct": 77.0,
+        "extra": {}
+      },
+      "formats": [
+        "dji_csv",
+        "dji_excel",
+        "hermes900",
+        "orbiter4"
+      ],
+      "manifest": {
+        "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/v2_normal_control/DJI/dji_csv/dji_csv_v2_normal_control.csv",
+        "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/v2_normal_control/DJI/dji_excel/dji_excel_v2_normal_control.xlsx",
+        "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/v2_normal_control/Elbit/hermes900/hermes900_v2_normal_control.stanag",
+        "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/v2_normal_control/Aeronautics/orbiter4/orbiter4_v2_normal_control.json"
+      },
+      "physical_sanity_gate": {
+        "passed": true,
+        "issues": []
+      }
+    }
+  ]
+}

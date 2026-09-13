@@ -19,6 +19,7 @@ Why these numbers:
 from __future__ import annotations
 
 import math
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -341,10 +342,29 @@ def detect_incidents(series: list[dict[str, Any]], user_markers: list[dict[str, 
         return found
 
     speed_limit = _speed_limit_mps(series)
+    # The original per-sample reverse scan made a long, regular series O(n²).
+    # Keep only candidates for the maximum battery value inside the 60-second
+    # window.  Preserve the prior fallback for out-of-order clocks, where a
+    # moving window would change rule semantics.
+    parsed_times = [parse_timestamp(sample.get("timestamp_utc")) for sample in series]
+    timestamps_monotonic = all(
+        left is not None and right is not None and left <= right
+        for left, right in zip(parsed_times, parsed_times[1:])
+    )
+    battery_peaks: deque[tuple[datetime, float]] = deque()
     for i, sample in enumerate(series):
         ts = sample.get("timestamp_utc") or ""
         battery = sample.get("battery") or {}
         percent = _num(battery.get("percent"))
+        window_start = parsed_times[i]
+        window_peak: float | None = None
+        if timestamps_monotonic and percent is not None and percent > 0 and window_start:
+            while battery_peaks and (window_start - battery_peaks[0][0]).total_seconds() > BATTERY_PLUNGE_WINDOW_S:
+                battery_peaks.popleft()
+            while battery_peaks and battery_peaks[-1][1] <= percent:
+                battery_peaks.pop()
+            battery_peaks.append((window_start, percent))
+            window_peak = battery_peaks[0][1]
         attitude = sample.get("attitude") or {}
         roll = abs(_num(attitude.get("roll_deg")) or 0.0)
         pitch = abs(_num(attitude.get("pitch_deg")) or 0.0)
@@ -497,16 +517,18 @@ def detect_incidents(series: list[dict[str, Any]], user_markers: list[dict[str, 
 
         prev_pct = _num((prev.get("battery") or {}).get("percent"))
         if percent is not None and prev_pct is not None and percent > 0 and prev_pct > 0:
-            window_start = parse_timestamp(sample.get("timestamp_utc"))
             if window_start:
-                peak = prev_pct
-                for older in reversed(series[: i + 1]):
-                    older_ts = parse_timestamp(older.get("timestamp_utc"))
-                    older_pct = _num((older.get("battery") or {}).get("percent"))
-                    if older_ts and (window_start - older_ts).total_seconds() > BATTERY_PLUNGE_WINDOW_S:
-                        break
-                    if older_pct is not None:
-                        peak = max(peak, older_pct)
+                if timestamps_monotonic:
+                    peak = window_peak if window_peak is not None else percent
+                else:
+                    peak = prev_pct
+                    for older in reversed(series[: i + 1]):
+                        older_ts = parse_timestamp(older.get("timestamp_utc"))
+                        older_pct = _num((older.get("battery") or {}).get("percent"))
+                        if older_ts and (window_start - older_ts).total_seconds() > BATTERY_PLUNGE_WINDOW_S:
+                            break
+                        if older_pct is not None:
+                            peak = max(peak, older_pct)
                 drop = peak - percent
                 if drop >= BATTERY_PLUNGE_PCT:
                     found.append(

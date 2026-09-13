@@ -1,0 +1,42 @@
+name: battery_critical_logger_dropout
+aircraft_name: Mini 4 Pro
+seed: 411
+dt_s: 1.0
+start_battery_pct: 13
+end_battery_pct: 7
+min_battery_pct: 6
+cruise_alt_m: 34
+wind_ms: 2.1
+logger_gap_at_s: 112
+logger_gap_for_s: 18
+home:
+  lat: 52.42170
+  lon: -2.58910
+phases:
+  - name: ground
+    duration_s: 10
+  - name: takeoff
+    duration_s: 20
+    alt_m: 34
+    speed_ms: 1.1
+  - name: cruise
+    duration_s: 65
+    north_m: 150
+    east_m: 30
+    alt_m: 34
+    speed_ms: 4.0
+  - name: hover
+    duration_s: 18
+    north_m: 150
+    east_m: 30
+    alt_m: 34
+  - name: rth
+    duration_s: 65
+    north_m: 0
+    east_m: 0
+    alt_m: 30
+    speed_ms: 3.5
+  - name: land
+    duration_s: 22
+    alt_m: 0
+    speed_ms: 0.9

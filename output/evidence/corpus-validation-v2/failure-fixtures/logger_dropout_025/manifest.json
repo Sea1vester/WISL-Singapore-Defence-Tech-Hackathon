@@ -1,0 +1,6 @@
+{
+  "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/logger_dropout_025/DJI/dji_csv/dji_csv_logger_dropout_025.csv",
+  "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/logger_dropout_025/DJI/dji_excel/dji_excel_logger_dropout_025.xlsx",
+  "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/logger_dropout_025/Elbit/hermes900/hermes900_logger_dropout_025.stanag",
+  "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/logger_dropout_025/Aeronautics/orbiter4/orbiter4_logger_dropout_025.json"
+}

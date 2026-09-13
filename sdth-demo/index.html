@@ -1,110 +1,73 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#09131a" />
-    <title>WISL · Recorded flight intelligence</title>
-    <link rel="stylesheet" href="./demo.css" />
-  </head>
-  <body>
-    <div class="shell">
-      <aside class="rail" aria-label="Primary navigation">
-        <a class="brand" href="#overview" aria-label="WISL home"><span class="brand-mark">W</span><span>WISL</span></a>
-        <nav class="rail-nav">
-          <button class="nav-link active" data-view="overview" type="button"><span>01</span> Mission review</button>
-          <button class="nav-link" data-view="patterns" type="button"><span>02</span> Recurring patterns</button>
-          <button class="nav-link" data-view="bulletins" type="button"><span>03</span> Bulletins</button>
-        </nav>
-        <div class="rail-foot">
-          <span class="live-dot" id="apiDot"></span>
-          <span id="apiState">Connect a session</span>
-        </div>
-      </aside>
-
-      <main>
-        <header class="topbar">
-          <div>
-            <p class="eyebrow">Recorded flight intelligence</p>
-            <h1>Flight logs, made reviewable.</h1>
-          </div>
-          <button id="authButton" class="quiet-button" type="button">Session key</button>
-        </header>
-
-        <section class="session-bar" id="authPanel" hidden>
-          <label>API session key <input id="tokenInput" type="password" autocomplete="off" placeholder="Paste a valid key" /></label>
-          <button id="saveToken" class="button secondary" type="button">Connect</button>
-          <button id="clearToken" class="text-button" type="button">Clear</button>
-          <p>The key stays in this browser session only.</p>
-        </section>
-
-        <section class="view active" id="overviewView">
-          <section class="hero-grid">
-            <div class="upload-card card">
-              <div class="card-heading"><div><p class="eyebrow">Start with the record</p><h2>Upload a flight log</h2></div><span class="badge">Recorded only</span></div>
-              <label id="dropzone" class="dropzone" for="logFile">
-                <input id="logFile" type="file" accept=".csv,.ulg,.bin,.log,.json,.stanag,.ros,.tlog,.xlsx,.hex" />
-                <span class="upload-icon">↑</span>
-                <strong>Choose a controller log</strong>
-                <small>CSV, ULog, BIN, JSON, ROS, STANAG, TLOG, XLSX or HEX · up to 100 MB</small>
-              </label>
-              <div id="uploadMessage" class="notice" aria-live="polite">Connect a session key to send a recorded log.</div>
-            </div>
-
-            <div class="pipeline card" aria-live="polite">
-              <div class="card-heading"><div><p class="eyebrow">Processing trace</p><h2>Evidence pipeline</h2></div><span id="uploadStatus" class="status-label">Waiting</span></div>
-              <ol id="pipelineStages" class="stages">
-                <li data-stage="received"><span>1</span><div><strong>Receive</strong><small>Integrity and duplicate check</small></div></li>
-                <li data-stage="parsing"><span>2</span><div><strong>Parse</strong><small>Read the recorded format</small></div></li>
-                <li data-stage="normalizing"><span>3</span><div><strong>Normalize</strong><small>Map to canonical telemetry</small></div></li>
-                <li data-stage="ready"><span>4</span><div><strong>Index</strong><small>Record incident evidence</small></div></li>
-              </ol>
-              <p id="traceDetail" class="pipeline-detail">No log is being processed.</p>
-            </div>
-          </section>
-
-          <section class="mission-layout">
-            <article class="card mission-card">
-              <div class="card-heading"><div><p class="eyebrow">Mission record</p><h2 id="selectedFlightTitle">Choose a processed flight</h2></div><button id="refreshFlights" class="icon-button" type="button" aria-label="Refresh flights">↻</button></div>
-              <p id="flightMeta" class="muted">Flights become available after processing completes.</p>
-              <div id="flightList" class="flight-list"></div>
-            </article>
-
-            <article class="card incident-card">
-              <div class="card-heading"><div><p class="eyebrow">Incident evidence</p><h2 id="incidentTitle">No flight selected</h2></div><span id="incidentCount" class="count-pill">—</span></div>
-              <div id="incidentList" class="incident-list empty-state">Select a flight to inspect its indexed evidence.</div>
-              <div class="analysis-strip"><span class="ai-glyph">✦</span><div><strong>Local model analysis</strong><p id="modelState">Checks are deterministic; local model status is unknown.</p></div></div>
-            </article>
-          </section>
-
-          <section class="replay-card card">
-            <div class="card-heading"><div><p class="eyebrow">Recorded path</p><h2>Replay the evidence</h2></div><a id="openReplay" class="text-link disabled" href="#" target="_blank" rel="noopener">Open full replay ↗</a></div>
-            <div id="replayEmpty" class="replay-empty"><span>◌</span><p>Select a processed flight to load its recorded path in the replay viewer.</p></div>
-            <iframe id="replayFrame" title="Recorded flight replay" hidden></iframe>
-          </section>
-
-          <section class="card question-card">
-            <div><p class="eyebrow">Ask the record</p><h2>What happened, and where is the evidence?</h2><p class="muted">Answers are constrained to the selected recorded flight and indexed fleet data.</p></div>
-            <form id="questionForm"><input id="questionInput" type="text" required placeholder="Ask about this mission or related warnings…" /><button class="button" type="submit">Ask record</button></form>
-            <div class="query-presets"><button type="button" data-query="What happened on this flight?">What happened?</button><button type="button" data-query="Where is the evidence?">Where is the evidence?</button><button type="button" data-query="Which other flights have the same warning?">Similar warnings</button></div>
-            <div id="analysisAnswer" class="analysis-answer empty-state">An evidence-backed answer will appear here.</div>
-            <div class="analysis-actions"><div><p class="eyebrow">Separate local analysis</p><p>Uses fleet-wide stored evidence; it does not send a flight-control action.</p></div><button id="fleetAnalysisButton" class="button secondary" type="button">Analyze fleet records</button></div>
-            <div id="localAnalysis" class="local-analysis" hidden><p class="eyebrow">Local model analysis</p><div id="localAnalysisBody"></div></div>
-          </section>
-        </section>
-
-        <section class="view" id="patternsView">
-          <section class="view-heading"><p class="eyebrow">Fleet evidence</p><h2>Recurring patterns across recorded flights</h2><p>Only signatures observed in the stored mission records appear here.</p></section>
-          <div id="patternList" class="pattern-grid empty-state">Connect a session to view recorded fleet patterns.</div>
-        </section>
-
-        <section class="view" id="bulletinsView">
-          <section class="view-heading"><p class="eyebrow">Operator review</p><h2>Mitigation bulletins</h2><p>These are reviewable documents. They never send a command or change to an airframe.</p></section>
-          <div id="bulletinList" class="bulletin-list empty-state">No reviewable bulletins are loaded.</div>
-        </section>
-      </main>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#090e14" />
+  <title>WISL · Mission replay</title>
+  <link rel="stylesheet" href="./demo.css?v=studio-5" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="WISL home"><span class="brand-mark">W</span>WISL<span class="brand-divider"></span><span class="product-name">Flight review</span></a>
+    <div class="topbar-actions">
+      <span class="connection"><span class="live-dot" id="apiDot"></span><span id="apiState">Not connected</span></span>
+      <button id="authButton" class="quiet-button" type="button" aria-expanded="false">Session</button>
+      <button id="libraryButton" class="quiet-button" type="button" aria-expanded="false">Flight library <span aria-hidden="true">⌄</span></button>
+      <button id="importButton" class="button" type="button"><span aria-hidden="true">＋</span> Import log</button>
     </div>
-    <template id="flightTemplate"><button class="flight-row" type="button"><span class="flight-source"></span><span class="flight-time"></span><span class="flight-arrow">→</span></button></template>
-    <script type="module" src="./demo.js"></script>
-  </body>
+  </header>
+  <section class="session-bar" id="authPanel" hidden>
+    <label for="tokenInput">API session key</label><input id="tokenInput" type="password" autocomplete="off" placeholder="Enter your local API key" />
+    <button id="saveToken" class="button" type="button">Connect</button><button id="clearToken" class="text-button" type="button">Clear session</button>
+    <p>The key stays in this browser session.</p>
+  </section>
+  <aside class="flight-library" id="flightLibrary" hidden aria-label="Flight library">
+    <div class="card-heading"><div><p class="eyebrow">Recorded flights</p><h2>Flight library</h2></div><div class="inline-actions"><button id="refreshFlights" class="icon-button" type="button" aria-label="Refresh flights">↻</button><button id="closeLibrary" class="icon-button" type="button" aria-label="Close flight library">×</button></div></div>
+    <p class="muted">Select a record to load its path and evidence.</p><div id="flightList" class="flight-list"></div>
+  </aside>
+  <main>
+    <section class="replay-stage" aria-label="Mission replay">
+      <div class="stage-heading"><p class="eyebrow">Mission replay <span class="recorded-label">Recorded · 3D</span></p><h1 id="selectedFlightTitle">Your flight. In context.</h1><p id="flightMeta">Open a recorded flight to follow its path and investigate its evidence.</p></div>
+      <a id="openReplay" class="expand-link disabled" href="#" target="_blank" rel="noopener" aria-label="Open full replay">Expand ↗</a>
+      <div id="replayEmpty" class="replay-empty">
+        <div class="empty-orbit" aria-hidden="true"><span></span><span></span><span></span><i>W</i></div>
+        <h2>Every flight has a story.</h2><p>Load a recorded mission, press play, and follow the evidence.</p>
+        <button id="emptyLibraryButton" class="button secondary" type="button">Open flight library</button>
+        <p class="empty-hint" id="emptyHint">Connect your session to access stored flights.</p>
+      </div>
+      <iframe id="replayFrame" title="Recorded flight replay" allow="fullscreen" hidden></iframe>
+    </section>
+    <section class="analysis-dock" aria-label="Mission review panels">
+      <nav class="tabbar" role="tablist" aria-label="Mission review">
+        <button class="nav-link active" id="tab-overview" role="tab" aria-selected="true" aria-controls="overviewView" data-view="overview" type="button">Mission analysis <span id="incidentCount" class="tab-count">—</span></button>
+        <button class="nav-link" id="tab-patterns" role="tab" aria-selected="false" aria-controls="patternsView" data-view="patterns" type="button" tabindex="-1">Recurring patterns</button>
+        <button class="nav-link" id="tab-bulletins" role="tab" aria-selected="false" aria-controls="bulletinsView" data-view="bulletins" type="button" tabindex="-1">Bulletins</button>
+        <button class="nav-link" id="tab-logs" role="tab" aria-selected="false" aria-controls="logsView" data-view="logs" type="button" tabindex="-1">Logs & uploads <span id="uploadTabDot" hidden>•</span></button>
+        <span class="dock-note">Recorded evidence · Human review</span>
+      </nav>
+      <div class="dock-content">
+        <section class="view active" role="tabpanel" aria-labelledby="tab-overview" id="overviewView">
+          <div class="analysis-columns">
+            <article class="evidence-column"><div class="card-heading"><div><p class="eyebrow">Indexed observations</p><h2 id="incidentTitle">No flight selected</h2></div></div><div id="incidentList" class="incident-list empty-state">Select a flight to inspect its recorded evidence.</div></article>
+            <article class="question-column"><div class="card-heading"><div><p class="eyebrow">Ask the record</p><h2>From a question to the evidence.</h2></div></div>
+              <div class="query-presets"><button type="button" data-query="What happened on this flight?">What happened?</button><button type="button" data-query="Where is the evidence?">Where is the evidence?</button><button type="button" data-query="Which other flights have the same warning?">Similar warnings</button></div>
+              <form id="questionForm"><input id="questionInput" aria-label="Question about recorded evidence" type="text" required placeholder="Ask about this mission…" /><button class="button secondary" type="submit">Ask ↗</button></form>
+              <div id="analysisAnswer" class="analysis-answer empty-state" aria-live="polite">Answers link to the selected record and indexed fleet evidence.</div>
+              <details class="model-section"><summary><span>✦ Local AI analysis</span><span class="summary-note">Optional interpretation</span></summary><p id="modelState" class="muted">Local model status is unknown.</p><div class="analysis-actions"><p>Review possible explanations across stored flights. Hypotheses are unverified.</p><button id="fleetAnalysisButton" class="button secondary" type="button">Analyze fleet records</button></div><div id="localAnalysis" class="local-analysis" hidden><div id="localAnalysisBody"></div></div></details>
+            </article>
+          </div>
+        </section>
+        <section class="view" role="tabpanel" aria-labelledby="tab-patterns" id="patternsView"><div class="view-heading"><div><p class="eyebrow">Across recorded flights</p><h2>Recurring patterns</h2></div><p>A shared signature is a reason to compare evidence, not proof of a shared cause.</p></div><div id="patternList" class="pattern-grid empty-state">Connect a session to view recorded fleet patterns.</div></section>
+        <section class="view" role="tabpanel" aria-labelledby="tab-bulletins" id="bulletinsView"><div class="view-heading"><div><p class="eyebrow">Reviewable follow-up</p><h2>Bulletins</h2></div><p>Evidence and suggested review steps. No automated changes to an aircraft.</p></div><div id="bulletinList" class="bulletin-list empty-state">No reviewable bulletins are loaded.</div></section>
+        <section class="view" role="tabpanel" aria-labelledby="tab-logs" id="logsView"><div class="upload-layout">
+          <article><div class="card-heading"><div><p class="eyebrow">Bring your own record</p><h2>Import a flight log</h2></div><span class="badge">Up to 100 MB</span></div><label id="dropzone" class="dropzone" for="logFile"><input id="logFile" type="file" accept=".csv,.ulg,.ulog,.bin,.json,.stanag,.ros,.tlog,.xlsx,.hex,.hermes,.syslog,.xml" /><span class="upload-icon">＋</span><strong>Drop a log here or choose a file</strong><small>CSV · ULog · BIN · TLOG · JSON · XLSX and supported exports</small></label><div id="uploadMessage" class="notice" aria-live="polite">Connect a session key to import a recorded log.</div><button id="sampleButton" class="text-button" type="button">Try the included synthetic GPS-warning log ↗</button></article>
+          <article class="pipeline" aria-live="polite"><div class="card-heading"><div><p class="eyebrow">Actual processing state</p><h2>From log to evidence</h2></div><span id="uploadStatus" class="status-label">Waiting</span></div><ol id="pipelineStages" class="stages"><li data-stage="received"><span>1</span><div><strong>Receive</strong><small>Check integrity</small></div></li><li data-stage="parsing"><span>2</span><div><strong>Parse</strong><small>Read the format</small></div></li><li data-stage="normalizing"><span>3</span><div><strong>Normalize</strong><small>Common records</small></div></li><li data-stage="ready"><span>4</span><div><strong>Index</strong><small>Link evidence</small></div></li></ol><p id="traceDetail" class="pipeline-detail">No log is being processed.</p></article>
+        </div></section>
+      </div>
+    </section>
+  </main>
+  <template id="flightTemplate"><button class="flight-row" type="button"><span class="flight-source"></span><span class="flight-time"></span><span class="flight-arrow">↗</span></button></template>
+  <script type="module" src="./demo.js?v=studio-5"></script>
+</body>
 </html>

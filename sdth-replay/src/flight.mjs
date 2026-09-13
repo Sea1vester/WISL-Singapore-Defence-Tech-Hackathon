@@ -32,6 +32,34 @@ export function replayTimeForTimestamp(path, timestamp) {
     : null;
 }
 
+/** Recorded replays restart from the first sample after reaching the end. */
+export function replayTimeForPlay(path, currentTime) {
+  if (!path?.samples?.length) {
+    return null;
+  }
+  const start = path.samples[0]?.time_s;
+  const stop = path.samples[path.samples.length - 1]?.time_s;
+  if (!Number.isFinite(start) || !Number.isFinite(stop)) {
+    return null;
+  }
+  if (!Number.isFinite(currentTime) || currentTime >= stop) {
+    return start;
+  }
+  return Math.max(start, currentTime);
+}
+
+/** Clamp a timeline percentage and map it to a recorded UTC second. */
+export function replayTimeAtPercent(startTime, stopTime, percent) {
+  if (!Number.isFinite(startTime) || !Number.isFinite(stopTime) || stopTime < startTime) {
+    return null;
+  }
+  const boundedPercent = Math.min(100, Math.max(0, Number(percent)));
+  if (!Number.isFinite(boundedPercent)) {
+    return null;
+  }
+  return startTime + ((stopTime - startTime) * boundedPercent / 100);
+}
+
 function optionalNumber(value, key, fallback = 0) {
   if (value[key] == null) {
     return fallback;

@@ -1,0 +1,6 @@
+{
+  "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/lost_airborne_026/DJI/dji_csv/dji_csv_lost_airborne_026.csv",
+  "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/lost_airborne_026/DJI/dji_excel/dji_excel_lost_airborne_026.xlsx",
+  "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/lost_airborne_026/Elbit/hermes900/hermes900_lost_airborne_026.stanag",
+  "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/lost_airborne_026/Aeronautics/orbiter4/orbiter4_lost_airborne_026.json"
+}

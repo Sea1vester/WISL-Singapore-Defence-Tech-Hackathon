@@ -1,4 +1,7 @@
 # Raw fixtures are checksum-addressed; preserve their original bytes on checkout.
 sdth-demo/fixtures/*.csv -text -diff
 output/evidence/corpus-validation/supplemental/**/*.csv -text -diff
+output/evidence/corpus-validation-v2/**/*.csv -text -diff
+# Unified patches contain significant one-space context lines.
+output/evidence/corpus-validation-v2/generator-skin-patch.diff -whitespace
 output/pdf/*.pdf binary

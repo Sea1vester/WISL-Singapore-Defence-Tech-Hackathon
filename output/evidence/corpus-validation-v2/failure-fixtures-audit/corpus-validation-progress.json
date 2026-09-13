@@ -1,0 +1,1330 @@
+{
+  "completed": 36,
+  "total": 36,
+  "files_detail": [
+    {
+      "path": "battery_critical_021/Aeronautics/orbiter4/orbiter4_battery_critical_021.json",
+      "bytes": 48807,
+      "sha256": "e475a2b11c1da765240dc21cfc03b78ba33ad146b492e8d07f50449c9c1908a9",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.3,
+      "canonical_elapsed_ms": 0.5,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 185,
+      "canonical_records": 185,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "coarse_observable_expected_types": [
+        "battery_critical"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.3,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 18.5
+    },
+    {
+      "path": "battery_critical_021/DJI/dji_csv/dji_csv_battery_critical_021.csv",
+      "bytes": 101231,
+      "sha256": "c2bda5073fc74832cf7b9e7106ed2581d5e0ab19a2f0bbf4b33e27604a8a1bee",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 8.2,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 185,
+      "canonical_records": 185,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "coarse_observable_expected_types": [
+        "battery_critical"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.3,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 25.5
+    },
+    {
+      "path": "battery_critical_021/DJI/dji_excel/dji_excel_battery_critical_021.xlsx",
+      "bytes": 113037,
+      "sha256": "e78b620cc738c430f3754f0120178855a01060a402dac8d5f072e48b958b1139",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 414.1,
+      "canonical_elapsed_ms": 0.7,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 185,
+      "canonical_records": 185,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "coarse_observable_expected_types": [
+        "battery_critical"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 431.4
+    },
+    {
+      "path": "battery_critical_021/Elbit/hermes900/hermes900_battery_critical_021.stanag",
+      "bytes": 42417,
+      "sha256": "1d9c50c3231a2d570d0dc791cee3722638b229e2980056a7435dc09935a91d93",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.1,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 185,
+      "canonical_records": 185,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "coarse_observable_expected_types": [
+        "battery_critical"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 17.2
+    },
+    {
+      "path": "battery_critical_logger_dropout_027/Aeronautics/orbiter4/orbiter4_battery_critical_logger_dropout_027.json",
+      "bytes": 52808,
+      "sha256": "bddd3c464ba3d7a3c9d2f6b9a7fc1cfe075f13dedc79425ad64fd85f1372b591",
+      "scenario": "battery_critical_logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.3,
+      "canonical_elapsed_ms": 0.7,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 200,
+      "canonical_records": 200,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "battery_critical",
+        "telemetry_gap"
+      ],
+      "coarse_observable_expected_types": [
+        "battery_critical",
+        "telemetry_gap"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low",
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.5,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 20.9
+    },
+    {
+      "path": "battery_critical_logger_dropout_027/DJI/dji_csv/dji_csv_battery_critical_logger_dropout_027.csv",
+      "bytes": 109350,
+      "sha256": "9519b2e861d5f338a8ae6c383c484e317bb7c52543d57b165324caf5a3ed5a29",
+      "scenario": "battery_critical_logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 8.5,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 200,
+      "canonical_records": 200,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "battery_critical",
+        "telemetry_gap"
+      ],
+      "coarse_observable_expected_types": [
+        "battery_critical",
+        "telemetry_gap"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low",
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.5,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 27.2
+    },
+    {
+      "path": "battery_critical_logger_dropout_027/DJI/dji_excel/dji_excel_battery_critical_logger_dropout_027.xlsx",
+      "bytes": 121451,
+      "sha256": "9def8e6f0d8e908a05a535d1d022e1e4f4db078329d2db99c58a2f07cd7cbb54",
+      "scenario": "battery_critical_logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 380.3,
+      "canonical_elapsed_ms": 0.6,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 200,
+      "canonical_records": 200,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "battery_critical",
+        "telemetry_gap"
+      ],
+      "coarse_observable_expected_types": [
+        "battery_critical",
+        "telemetry_gap"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low",
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.5,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 399.4
+    },
+    {
+      "path": "battery_critical_logger_dropout_027/Elbit/hermes900/hermes900_battery_critical_logger_dropout_027.stanag",
+      "bytes": 46127,
+      "sha256": "3d61f57e3fc1e45cff77d7f37517460e648a764fa68335ff64ac9a38bdaf03c9",
+      "scenario": "battery_critical_logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.4,
+      "canonical_elapsed_ms": 0.7,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 200,
+      "canonical_records": 200,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "battery_critical",
+        "telemetry_gap"
+      ],
+      "coarse_observable_expected_types": [
+        "battery_critical",
+        "telemetry_gap"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low",
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.6,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 19.9
+    },
+    {
+      "path": "gps_denied_frozen_023/Aeronautics/orbiter4/orbiter4_gps_denied_frozen_023.json",
+      "bytes": 59706,
+      "sha256": "9454bd3d3ad99d7676a2dafdd92ba594552a50bab36960e5b5d242b38d8eccd9",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.9,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "coarse_observable_expected_types": [
+        "last_known_position"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detector_elapsed_ms": 2.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 21.7
+    },
+    {
+      "path": "gps_denied_frozen_023/DJI/dji_csv/dji_csv_gps_denied_frozen_023.csv",
+      "bytes": 122761,
+      "sha256": "a288a4491e65097ab76386a7c262c98b46afb51f4222ba13fedb5497a131d591",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 9.8,
+      "canonical_elapsed_ms": 1.0,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "coarse_observable_expected_types": [
+        "last_known_position"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detector_elapsed_ms": 2.3,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 30.1
+    },
+    {
+      "path": "gps_denied_frozen_023/DJI/dji_excel/dji_excel_gps_denied_frozen_023.xlsx",
+      "bytes": 135516,
+      "sha256": "6423cffe7c77d9fb5abf9a9d988c6d21f777447e5907c5ebdbda9a097af83b84",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 412.5,
+      "canonical_elapsed_ms": 0.7,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "coarse_observable_expected_types": [
+        "last_known_position"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detector_elapsed_ms": 2.6,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 433.6
+    },
+    {
+      "path": "gps_denied_frozen_023/Elbit/hermes900/hermes900_gps_denied_frozen_023.stanag",
+      "bytes": 51926,
+      "sha256": "e2a6118df8b2fa9785bb3c3847f677f2ef7bdca0a3392bc2b1ce902a19726169",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.3,
+      "canonical_elapsed_ms": 0.9,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "coarse_observable_expected_types": [
+        "last_known_position"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detector_elapsed_ms": 2.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 21.3
+    },
+    {
+      "path": "gps_jamming_022/Aeronautics/orbiter4/orbiter4_gps_jamming_022.json",
+      "bytes": 61451,
+      "sha256": "666b54720cd71c96328ee271c7559f3c44f2a96bb6683edab866c4705729bd6d",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.4,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detector_elapsed_ms": 2.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 21.3
+    },
+    {
+      "path": "gps_jamming_022/DJI/dji_csv/dji_csv_gps_jamming_022.csv",
+      "bytes": 124513,
+      "sha256": "e6139f8d710e387b95f58a5d2b6ea3743352c6752ae65cb0039ef027376967b1",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 10.0,
+      "canonical_elapsed_ms": 1.0,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detector_elapsed_ms": 2.4,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 30.4
+    },
+    {
+      "path": "gps_jamming_022/DJI/dji_excel/dji_excel_gps_jamming_022.xlsx",
+      "bytes": 135176,
+      "sha256": "3a7c1f055a56e262716cbed322112422ae02948c8e702315f52778d959b25c46",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 535.8,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detector_elapsed_ms": 2.4,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 555.8
+    },
+    {
+      "path": "gps_jamming_022/Elbit/hermes900/hermes900_gps_jamming_022.stanag",
+      "bytes": 53718,
+      "sha256": "1dcb1310e8efabc12f3f537097c9bd11a183bc484bef1799ec0693848d3431a9",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.4,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detector_elapsed_ms": 2.7,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 23.6
+    },
+    {
+      "path": "gps_weak_midair_end_028/Aeronautics/orbiter4/orbiter4_gps_weak_midair_end_028.json",
+      "bytes": 38974,
+      "sha256": "f590c399d8089b4c578598a407280aaae171d78af65209482f1db09deb70a501",
+      "scenario": "gps_weak_midair_end",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.0,
+      "canonical_elapsed_ms": 0.4,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 140,
+      "canonical_records": 140,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming",
+        "kinetic_loss"
+      ],
+      "detector_elapsed_ms": 1.6,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 15.1
+    },
+    {
+      "path": "gps_weak_midair_end_028/DJI/dji_csv/dji_csv_gps_weak_midair_end_028.csv",
+      "bytes": 79480,
+      "sha256": "72f4078455c5b0bd0695540944c114d8ec65dd0cf5c97e14104373b8d05c9e3f",
+      "scenario": "gps_weak_midair_end",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 5.9,
+      "canonical_elapsed_ms": 0.5,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 140,
+      "canonical_records": 140,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming",
+        "kinetic_loss"
+      ],
+      "detector_elapsed_ms": 2.0,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 19.3
+    },
+    {
+      "path": "gps_weak_midair_end_028/DJI/dji_excel/dji_excel_gps_weak_midair_end_028.xlsx",
+      "bytes": 87931,
+      "sha256": "af73b889b36b579f32cca9ad8009073b0cfacc678f9df8c32ad8b9c642e8d777",
+      "scenario": "gps_weak_midair_end",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 429.4,
+      "canonical_elapsed_ms": 0.5,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 140,
+      "canonical_records": 140,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming",
+        "kinetic_loss"
+      ],
+      "detector_elapsed_ms": 1.9,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 442.4
+    },
+    {
+      "path": "gps_weak_midair_end_028/Elbit/hermes900/hermes900_gps_weak_midair_end_028.stanag",
+      "bytes": 34185,
+      "sha256": "af91b45078b2e5ae01e2a7eb1a0049ca4db9e44f76e9acd3d510f2da1b4809e9",
+      "scenario": "gps_weak_midair_end",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 0.8,
+      "canonical_elapsed_ms": 0.5,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 140,
+      "canonical_records": 140,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming",
+        "kinetic_loss"
+      ],
+      "detector_elapsed_ms": 2.5,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 14.6
+    },
+    {
+      "path": "logger_dropout_025/Aeronautics/orbiter4/orbiter4_logger_dropout_025.json",
+      "bytes": 59417,
+      "sha256": "7b4be46c467c18299da6a25a0d3efa097e9ed4af368f9e8f279b25e9ae6e9e09",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.5,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "coarse_observable_expected_types": [
+        "telemetry_gap"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.6,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 22.5
+    },
+    {
+      "path": "logger_dropout_025/DJI/dji_csv/dji_csv_logger_dropout_025.csv",
+      "bytes": 122646,
+      "sha256": "e5efb0640a7198bc53f65edaf848179d6ea43cfd7b8ba7568ffd9bb0da28c811",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 10.6,
+      "canonical_elapsed_ms": 1.1,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "coarse_observable_expected_types": [
+        "telemetry_gap"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 31.1
+    },
+    {
+      "path": "logger_dropout_025/DJI/dji_excel/dji_excel_logger_dropout_025.xlsx",
+      "bytes": 135168,
+      "sha256": "bfd6cb0c5af2e84a56d93ea5c8ae8789ed95a925157604f95a8b89a889f49e22",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 439.4,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "coarse_observable_expected_types": [
+        "telemetry_gap"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 459.1
+    },
+    {
+      "path": "logger_dropout_025/Elbit/hermes900/hermes900_logger_dropout_025.stanag",
+      "bytes": 51842,
+      "sha256": "9dd85b73808cd4f15c395dd360e880c396282620e105c1693b42ca2a79e68a94",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.2,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "coarse_observable_expected_types": [
+        "telemetry_gap"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 20.5
+    },
+    {
+      "path": "lost_airborne_026/Aeronautics/orbiter4/orbiter4_lost_airborne_026.json",
+      "bytes": 29112,
+      "sha256": "72bf98deee5544d5bdef709b7a59f857ebdf1380a9cf7c228adee6d3165f4595",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 0.8,
+      "canonical_elapsed_ms": 0.3,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 110,
+      "canonical_records": 110,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "coarse_observable_expected_types": [
+        "mission_incomplete"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "mission_incomplete"
+      ],
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "detector_elapsed_ms": 1.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 10.4
+    },
+    {
+      "path": "lost_airborne_026/DJI/dji_csv/dji_csv_lost_airborne_026.csv",
+      "bytes": 61631,
+      "sha256": "5dd02737823c45b3fa8621d289aadcd14f09ff0a3b79902a00f5af52dba02d4f",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 5.1,
+      "canonical_elapsed_ms": 0.4,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 110,
+      "canonical_records": 110,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "coarse_observable_expected_types": [
+        "mission_incomplete"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "mission_incomplete"
+      ],
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "detector_elapsed_ms": 1.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 15.0
+    },
+    {
+      "path": "lost_airborne_026/DJI/dji_excel/dji_excel_lost_airborne_026.xlsx",
+      "bytes": 70064,
+      "sha256": "2ff9ab5d271af955cb2f0e86bb1b065d3ca0c77642b3422c3ece199cc5a343bb",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 266.7,
+      "canonical_elapsed_ms": 0.4,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 110,
+      "canonical_records": 110,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "coarse_observable_expected_types": [
+        "mission_incomplete"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "mission_incomplete"
+      ],
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "detector_elapsed_ms": 1.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 276.1
+    },
+    {
+      "path": "lost_airborne_026/Elbit/hermes900/hermes900_lost_airborne_026.stanag",
+      "bytes": 25305,
+      "sha256": "6a6af74508a1cb556a51c778dd22ba41373bdf590cd5ba10331696d9c1447fb2",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 0.7,
+      "canonical_elapsed_ms": 0.4,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 110,
+      "canonical_records": 110,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "coarse_observable_expected_types": [
+        "mission_incomplete"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "mission_incomplete"
+      ],
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "detector_elapsed_ms": 1.5,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 10.4
+    },
+    {
+      "path": "motor_fail_recover_024/Aeronautics/orbiter4/orbiter4_motor_fail_recover_024.json",
+      "bytes": 60014,
+      "sha256": "25b2e89207ea309635fe556bf5e22b4e1a425d534db74a93284e6575f06211d9",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.4,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "mechanical_failure"
+      ],
+      "detector_elapsed_ms": 2.1,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 20.5
+    },
+    {
+      "path": "motor_fail_recover_024/DJI/dji_csv/dji_csv_motor_fail_recover_024.csv",
+      "bytes": 123035,
+      "sha256": "8263737449e0891942da96e70aac1067d45428e4f92ee9158819cac0d8ec1e0a",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 10.0,
+      "canonical_elapsed_ms": 1.0,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "mechanical_failure"
+      ],
+      "detector_elapsed_ms": 2.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 29.1
+    },
+    {
+      "path": "motor_fail_recover_024/DJI/dji_excel/dji_excel_motor_fail_recover_024.xlsx",
+      "bytes": 135193,
+      "sha256": "8c9959ad4cc92ea0d197a1a34fb66a751be394cf64ebe1363df5d0bd1df14fa3",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 481.5,
+      "canonical_elapsed_ms": 0.9,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "mechanical_failure"
+      ],
+      "detector_elapsed_ms": 2.2,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 501.6
+    },
+    {
+      "path": "motor_fail_recover_024/Elbit/hermes900/hermes900_motor_fail_recover_024.stanag",
+      "bytes": 52240,
+      "sha256": "a3f463745a7f5a658291ae2e487b97ba1dea71d1e32e3b0cad5003e98c36f3be",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.3,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "coarse_observable_expected_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "mechanical_failure"
+      ],
+      "detector_elapsed_ms": 2.7,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 22.7
+    },
+    {
+      "path": "v2_normal_control/Aeronautics/orbiter4/orbiter4_v2_normal_control.json",
+      "bytes": 55648,
+      "sha256": "3c7c2b53332fb584e535aaeef249476412bedfa59e31dccd83022609c268c825",
+      "scenario": null,
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.3,
+      "canonical_elapsed_ms": 0.7,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 215,
+      "canonical_records": 215,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [],
+      "coarse_observable_expected_types": [],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.5,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 21.0
+    },
+    {
+      "path": "v2_normal_control/DJI/dji_csv/dji_csv_v2_normal_control.csv",
+      "bytes": 117022,
+      "sha256": "6f4f4d288ac96d556f6dda61be44f69dfd8e53472efe2ccabd2c63c2f414cbc0",
+      "scenario": null,
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 9.7,
+      "canonical_elapsed_ms": 0.9,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 215,
+      "canonical_records": 215,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [],
+      "coarse_observable_expected_types": [],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 3.0,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 29.9
+    },
+    {
+      "path": "v2_normal_control/DJI/dji_excel/dji_excel_v2_normal_control.xlsx",
+      "bytes": 130600,
+      "sha256": "61539369faa7c58a596ef29d8b6464f429e5eb765c5a4099143d26b164ebc3f5",
+      "scenario": null,
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 417.3,
+      "canonical_elapsed_ms": 0.7,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 215,
+      "canonical_records": 215,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [],
+      "coarse_observable_expected_types": [],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.1,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 435.8
+    },
+    {
+      "path": "v2_normal_control/Elbit/hermes900/hermes900_v2_normal_control.stanag",
+      "bytes": 49577,
+      "sha256": "8fb1e586d7a2f12a3475e9e68448995d2da11d43e5ee562a9f7acc5cb5c6e638",
+      "scenario": null,
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parse_elapsed_ms": 1.3,
+      "canonical_elapsed_ms": 0.8,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 215,
+      "canonical_records": 215,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "expected_incident_types": [],
+      "coarse_observable_expected_types": [],
+      "coarse_observable_missing_expected_types": [],
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "detector_elapsed_ms": 2.1,
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 19.9
+    }
+  ]
+}

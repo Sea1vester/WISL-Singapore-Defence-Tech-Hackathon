@@ -1,0 +1,6 @@
+{
+  "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/v2_normal_control/DJI/dji_csv/dji_csv_v2_normal_control.csv",
+  "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/v2_normal_control/DJI/dji_excel/dji_excel_v2_normal_control.xlsx",
+  "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/v2_normal_control/Elbit/hermes900/hermes900_v2_normal_control.stanag",
+  "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/v2_normal_control/Aeronautics/orbiter4/orbiter4_v2_normal_control.json"
+}

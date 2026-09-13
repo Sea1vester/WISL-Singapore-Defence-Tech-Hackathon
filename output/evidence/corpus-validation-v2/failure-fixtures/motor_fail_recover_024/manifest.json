@@ -1,0 +1,6 @@
+{
+  "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/motor_fail_recover_024/DJI/dji_csv/dji_csv_motor_fail_recover_024.csv",
+  "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/motor_fail_recover_024/DJI/dji_excel/dji_excel_motor_fail_recover_024.xlsx",
+  "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/motor_fail_recover_024/Elbit/hermes900/hermes900_motor_fail_recover_024.stanag",
+  "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/motor_fail_recover_024/Aeronautics/orbiter4/orbiter4_motor_fail_recover_024.json"
+}

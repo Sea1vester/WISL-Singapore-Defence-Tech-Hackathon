@@ -1,0 +1,6 @@
+{
+  "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/gps_jamming_022/DJI/dji_csv/dji_csv_gps_jamming_022.csv",
+  "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/gps_jamming_022/DJI/dji_excel/dji_excel_gps_jamming_022.xlsx",
+  "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/gps_jamming_022/Elbit/hermes900/hermes900_gps_jamming_022.stanag",
+  "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/gps_jamming_022/Aeronautics/orbiter4/orbiter4_gps_jamming_022.json"
+}

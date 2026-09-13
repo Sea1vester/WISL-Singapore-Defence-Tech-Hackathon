@@ -1,0 +1,6 @@
+{
+  "dji_csv": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_logger_dropout_027/DJI/dji_csv/dji_csv_battery_critical_logger_dropout_027.csv",
+  "dji_excel": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_logger_dropout_027/DJI/dji_excel/dji_excel_battery_critical_logger_dropout_027.xlsx",
+  "hermes900": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_logger_dropout_027/Elbit/hermes900/hermes900_battery_critical_logger_dropout_027.stanag",
+  "orbiter4": "output/evidence/corpus-validation-v2/failure-fixtures/battery_critical_logger_dropout_027/Aeronautics/orbiter4/orbiter4_battery_critical_logger_dropout_027.json"
+}

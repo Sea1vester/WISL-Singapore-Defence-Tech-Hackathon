@@ -18,6 +18,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   margin: 0;
@@ -540,7 +544,8 @@ body {
 
 .list button,
 #speeds button,
-#playButton {
+#playButton,
+#resetButton {
   padding: 6px 9px;
   border: 1px solid var(--line);
   background: transparent;
@@ -555,14 +560,16 @@ body {
 
 .list button:hover,
 #speeds button:hover,
-#playButton:hover {
+#playButton:hover,
+#resetButton:hover {
   color: var(--ink);
   border-color: var(--muted);
 }
 
 .list button.active,
 #speeds button.active,
-#playButton.active {
+#playButton.active,
+#resetButton.active {
   color: var(--signal);
   border-color: var(--signal);
   background: rgba(79, 216, 196, 0.06);
@@ -599,6 +606,11 @@ body {
   font-size: 11px;
 }
 
+#transport #resetButton {
+  min-width: 58px;
+  text-align: center;
+}
+
 #transport #speeds {
   display: flex;
   gap: 3px;
@@ -618,14 +630,104 @@ body.replay-embed #cameraPip {
 
 html.replay-embed #transport,
 body.replay-embed #transport {
-  left: 0;
-  right: 0;
-  padding: 10px 14px;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  min-height: 78px;
+  padding: 7px 9px;
+  display: grid;
+  grid-template-columns: auto auto auto auto auto minmax(0, 1fr);
+  grid-template-areas:
+    "scrubber scrubber scrubber scrubber scrubber scrubber"
+    "play reset speeds elapsed telemetry status";
+  gap: 7px;
+  border: 1px solid rgba(104, 225, 195, 0.27);
+  border-radius: 7px;
+  background: rgba(9, 14, 20, 0.82);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
+}
+
+html.replay-embed #timeline-scrubber,
+body.replay-embed #timeline-scrubber {
+  grid-area: scrubber;
+  width: 100%;
+  height: 18px;
+  min-width: 0;
+  margin: 0;
+}
+
+html.replay-embed #playButton,
+body.replay-embed #playButton { grid-area: play; }
+
+html.replay-embed #resetButton,
+body.replay-embed #resetButton { grid-area: reset; }
+
+html.replay-embed #speeds,
+body.replay-embed #speeds { grid-area: speeds; }
+
+html.replay-embed #timeline-time,
+body.replay-embed #timeline-time { grid-area: elapsed; }
+
+html.replay-embed #transport #playButton,
+html.replay-embed #transport #resetButton,
+body.replay-embed #transport #playButton,
+body.replay-embed #transport #resetButton {
+  color: #dffcf4;
+  border-color: rgba(104, 225, 195, 0.45);
+  background: rgba(104, 225, 195, 0.08);
+}
+
+html.replay-embed #transport #playButton.active,
+body.replay-embed #transport #playButton.active {
+  color: #09120f;
+  background: #68e1c3;
+}
+
+html.replay-embed #transportStatus,
+body.replay-embed #transportStatus {
+  color: #8496a9;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+html.replay-embed #transportTelemetry,
+body.replay-embed #transportTelemetry {
+  grid-area: telemetry;
+  color: #b9d2dc;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+html.replay-embed #transportStatus,
+body.replay-embed #transportStatus {
+  grid-area: status;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+html.replay-embed .cesium-viewer-toolbar,
+html.replay-embed .cesium-navigation-help,
+html.replay-embed .cesium-viewer-fullscreenContainer,
+body.replay-embed .cesium-viewer-toolbar,
+body.replay-embed .cesium-navigation-help,
+body.replay-embed .cesium-viewer-fullscreenContainer {
+  display: none !important;
+}
+
+html.replay-embed .cesium-viewer-bottom,
+body.replay-embed .cesium-viewer-bottom {
+  left: 14px !important;
+  right: auto !important;
+  bottom: 100px !important;
 }
 
 @media (max-width: 640px) {
   html.replay-embed #transport #speeds button:nth-child(n + 5),
-  body.replay-embed #transport #speeds button:nth-child(n + 5) {
+  body.replay-embed #transport #speeds button:nth-child(n + 5),
+  html.replay-embed #transportStatus,
+  body.replay-embed #transportStatus,
+  html.replay-embed #transportTelemetry,
+  body.replay-embed #transportTelemetry {
     display: none;
   }
 }

@@ -5,13 +5,57 @@ Targets both ends of the fleet: cheap, commercial-off-the-shelf drones (DJI, PX4
 
 Target parser coverage: DJI, PX4/Auterion, ArduPilot, Elbit Hermes 900, Aeronautics Orbiter 4, and aunav.NEO HD (Taurus UGV) — six brands across both fleet segments, on equal footing in the brand catalog.
 
-## Current submission demo — 13 September 2026
+## Start the local demo
 
-Run `./sdth-telemetry/scripts/demo-console.sh`, then open <http://127.0.0.1:8010/demo/>. The new console provides raw upload, real processing status, incident evidence, recorded replay, deterministic operator queries, recurring patterns, reviewable bulletins and optional local-model analysis. See the [setup and demonstration runbook](docs/submission/demo-runbook.md).
+Requirements: Python 3.11 or later. From this repository's root:
 
-The intended synthetic/SITL hazard corpus contains 90 exports across ten scenarios. The [bounded audit](docs/submission/corpus-validation.md) completed structural checks on 70/90 files; 20 exceeded its eight-second bound, and only 36/90 met scenario-detection expectations. A focused corrected DJI CSV evaluation passed ten original scenarios plus two supplemental missions (12/12). This is format-level software evidence, not hardware compatibility or operational validation. The audit exposed and fixed false altitude spikes from treating zero relative height as absent.
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -e './sdth-telemetry/platform-api[dev]'
+./sdth-telemetry/scripts/demo-console.sh
+```
 
-The [technical report](output/pdf/WISL_FinalReport_v1.pdf), [cited use-case research](docs/submission/research-brief.md), [two-minute video handoff](docs/submission/video-handoff.md), [three-minute pitch script](pitch-script.md) and [reserve Q&A](docs/submission/pitch-qa-kiv.md) accompany this build. Video recording and external submission remain outstanding. The older counts below describe prior work and are not the denominator of this submission audit.
+Once dependencies are installed, only the last command is needed. Open **<http://127.0.0.1:8010/demo/>**. In **Session**, enter the development key `dev-teammate-key-change-me`, or one key from your `INGEST_API_KEYS` setting. This launcher runs the API and one background ingestion worker locally; Redis is not needed. Stop it with Ctrl+C. Run it again to recover interrupted ingestion jobs.
+
+### Use the replay workspace
+
+1. Open **Flight library** and choose a stored record. The last selected flight loads automatically when you return.
+2. To add a record, choose **Import log**, then drop a file in **Logs & uploads**. For a quick start, use **Try the included synthetic GPS-warning log** in that tab. Its bytes are processed by the real pipeline; duplicate uploads reuse the existing record.
+3. Wait for **Record normalized**. The replay fills the main view. Use its **Play/Pause**, **Restart**, playback-speed and timeline controls to inspect the recorded flight.
+4. Use the bar below the replay: **Mission analysis** contains observations and record queries, **Recurring patterns** compares stored signatures, and **Bulletins** holds reviewable follow-up. Switching these tabs keeps the replay on screen.
+5. Click **Replay this observation** to pause at its recorded timestamp. Ask **What happened?**, **Where is the evidence?** or **Similar warnings** for deterministic evidence-backed answers.
+6. Expand **Local AI analysis** inside Mission analysis for optional fleet interpretation. Its explanations are unverified hypotheses, even when the referenced evidence IDs are valid.
+
+The bundled GPS-warning and dropout logs in `sdth-demo/fixtures/` are synthetic copies from the original corpus. Additional independent normal and GPS-warning fixtures are in `output/evidence/corpus-validation/supplemental/`. The term “jamming” in a simulator filename is not a causal diagnosis.
+
+### Load the additional failure scenarios
+
+With the demo running, load one CSV per audited synthetic mission:
+
+```sh
+.venv/bin/python sdth-telemetry/scripts/load_demo_failures.py
+```
+
+Then open **Flight library** and refresh. Entries beginning with **synthetic** include low battery, recording gaps, frozen reported positions, warning events and recordings that end airborne, plus a normal control. The loader checks each fixture against its audit checksum and verifies the real API's detector results. Set `INGEST_API_KEY` for a custom session key; use `--base-url http://127.0.0.1:8011` for another port. See the [validation report](docs/submission/corpus-validation.md) for supported conclusions and simulation limitations.
+
+### Optional local model
+
+With Ollama installed, run these in a separate terminal:
+
+```sh
+ollama pull deepseek-r1:7b
+ollama serve
+```
+
+The download is needed once; skip `ollama serve` if it is already running. The launcher defaults to `http://127.0.0.1:11434` and `deepseek-r1:7b`. Set `OLLAMA_MODEL` or `OLLAMA_BASE_URL` before starting the demo to select another local installation. Parsing, replay, record queries and bulletins work without the model. Local inference does not make replay air-gapped: Cesium and map assets still require network access. The embedded demo uses a smooth globe surface so external terrain loading cannot block playback.
+
+### Runtime and evidence
+
+The database is `data/demo-console.db`; raw uploads, reports and visuals also stay under `data/`. These runtime files are excluded from Git. `WISL_PYTHON=/absolute/path/to/python` selects another Python environment; `API_PORT=8011` selects another local port. See the [detailed runbook](docs/submission/demo-runbook.md) for the complete demonstration sequence.
+
+The [corpus validation report](docs/submission/corpus-validation.md) separates the original 90 exports from later fixtures, field-level evidence gaps, processing timeouts and detector conclusions. Original exports represent ten generated scenarios, not 90 independent operational missions. The older counts below describe prior work and are not the denominator of the latest audit.
+
+Submission handoffs: [technical report](output/pdf/WISL_FinalReport_v1.pdf), [cited use-case research](docs/submission/research-brief.md), [video script](docs/submission/video-handoff.md), [three-minute pitch](pitch-script.md) and [reserve Q&A](docs/submission/pitch-qa-kiv.md). The technical report reflects the current validation results. The video handoff uses the revised controls; rehearse the final demo before recording.
 
 ## Layout
 
@@ -35,9 +79,9 @@ The live demo uses a subset.
 
 VisDrone is not a fourth log format and is not ingest validation through `/v1/logs/upload`.
 
-## Demo
+## Optional two-laptop setup
 
-The supported demo is a recorded raw-log workflow across two laptops over Tailscale, with a same-laptop fallback.
+The local console above is the current demonstration entry point. An earlier recorded raw-log workflow can also run across two laptops over Tailscale, with a same-laptop fallback.
 See the [two-laptop demo runbook](sdth-telemetry/docs/two-laptop-demo.md).
 
 Laptop A drops a log into a watched directory.

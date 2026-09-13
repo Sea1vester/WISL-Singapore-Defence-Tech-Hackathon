@@ -18,6 +18,13 @@ from app.path_export import _num
 from app.privacy import redact_operator_locations
 from app.schemas import CANONICAL_JSON_SCHEMA
 
+# Constructing a validator for every telemetry point dominates raw-log processing
+# on multi-thousand-point SITL files.  The schema is immutable at runtime, so one
+# compiled validator preserves validation semantics while avoiding that overhead.
+_CANONICAL_VALIDATOR_CLASS = jsonschema.validators.validator_for(CANONICAL_JSON_SCHEMA)
+_CANONICAL_VALIDATOR_CLASS.check_schema(CANONICAL_JSON_SCHEMA)
+CANONICAL_VALIDATOR = _CANONICAL_VALIDATOR_CLASS(CANONICAL_JSON_SCHEMA)
+
 # Same default home as PX4 SITL / local-NED projection in the parsers.
 _ORIGIN_LAT = 1.3521
 _ORIGIN_LON = 103.8198
@@ -192,7 +199,7 @@ def persist_canonical_series(
             "normalization": "deterministic",
             "value_origin": value_origin,
         }
-        jsonschema.validate(instance=canonical, schema=CANONICAL_JSON_SCHEMA)
+        CANONICAL_VALIDATOR.validate(canonical)
         record_id = str(uuid4())
         conn.execute(
             """

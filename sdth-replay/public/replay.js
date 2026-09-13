@@ -12,12 +12,15 @@ import {
   parseCensusList,
   parseFlightPath,
   parseIncidents,
+  replayTimeForPlay,
+  replayTimeAtPercent,
   replayTimeForTimestamp,
   sampleEvent,
-} from "/replay/lib/flight.mjs?v=wisl-embed-2";
+} from "/replay/lib/flight.mjs?v=wisl-embed-11";
 
 const CESIUM_VERSION = "1.125";
-const SPEED_VALUES = [0.25, 0.5, 1, 2, 4, 8, 15, 30, 60];
+const SPEED_VALUES = [0.5, 1, 2, 4, 8, 12];
+const DEFAULT_PLAYBACK_SPEED = 12;
 const COLORS = ["#4fd8c4", "#e0a95c", "#e0707a", "#7ea0d8", "#a58cd8"];
 const UAV_MODEL_URI = "./assets/drone.glb";
 const INGEST_PROGRESS = {
@@ -116,12 +119,15 @@ const els = {
   jumpButtons: document.getElementById("jumpButtons"),
   failureChip: document.getElementById("failureChip"),
   playButton: document.getElementById("playButton"),
+  resetButton: document.getElementById("resetButton"),
   speeds: document.getElementById("speeds"),
   scrubber: document.getElementById("timeline-scrubber"),
   scrubberProgress: document.getElementById("timeline-progress"),
   scrubberHead: document.getElementById("timeline-head"),
   scrubberIncidents: document.getElementById("timeline-incidents"),
   timelineTime: document.getElementById("timeline-time"),
+  transportTelemetry: document.getElementById("transportTelemetry"),
+  transportStatus: document.getElementById("transportStatus"),
 };
 
 function apiBase() {
@@ -163,6 +169,7 @@ async function apiPost(path, body) {
 
 function setStatus(text) {
   els.statusLine.textContent = text;
+  els.transportStatus.textContent = text;
 }
 
 function saveToken(token) {
@@ -218,6 +225,12 @@ async function probeUavModel() {
 }
 
 async function createTerrainProvider() {
+  // The embedded review stage must be immediately useful on an isolated
+  // network. The ellipsoid keeps the real WGS84 path and camera while avoiding
+  // an unbounded third-party terrain handshake.
+  if (params.get("embed") === "1") {
+    return new Cesium.EllipsoidTerrainProvider();
+  }
   const url =
     "https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer";
   try {
@@ -237,8 +250,9 @@ async function createViewer() {
   if (window.Cesium?.Ion) {
     window.Cesium.Ion.defaultAccessToken = "";
   }
-  // Dark basemap: use a dark OSM-style approach
-  const osm = new Cesium.OpenStreetMapImageryProvider({
+  // OSM is a proven no-key source in this local console. Tone the imagery at
+  // the layer level so labels remain readable under the route.
+  const baseMap = new Cesium.OpenStreetMapImageryProvider({
     url: "https://tile.openstreetmap.org/",
   });
   const terrainProvider = await createTerrainProvider();
@@ -253,9 +267,18 @@ async function createViewer() {
     fullscreenButton: true,
     vrButton: false,
     terrainProvider,
-    baseLayer: new Cesium.ImageryLayer(osm),
+    baseLayer: new Cesium.ImageryLayer(baseMap, {
+      brightness: 0.42,
+      contrast: 1.18,
+      saturation: 0.18,
+      gamma: 0.82,
+    }),
     shouldAnimate: false,
-    requestRenderMode: true,
+    // Recorded aircraft must progress without a user gesture. Cesium only
+    // ticks its Clock while rendering; a demand-rendered scene can stop after
+    // one frame even when shouldAnimate is true.
+    requestRenderMode: false,
+    targetFrameRate: 30,
   });
   // Dark space environment. This previously built a Cesium.SkyBox with an
   // empty string as the image source for all six cube faces -- Cesium tries
@@ -267,13 +290,30 @@ async function createViewer() {
   // below, without a broken image load.
   viewer.scene.skyBox = undefined;
   viewer.scene.skyAtmosphere = new Cesium.SkyAtmosphere();
+  viewer.scene.globe.showGroundAtmosphere = false;
   viewer.scene.globe.enableLighting = false;
   viewer.scene.globe.depthTestAgainstTerrain = true;
   viewer.scene.backgroundColor = new Cesium.Color(0.039, 0.039, 0.071, 1.0);
   viewer.scene.fog.enabled = true;
   viewer.scene.fog.density = 0.00015;
-  viewer.scene.highDynamicRange = true;
+  viewer.scene.highDynamicRange = false;
+  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#111b22");
+  const imageryLayer = viewer.imageryLayers.get(0);
+  if (imageryLayer) {
+    imageryLayer.brightness = 0.32;
+    imageryLayer.contrast = 1.2;
+    imageryLayer.saturation = 0.04;
+    imageryLayer.gamma = 0.78;
+    imageryLayer.hue = 4.2;
+    imageryLayer.alpha = 0.84;
+  }
+  // This is a Viewer property (rather than a reliable constructor setting in
+  // every bundled Cesium build). Recorded paths may advance while imagery and
+  // optional visuals are still loading.
+  viewer.allowDataSourcesToSuspendAnimation = false;
   viewer.clock.shouldAnimate = false;
+  viewer.clock.canAnimate = true;
+  viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER;
   enableInspectCamera(viewer);
   return viewer;
 }
@@ -339,8 +379,8 @@ function startOrbitFromCamera() {
   }
   const range = Cesium.Cartesian3.distance(viewer.camera.positionWC, target);
   state.orbit.heading = viewer.camera.heading;
-  state.orbit.pitch = clamp(viewer.camera.pitch, -1.48, 1.48);
-  state.orbit.range = clamp(range, 4, 30000);
+  state.orbit.pitch = params.get("embed") === "1" ? -0.52 : clamp(viewer.camera.pitch, -1.48, 1.48);
+  state.orbit.range = params.get("embed") === "1" ? clamp(range, 110, 420) : clamp(range, 4, 30000);
   setOrbitEnabled(true);
 }
 
@@ -651,24 +691,36 @@ function uavVisual(color) {
   // (point, label, billboard, ...) -- "pointOuter" isn't one, so it was stored on
   // the entity but never rendered. Removed as dead weight, not a behavior change.
   return {
+    ...(state.uavModelReady
+      ? {
+          model: {
+            uri: UAV_MODEL_URI,
+            minimumPixelSize: 24,
+            maximumScale: 56,
+            color: primary,
+            colorBlendMode: Cesium.ColorBlendMode.MIX,
+            colorBlendAmount: 0.55,
+          },
+        }
+      : {}),
     point: {
-      pixelSize: 16,
+      pixelSize: 20,
       color: primary,
       outlineColor: Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.7),
       outlineWidth: 1.5,
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      scaleByDistance: new Cesium.NearFarScalar(50, 1.2, 20000, 0.3),
+      scaleByDistance: new Cesium.NearFarScalar(50, 1.35, 20000, 0.55),
       translucencyByDistance: new Cesium.NearFarScalar(500, 1.0, 20000, 0.5),
     },
     label: {
-      text: "UAV",
-      font: "10px monospace",
-      fillColor: Cesium.Color.fromCssColorString("#8891a6"),
+      text: "RECORDED AIRCRAFT",
+      font: "600 11px monospace",
+      fillColor: Cesium.Color.fromCssColorString("#d8fff6"),
       outlineColor: Cesium.Color.BLACK,
-      outlineWidth: 1.5,
+      outlineWidth: 3,
       style: Cesium.LabelStyle.FILL_AND_OUTLINE,
       showBackground: false,
-      pixelOffset: new Cesium.Cartesian2(0, -30),
+      pixelOffset: new Cesium.Cartesian2(0, -34),
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
       scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 5000, 0.5),
     },
@@ -951,7 +1003,7 @@ async function addFlightToGlobe(flight, color, track) {
     state.viewer.clock.stopTime = stop;
     state.viewer.clock.currentTime = Cesium.JulianDate.clone(start);
     state.viewer.clock.clockRange = Cesium.ClockRange.CLAMPED;
-    state.viewer.clock.multiplier = state.viewer.clock.multiplier || 1;
+    state.viewer.clock.multiplier = DEFAULT_PLAYBACK_SPEED;
     state.timelineFlightStart = Cesium.JulianDate.clone(start);
     state.timelineFlightStop = Cesium.JulianDate.clone(stop);
   }
@@ -977,7 +1029,7 @@ async function addFlightToGlobe(flight, color, track) {
     id: `path-${flight.flight_id}`,
     polyline: {
       positions,
-      width: 2,
+      width: 3,
       material: new Cesium.ColorMaterialProperty(
         Cesium.Color.fromCssColorString(color).withAlpha(0.35),
       ),
@@ -1002,7 +1054,7 @@ async function addFlightToGlobe(flight, color, track) {
     ]),
     position: trailSampled,
     polyline: {
-      width: 3,
+      width: 4,
       material: new Cesium.ColorMaterialProperty(
         Cesium.Color.fromCssColorString(color).withAlpha(0.85),
       ),
@@ -1064,6 +1116,9 @@ async function addFlightToGlobe(flight, color, track) {
       },
       label: {
         text: `${incident.severity} ${incident.type}`,
+        // The embedded review lists each incident below the map. Avoid piling
+        // labels on top of each other when several observations share a location.
+        show: params.get("embed") !== "1",
         font: "10px monospace",
         fillColor: Cesium.Color.fromCssColorString("#e8e0d0"),
         outlineColor: Cesium.Color.BLACK,
@@ -1079,13 +1134,15 @@ async function addFlightToGlobe(flight, color, track) {
 
   // ---- Trees ----
   const trees = [];
-  try {
-    const osmTrees = await loadOsmTrees(flightBounds(flight));
-    osmTrees.forEach((tree, index) => {
-      trees.push(...addTreeToGlobe(tree, index));
-    });
-  } catch {
-    // OSM trees are decorative; a blocked Overpass query should not break replay.
+  if (params.get("embed") !== "1") {
+    try {
+      const osmTrees = await loadOsmTrees(flightBounds(flight));
+      osmTrees.forEach((tree, index) => {
+        trees.push(...addTreeToGlobe(tree, index));
+      });
+    } catch {
+      // OSM trees are decorative; a blocked Overpass query should not break replay.
+    }
   }
 
   // ---- Hazard circles ----
@@ -1099,11 +1156,30 @@ async function addFlightToGlobe(flight, color, track) {
   // Start trail glow animation
   animateTrailGlow(flight.flight_id, state.viewer);
 
-  if (track) {
-    state.viewer.trackedEntity = undefined;
-    state.viewer.flyTo(pathEntity, { duration: 1.2 }).then(() => {
-      startOrbitFromCamera();
+}
+
+function focusActiveRoute(flight) {
+  const viewer = state.viewer;
+  const path = viewer?.entities.getById(`path-${flight.flight_id}`);
+  if (!viewer || !path) {
+    return;
+  }
+  const positions = path.polyline?.positions?.getValue?.(viewer.clock.currentTime);
+  if (positions?.length) {
+    viewer.camera.flyToBoundingSphere(Cesium.BoundingSphere.fromPoints(positions), {
+      duration: 0,
+      offset: new Cesium.HeadingPitchRange(0, -0.58, params.get("embed") === "1" ? 230 : 320),
     });
+    startOrbitFromCamera();
+    return;
+  }
+  try {
+    void viewer.flyTo(path, {
+      duration: 0.8,
+      offset: new Cesium.HeadingPitchRange(0, -0.58, params.get("embed") === "1" ? 230 : 320),
+    }).then(() => startOrbitFromCamera());
+  } catch {
+    // An interrupted route fit is harmless; the next selected flight redraws it.
   }
 }
 
@@ -1254,6 +1330,7 @@ function updateTimelineUI() {
 
   els.scrubberProgress.style.width = `${pct}%`;
   els.scrubberHead.style.left = `${pct}%`;
+  els.scrubber.setAttribute("aria-valuenow", String(Math.round(pct)));
 
   // Format time
   const totalSeconds = Math.floor(elapsed / 1000);
@@ -1262,16 +1339,26 @@ function updateTimelineUI() {
   const secs = totalSeconds % 60;
   els.timelineTime.textContent =
     `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  els.scrubber.setAttribute("aria-valuetext", `Elapsed ${els.timelineTime.textContent}`);
 }
 
 function scrubToPercent(pct) {
   if (!state.timelineFlightStart || !state.timelineFlightStop) return;
   const startMs = Cesium.JulianDate.toDate(state.timelineFlightStart).getTime();
   const stopMs = Cesium.JulianDate.toDate(state.timelineFlightStop).getTime();
-  const total = stopMs - startMs;
-  const targetMs = startMs + (total * pct / 100);
-  const targetDate = new Date(targetMs);
-  state.viewer.clock.currentTime = Cesium.GregorianDate.toJulianDate(targetDate);
+  const targetSeconds = replayTimeAtPercent(startMs / 1000, stopMs / 1000, pct);
+  if (targetSeconds == null) return;
+  state.viewer.clock.shouldAnimate = false;
+  if (state.viewer.clockViewModel) {
+    state.viewer.clockViewModel.shouldAnimate = false;
+  }
+  state.viewer.clock.currentTime = Cesium.JulianDate.addSeconds(
+    state.timelineFlightStart,
+    targetSeconds - startMs / 1000,
+    new Cesium.JulianDate(),
+  );
+  setStatus(`Paused · ${state.viewer.clock.multiplier}×`);
+  state.viewer.scene.requestRender();
 }
 
 function renderHud(flight, pose) {
@@ -1287,6 +1374,7 @@ function renderHud(flight, pose) {
   els.playState.textContent = state.viewer.clock.shouldAnimate ? "PLAYING" : "PAUSED";
   els.playButton.textContent = state.viewer.clock.shouldAnimate ? "Pause" : "Play";
   els.playButton.className = state.viewer.clock.shouldAnimate ? "active" : "";
+  els.transportTelemetry.textContent = `${formatIso8601Utc(pose.time_s).slice(11, 19)} UTC · ${pose.alt_m.toFixed(0)} m`;
   els.flightMeta.textContent = `Flight ${state.active + 1}/${state.flights.length}  ${flight.flight_id}`;
   els.sourceLine.textContent = `${flight.source} · ${flight.data_origin}`;
   els.timeLine.textContent = `${formatIso8601Utc(pose.time_s)}   alt ${pose.alt_m.toFixed(1)} m`;
@@ -1398,19 +1486,30 @@ async function showActiveFlight() {
   if (drawId !== state.globeDraw) {
     return;
   }
-  setStatus(flight.upload_status || "ready");
   updateLayerVisibility();
-  seekRequestedReplayTime(flight);
+  focusActiveRoute(flight);
+  if (drawId !== state.globeDraw) {
+    return;
+  }
+  const pausedAtEvidence = seekRequestedReplayTime(flight);
+  if (!pausedAtEvidence) {
+    setPlaying(true);
+    renderHud(flight, interpolate(flight, flight.samples[0].time_s));
+    updateTimelineUI();
+  }
+  setStatus(pausedAtEvidence ? "Evidence timestamp selected" : `Recorded playback ready · ${DEFAULT_PLAYBACK_SPEED}×`);
 }
 
 function seekRequestedReplayTime(flight) {
   const timeS = replayTimeForTimestamp(flight, params.get("timestamp"));
   if (timeS == null || !state.viewer) {
-    return;
+    return false;
   }
   state.viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(timeS * 1000));
   state.viewer.clock.shouldAnimate = false;
   renderHud(flight, interpolate(flight, timeS));
+  state.viewer.scene.requestRender();
+  return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -1555,9 +1654,23 @@ function attachClock() {
     if (!flight) {
       return;
     }
+    const complete =
+      clock.shouldAnimate && Cesium.JulianDate.compare(clock.currentTime, clock.stopTime) >= 0;
+    if (complete) {
+      clock.shouldAnimate = false;
+      if (state.viewer.clockViewModel) {
+        state.viewer.clockViewModel.shouldAnimate = false;
+      }
+    }
     renderHud(flight, interpolate(flight, getPoseFromClock(clock).time_s));
     updateTimelineUI();
     applyOrbitCamera();
+    if (clock.shouldAnimate) {
+      els.transportStatus.textContent = `Playing · ${clock.multiplier}×`;
+      state.viewer.scene.requestRender();
+    } else if (complete) {
+      els.transportStatus.textContent = "Replay complete";
+    }
   });
 }
 
@@ -1819,9 +1932,15 @@ async function loadDataset(path) {
 function setPlaying(playing) {
   const viewer = state.viewer;
   const clock = viewer.clock;
-  if (playing && Cesium.JulianDate.compare(clock.currentTime, clock.stopTime) >= 0) {
-    clock.currentTime = Cesium.JulianDate.clone(clock.startTime);
+  if (playing) {
+    const flight = state.flights[state.active];
+    const currentTime = Cesium.JulianDate.toDate(clock.currentTime).getTime() / 1000;
+    const restartTime = replayTimeForPlay(flight, currentTime);
+    if (restartTime != null) {
+      clock.currentTime = Cesium.JulianDate.fromDate(new Date(restartTime * 1000));
+    }
   }
+  clock.canAnimate = true;
   clock.shouldAnimate = playing;
   if (viewer.clockViewModel) {
     viewer.clockViewModel.shouldAnimate = playing;
@@ -1830,6 +1949,23 @@ function setPlaying(playing) {
   if (playing && !state.orbit.enabled) {
     startOrbitFromCamera();
   }
+  viewer.scene.requestRender();
+}
+
+function resetPlayback() {
+  const flight = state.flights[state.active];
+  if (!flight || !state.viewer) {
+    return;
+  }
+  const start = flight.samples[0]?.time_s;
+  if (!Number.isFinite(start)) {
+    return;
+  }
+  state.viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(start * 1000));
+  setPlaying(false);
+  renderHud(flight, interpolate(flight, start));
+  updateTimelineUI();
+  state.viewer.scene.requestRender();
 }
 
 function bindControls() {
@@ -1871,7 +2007,13 @@ function bindControls() {
       const timeS = Date.parse(iso.endsWith("Z") ? iso : `${iso}Z`) / 1000;
       renderHud(flight, interpolate(flight, timeS));
     }
+    setStatus(
+      state.viewer.clock.shouldAnimate
+        ? `Playing · ${state.viewer.clock.multiplier}×`
+        : `Paused · ${state.viewer.clock.multiplier}×`,
+    );
   });
+  els.resetButton.addEventListener("click", resetPlayback);
   for (const value of SPEED_VALUES) {
     const button = document.createElement("button");
     button.type = "button";
@@ -1882,7 +2024,7 @@ function bindControls() {
         child.classList.toggle("active", child === button);
       }
     });
-    if (value === 1) {
+    if (value === DEFAULT_PLAYBACK_SPEED) {
       button.className = "active";
     }
     els.speeds.append(button);
@@ -1913,6 +2055,20 @@ function bindControls() {
     scrubToPercent(pct);
     updateTimelineUI();
   }
+
+  els.scrubber.addEventListener("keydown", (event) => {
+    const current = Number(els.scrubber.getAttribute("aria-valuenow") || 0);
+    const change = event.key === "PageUp" ? 10 : event.key === "PageDown" ? -10 :
+      event.key === "ArrowRight" || event.key === "ArrowUp" ? 2 :
+        event.key === "ArrowLeft" || event.key === "ArrowDown" ? -2 : null;
+    let target = change == null ? null : current + change;
+    if (event.key === "Home") target = 0;
+    if (event.key === "End") target = 100;
+    if (target == null) return;
+    event.preventDefault();
+    scrubToPercent(clamp(target, 0, 100));
+    updateTimelineUI();
+  });
 
   els.scrubber.addEventListener("mousedown", (e) => {
     state.scrubbing = true;
@@ -1961,7 +2117,7 @@ async function bootstrap(create = true) {
     } else if (!state.flights.length) {
       state.flights = await loadOfflineDemo();
     }
-    if (state.token) {
+    if (state.token && params.get("embed") !== "1") {
       const listed = await apiGet("/v1/flights?limit=20", true);
       if (listed?.items) {
         for (const item of listed.items) {

@@ -218,6 +218,62 @@ def test_operator_warning_from_normalized_warning_field():
     assert "operator_warning" in types
 
 
+def _battery_series(samples):
+    """Make minimal, timestamped L2 samples for battery-window rule tests."""
+    return [
+        {
+            "timestamp_utc": timestamp,
+            "position": {"lat": 51.0, "lon": -1.0, "alt_m": 20.0},
+            "attitude": {"roll_deg": 0.0, "pitch_deg": 0.0, "yaw_deg": 0.0},
+            "battery": {"percent": percent},
+            "sensors": {"flight_mode": "LAND"},
+        }
+        for timestamp, percent in samples
+    ]
+
+
+def _battery_plunge_count(series) -> int:
+    return sum(item.incident_type == "battery_plunge" for item in detect_incidents(series))
+
+
+def test_battery_plunge_window_includes_exactly_sixty_seconds():
+    assert _battery_plunge_count(
+        _battery_series([("2026-01-01T00:00:00Z", 100.0), ("2026-01-01T00:00:59Z", 84.0)])
+    ) == 1
+    assert _battery_plunge_count(
+        _battery_series([("2026-01-01T00:00:00Z", 100.0), ("2026-01-01T00:01:00Z", 84.0)])
+    ) == 1
+
+
+def test_battery_plunge_excludes_stale_peak_after_window():
+    # This is an intentional soundness correction. The prior reverse scan seeded
+    # its peak from the previous sample and could report a plunge across a gap.
+    assert _battery_plunge_count(
+        _battery_series([("2026-01-01T00:00:00Z", 100.0), ("2026-01-01T00:01:01Z", 84.0)])
+    ) == 0
+    assert _battery_plunge_count(
+        _battery_series([("2026-01-01T00:00:00Z", 100.0), ("2026-01-01T01:00:00Z", 80.0)])
+    ) == 0
+
+
+def test_battery_plunge_window_handles_missing_and_out_of_order_values():
+    # A missing intervening percentage cannot support a plunge conclusion.
+    assert _battery_plunge_count(
+        _battery_series(
+            [
+                ("2026-01-01T00:00:00Z", 100.0),
+                ("2026-01-01T00:00:10Z", 0.0),
+                ("2026-01-01T00:00:20Z", 84.0),
+            ]
+        )
+    ) == 0
+    # Non-monotonic clocks retain the bounded reference-path behavior rather
+    # than applying the monotonic deque to an invalid time sequence.
+    assert _battery_plunge_count(
+        _battery_series([("2026-01-01T00:00:10Z", 100.0), ("2026-01-01T00:00:00Z", 84.0)])
+    ) == 1
+
+
 def test_battery_plunge_on_px4_series():
     assert "battery_plunge" in _types(px4_l1(inject="battery_plunge"))
 

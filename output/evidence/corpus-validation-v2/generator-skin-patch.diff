@@ -1,0 +1,112 @@
+--- a/sdth-synth/src/sdth_synth/skins/hermes.py
++++ b/sdth-synth/src/sdth_synth/skins/hermes.py
+@@ -5,6 +5,11 @@
+ from pathlib import Path
+ 
+ from ..core import Flight
++
++
++def _token(value: str) -> str:
++    """Keep a free-text notice inside the skin's whitespace-delimited KV wire form."""
++    return "_".join(value.split())
+ 
+ 
+ def write_hermes(flight: Flight, dest: Path) -> Path:
+@@ -17,7 +22,8 @@
+             f"[STANAG_MSG] VEHICLE_STEERING lat={sample.lat:.6f} lon={sample.lon:.6f} "
+             f"alt_msl={sample.alt_m:.1f} heading={sample.yaw_deg:.1f} "
+             f"roll_deg={sample.roll_deg:.2f} pitch_deg={sample.pitch_deg:.2f} "
+-            f"battery_pct={sample.battery_pct:.1f}"
++            f"battery_pct={sample.battery_pct:.1f} flight_mode={_token(sample.flight_mode)} "
++            f"warning={_token(sample.warning)}"
+         )
+     dest.write_text("\n".join(lines) + "\n", encoding="utf-8")
+     return dest
+--- a/sdth-synth/src/sdth_synth/skins/orbiter.py
++++ b/sdth-synth/src/sdth_synth/skins/orbiter.py
+@@ -22,6 +22,8 @@
+                 "pitch_deg": round(sample.pitch_deg, 3),
+                 "yaw_deg": round(sample.yaw_deg, 3),
+                 "battery_pct": round(sample.battery_pct, 2),
++                "flight_mode": sample.flight_mode,
++                "warning": sample.warning,
+             }
+         )
+     dest.write_text(json.dumps(items, indent=2) + "\n", encoding="utf-8")
+--- a/sdth-synth/src/sdth_synth/skins/aunav.py
++++ b/sdth-synth/src/sdth_synth/skins/aunav.py
+@@ -5,6 +5,10 @@
+ from pathlib import Path
+ 
+ from ..core import Flight
++
++
++def _token(value: str) -> str:
++    return "_".join(value.split())
+ 
+ 
+ def write_aunav(flight: Flight, dest: Path) -> Path:
+@@ -15,7 +19,10 @@
+         lines.append(
+             f"[ROS_INFO] [{sample.timestamp_utc.timestamp():.6f}] /aunav/robot_state "
+             f"pos_x={sample.east_m:.3f} pos_y={sample.north_m:.3f} pos_z=0.0 "
+-            f"arm_ext_m=1.20 heading={sample.yaw_deg:.2f} battery_pct={sample.battery_pct:.1f}"
++            f"north_m={sample.north_m:.3f} east_m={sample.east_m:.3f} arm_ext_m=1.20 "
++            f"heading={sample.yaw_deg:.2f} roll_deg={sample.roll_deg:.2f} "
++            f"pitch_deg={sample.pitch_deg:.2f} battery_pct={sample.battery_pct:.1f} "
++            f"flight_mode=GROUNDED warning={_token(sample.warning)}"
+         )
+     dest.write_text("\n".join(lines) + "\n", encoding="utf-8")
+     return dest
+--- a/sdth-synth/src/sdth_synth/gates.py
++++ b/sdth-synth/src/sdth_synth/gates.py
+@@ -13,6 +13,20 @@
+ from .corpus import Corpus, demo_fixture_dir, load_corpus, parsers_dir
+ from .geo import dtw_distance, downsample, geodesic_speed_ms, to_ned
+ from .profile import DjiProfile, load_dji_profile
++
++
++# The generator supports a small controlled warning vocabulary. Keeping it here
++# prevents arbitrary vendor-style text from bypassing the realism gate while
++# allowing non-GPS faults to coexist with healthy satellite counts.
++CONTROLLED_WARNING_TEXT = frozenset(
++    {
++        "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008).",
++        "GPS signal weak. Hovering unstable. Fly with caution (Code: 30002).",
++        "Motor error. Hovering unstable. Land immediately.",
++        "RC link lost. Returning to home. Fly with caution.",
++        "Compass error. Fly with caution (Code: 30005).",
++    }
++)
+ 
+ 
+ @dataclass
+@@ -72,7 +86,12 @@
+         dt = max(cur.t_s - prev.t_s, 1e-6)
+         dts.append(dt)
+         geo = geodesic_speed_ms(prev.lat, prev.lon, cur.lat, cur.lon, dt)
+-        speeds_res.append(abs(geo - cur.speed_ms))
++        # A deliberate logger gap has no observed instantaneous velocity over
++        # its missing interval. Check velocity coupling only at normal cadence;
++        # the gap itself is separately checked for monotonic, bounded continuity.
++        normal_cadence = dt <= max(profile.dt_s.p90 or 1.0, 1.0) * 1.5
++        if normal_cadence:
++            speeds_res.append(abs(geo - cur.speed_ms))
+         climbs.append(cur.alt_m - prev.alt_m)
+         if cur.battery_pct > prev.battery_pct + 0.05 and not cur.on_ground:
+             issues.append(GateIssue("realism", "energy", f"battery rose in air t={cur.t_s:.1f}"))
+@@ -82,10 +101,11 @@
+             issues.append(GateIssue("realism", "coupling", "on_ground at altitude"))
+         if (not cur.on_ground) and cur.alt_m < 0.05 and cur.phase not in {"takeoff", "land", "ground"}:
+             issues.append(GateIssue("realism", "coupling", "airborne flag at zero height"))
+-        if cur.warning and cur.gps_sats > 14:
++        warning_is_gps = "gps" in cur.warning.lower()
++        if warning_is_gps and cur.gps_sats > 14:
+             issues.append(GateIssue("realism", "coupling", "GPS warning with high sat count"))
+-        if cur.warning and "gps" not in cur.warning.lower():
+-            issues.append(GateIssue("realism", "idiosyncrasy", "warning is not from GPS codebook"))
++        if cur.warning and cur.warning not in CONTROLLED_WARNING_TEXT:
++            issues.append(GateIssue("realism", "idiosyncrasy", "warning is outside controlled synthetic vocabulary"))
+ 
+     if max(speeds_res) > 1.5:
+         issues.append(GateIssue("realism", "kinematics", f"speed residual {max(speeds_res):.2f} m/s"))

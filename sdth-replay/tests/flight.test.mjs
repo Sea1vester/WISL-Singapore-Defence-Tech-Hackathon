@@ -20,6 +20,8 @@ import {
   parseFlightPath,
   parseIncidents,
   parseIso8601Utc,
+  replayTimeForPlay,
+  replayTimeAtPercent,
   replayTimeForTimestamp,
 } from "../src/flight.mjs";
 
@@ -89,6 +91,23 @@ test("replay timestamp accepts only a recorded UTC range", () => {
   assert.equal(replayTimeForTimestamp(path, "2026-07-11T10:00:05Z"), path.samples[0].time_s + 5);
   assert.equal(replayTimeForTimestamp(path, "2026-07-11T09:59:59Z"), null);
   assert.equal(replayTimeForTimestamp(path, "not-a-timestamp"), null);
+});
+
+test("play resumes a recorded route and restarts cleanly at its end", () => {
+  const path = parseFlightPath(pathJson());
+  assert.equal(replayTimeForPlay(path, path.samples[0].time_s + 3), path.samples[0].time_s + 3);
+  assert.equal(replayTimeForPlay(path, path.samples[1].time_s), path.samples[0].time_s);
+  assert.equal(replayTimeForPlay(path, Number.NaN), path.samples[0].time_s);
+});
+
+test("scrubbing maps a percentage to the bounded recorded time", () => {
+  const path = parseFlightPath(pathJson());
+  const start = path.samples[0].time_s;
+  const stop = path.samples[1].time_s;
+  assert.equal(replayTimeAtPercent(start, stop, 50), start + 5);
+  assert.equal(replayTimeAtPercent(start, stop, -25), start);
+  assert.equal(replayTimeAtPercent(start, stop, 150), stop);
+  assert.equal(replayTimeAtPercent(start, stop, Number.NaN), null);
 });
 
 test("incident alignment", () => {

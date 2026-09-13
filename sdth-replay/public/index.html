@@ -4,11 +4,17 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SDTH Replay</title>
+    <script>
+      // Apply the embedded layout before Cesium loads to avoid a legacy-HUD flash.
+      if (new URLSearchParams(window.location.search).get("embed") === "1") {
+        document.documentElement.classList.add("replay-embed");
+      }
+    </script>
     <link
       rel="stylesheet"
       href="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Widgets/widgets.css"
     />
-    <link rel="stylesheet" href="./replay.css?v=wisl-embed-2" />
+    <link rel="stylesheet" href="./replay.css?v=wisl-embed-11" />
   </head>
   <body>
     <div id="cesiumContainer"></div>
@@ -64,13 +70,24 @@
       </aside>
       <div id="transport">
         <button id="playButton" type="button">Play</button>
-        <div id="timeline-scrubber">
+        <button id="resetButton" type="button" aria-label="Restart recorded replay">Restart</button>
+        <div
+          id="timeline-scrubber"
+          role="slider"
+          tabindex="0"
+          aria-label="Recorded flight position"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        >
           <div id="timeline-progress"></div>
           <div id="timeline-head"></div>
           <div id="timeline-incidents"></div>
         </div>
         <div id="speeds"></div>
         <span id="timeline-time">00:00:00</span>
+        <span id="transportTelemetry">Recorded telemetry</span>
+        <span id="transportStatus" role="status">Loading recorded replay</span>
       </div>
       <div id="cameraPip" class="camera-pip" hidden>
         <img id="cameraPipImg" alt="Nearest camera frame" />
@@ -78,6 +95,6 @@
       </div>
     </div>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Cesium.js"></script>
-    <script type="module" src="./replay.js?v=wisl-embed-2"></script>
+    <script type="module" src="./replay.js?v=wisl-embed-11"></script>
   </body>
 </html>
