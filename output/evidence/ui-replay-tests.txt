@@ -1,0 +1,26 @@
+✔ handles the documented local model status shape (1.291625ms)
+✔ formats only returned operator evidence (0.137167ms)
+✔ preserves local analysis scope and exposes unavailable model output (0.123625ms)
+✔ only recognizes explicitly known simulation corpus sources (0.218583ms)
+✔ uses upload provenance for a human-readable flight title (0.164792ms)
+✔ unix epoch parses (2.653125ms)
+✔ json path parsing (0.934334ms)
+✔ timestamp interpolation (0.365042ms)
+✔ replay timestamp accepts only a recorded UTC range (0.161334ms)
+✔ incident alignment (0.288084ms)
+✔ banner prefers mission summary and shows failure (0.229917ms)
+✔ banner shows no incidents when none are indexed (0.105125ms)
+✔ bundled demo path is loadable (0.51225ms)
+✔ local NED globe altitude sits 1 m above the lowest sample (0.793ms)
+✔ WGS84 globe altitude drapes as AGL on the surface (0.168167ms)
+✔ census_at picks nearest prefetched row in memory (0.257625ms)
+✔ cameraFrameAt picks nearest prefetched camera_frame for PiP (0.193083ms)
+✔ incident click loads nearest camera_frame (0.126125ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 18
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 138.085791

@@ -12,8 +12,9 @@ import {
   parseCensusList,
   parseFlightPath,
   parseIncidents,
+  replayTimeForTimestamp,
   sampleEvent,
-} from "/replay/lib/flight.mjs";
+} from "/replay/lib/flight.mjs?v=wisl-embed-2";
 
 const CESIUM_VERSION = "1.125";
 const SPEED_VALUES = [0.25, 0.5, 1, 2, 4, 8, 15, 30, 60];
@@ -29,6 +30,10 @@ const INGEST_PROGRESS = {
 };
 
 const params = new URLSearchParams(window.location.search);
+if (params.get("embed") === "1") {
+  document.documentElement.classList.add("replay-embed");
+  document.body.classList.add("replay-embed");
+}
 const state = {
   token: params.get("token") || sessionStorage.getItem("sdthReplayToken") || "",
   flights: [],
@@ -1395,6 +1400,17 @@ async function showActiveFlight() {
   }
   setStatus(flight.upload_status || "ready");
   updateLayerVisibility();
+  seekRequestedReplayTime(flight);
+}
+
+function seekRequestedReplayTime(flight) {
+  const timeS = replayTimeForTimestamp(flight, params.get("timestamp"));
+  if (timeS == null || !state.viewer) {
+    return;
+  }
+  state.viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date(timeS * 1000));
+  state.viewer.clock.shouldAnimate = false;
+  renderHud(flight, interpolate(flight, timeS));
 }
 
 // ---------------------------------------------------------------------------

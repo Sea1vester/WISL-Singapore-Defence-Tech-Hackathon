@@ -1,0 +1,14 @@
+[
+  {
+    "file": "dji_csv_gps_jamming.csv",
+    "sha256": "1a1b914dc70e6d0c1b45db003046b45037ab822903dd2fda0bb1ab9c0cdc34b7",
+    "source": "Original intended sdth-synth/out/hazards/DJI/dji_csv corpus; unchanged byte-for-byte subset",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight"
+  },
+  {
+    "file": "dji_csv_logger_dropout.csv",
+    "sha256": "b7ee5f98110be03e657645fbcce320479a8955d0d517dd44c99ae1b05f1beeac",
+    "source": "Original intended sdth-synth/out/hazards/DJI/dji_csv corpus; unchanged byte-for-byte subset",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight"
+  }
+]

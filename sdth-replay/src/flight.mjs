@@ -14,6 +14,24 @@ export function formatIso8601Utc(epochSeconds) {
   return new Date(epochSeconds * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
+/** Return a requested time only when it belongs to this recorded path. */
+export function replayTimeForTimestamp(path, timestamp) {
+  if (!path?.samples?.length || !timestamp) {
+    return null;
+  }
+  let target;
+  try {
+    target = parseIso8601Utc(timestamp);
+  } catch {
+    return null;
+  }
+  const start = path.samples[0]?.time_s;
+  const stop = path.samples[path.samples.length - 1]?.time_s;
+  return Number.isFinite(start) && Number.isFinite(stop) && target >= start && target <= stop
+    ? target
+    : null;
+}
+
 function optionalNumber(value, key, fallback = 0) {
   if (value[key] == null) {
     return fallback;

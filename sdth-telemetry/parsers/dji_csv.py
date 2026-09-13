@@ -72,13 +72,12 @@ def _row_timestamp_utc(row: dict[str, str]) -> str | None:
 def _alt_m(row: dict[str, str]) -> float | None:
     height_ft = _f(row, "OSD.height [ft]")
     altitude_ft = _f(row, "OSD.altitude [ft]")
-    # Prefer relative height when it looks like a flight height; else absolute altitude.
-    if height_ft is not None and abs(height_ft) > 0.05:
+    # Zero is a valid relative height at takeoff/landing. Switching to absolute
+    # altitude there creates an artificial jump equal to the launch elevation.
+    if height_ft is not None:
         return height_ft * FT_TO_M
     if altitude_ft is not None:
         return altitude_ft * FT_TO_M
-    if height_ft is not None:
-        return height_ft * FT_TO_M
     return None
 
 

@@ -32,9 +32,11 @@ def list_flights(
         total = conn.execute("SELECT COUNT(*) AS c FROM flights").fetchone()["c"]
         rows = conn.execute(
             """
-            SELECT id, source, started_at, ended_at, created_at
-            FROM flights
-            ORDER BY created_at DESC
+            SELECT f.id, f.source, f.started_at, f.ended_at, f.created_at,
+                (SELECT r.original_name FROM raw_uploads r WHERE r.flight_id=f.id
+                 ORDER BY r.received_at LIMIT 1) AS original_filename
+            FROM flights f
+            ORDER BY f.created_at DESC
             LIMIT ? OFFSET ?
             """,
             (limit, offset),

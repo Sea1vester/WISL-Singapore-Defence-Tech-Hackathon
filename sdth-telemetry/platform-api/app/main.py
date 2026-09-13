@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
+from app.demo_api import router as demo_router
 from app.db import run_migrations
 from app.analytics import router as analytics_router
 from app.census_api import router as census_router
@@ -23,7 +24,14 @@ logger = logging.getLogger("sdth")
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     run_migrations()
-    yield
+    if settings.local_demo_worker:
+        from app.local_worker import recover, stop
+        recover()
+    try:
+        yield
+    finally:
+        if settings.local_demo_worker:
+            stop()
 
 
 app = FastAPI(
@@ -52,6 +60,7 @@ app.include_router(datasets_router)
 app.include_router(visual_router)
 app.include_router(census_router)
 app.include_router(preflight_report_router)
+app.include_router(demo_router)
 
 
 @app.get("/health")
@@ -72,6 +81,10 @@ def _mount_replay() -> None:
 
 
 _mount_replay()
+
+_demo_dir = Path(__file__).resolve().parents[3] / "sdth-demo"
+if _demo_dir.is_dir():
+    app.mount("/demo", StaticFiles(directory=_demo_dir, html=True), name="demo")
 
 
 def main() -> None:

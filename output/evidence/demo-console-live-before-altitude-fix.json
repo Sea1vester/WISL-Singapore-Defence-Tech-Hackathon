@@ -1,0 +1,44 @@
+[
+  {
+    "filename": "dji_csv_gps_jamming.csv",
+    "upload": {
+      "upload_id": "97bc6545-acb6-46b2-9908-3fbc3122eb5c",
+      "status": "received",
+      "sha256": "1a1b914dc70e6d0c1b45db003046b45037ab822903dd2fda0bb1ab9c0cdc34b7",
+      "duplicate": false
+    },
+    "status": {
+      "upload_id": "97bc6545-acb6-46b2-9908-3fbc3122eb5c",
+      "status": "ready",
+      "filename": "dji_csv_gps_jamming.csv",
+      "size_bytes": 124513,
+      "sha256": "1a1b914dc70e6d0c1b45db003046b45037ab822903dd2fda0bb1ab9c0cdc34b7",
+      "flight_id": "flight-1a1b914dc70e6d0c1b45",
+      "ingest_id": "dbedbe34-30aa-41dd-b178-851555fd4cc4",
+      "error": null
+    },
+    "elapsed_seconds": 1.009,
+    "provenance": "synthetic intended hazard corpus"
+  },
+  {
+    "filename": "dji_csv_logger_dropout.csv",
+    "upload": {
+      "upload_id": "7278534a-4c52-4762-8b8a-00eba4a43d02",
+      "status": "received",
+      "sha256": "b7ee5f98110be03e657645fbcce320479a8955d0d517dd44c99ae1b05f1beeac",
+      "duplicate": false
+    },
+    "status": {
+      "upload_id": "7278534a-4c52-4762-8b8a-00eba4a43d02",
+      "status": "ready",
+      "filename": "dji_csv_logger_dropout.csv",
+      "size_bytes": 122646,
+      "sha256": "b7ee5f98110be03e657645fbcce320479a8955d0d517dd44c99ae1b05f1beeac",
+      "flight_id": "flight-b7ee5f98110be03e6576",
+      "ingest_id": "74fcfa61-4fe3-4a4e-a68e-06667941c429",
+      "error": null
+    },
+    "elapsed_seconds": 1.272,
+    "provenance": "synthetic intended hazard corpus"
+  }
+]

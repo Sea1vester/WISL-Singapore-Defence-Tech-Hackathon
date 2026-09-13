@@ -1,0 +1,49 @@
+name: supplemental_gps_weak_recurrence
+aircraft_name: Mini 4 Pro
+seed: 202
+dt_s: 1.0
+start_battery_pct: 91
+end_battery_pct: 81
+min_battery_pct: 78
+cruise_alt_m: 42
+wind_ms: 3.1
+gps_degraded_at_s: 72
+gps_degraded_for_s: 24
+operator_warning_text: "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+home:
+  lat: 53.04710
+  lon: -3.00540
+phases:
+  - name: ground
+    duration_s: 10
+  - name: takeoff
+    duration_s: 24
+    alt_m: 42
+    speed_ms: 1.4
+  - name: cruise
+    duration_s: 38
+    north_m: 45
+    east_m: 150
+    alt_m: 42
+    speed_ms: 4.6
+  - name: hover
+    duration_s: 20
+    north_m: 45
+    east_m: 150
+    alt_m: 42
+  - name: cruise
+    duration_s: 52
+    north_m: -65
+    east_m: 55
+    alt_m: 39
+    speed_ms: 4.0
+  - name: rth
+    duration_s: 46
+    north_m: 0
+    east_m: 0
+    alt_m: 39
+    speed_ms: 3.8
+  - name: land
+    duration_s: 24
+    alt_m: 0
+    speed_ms: 0.9

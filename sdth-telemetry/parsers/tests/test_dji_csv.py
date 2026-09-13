@@ -58,3 +58,17 @@ def test_parse_fixture_skips_zero_gps():
     assert payload["records"][0]["lat"] == pytest.approx(39.62655835)
     assert all(abs(r["lat"]) > 0.01 for r in payload["records"])
     json.dumps(payload)  # serializable
+
+
+def test_takeoff_and_landing_keep_relative_altitude_datum():
+    records = [row_to_record({
+        "OSD.latitude": "1.35", "OSD.longitude": "103.82",
+        "OSD.height [ft]": str(height), "OSD.altitude [ft]": str(180 + height),
+    }) for height in (0, 1, 10, 1, 0)]
+    assert [r["alt_m"] for r in records] == pytest.approx([0, .3048, 3.048, .3048, 0])
+
+
+def test_missing_relative_height_can_use_absolute_altitude():
+    record = row_to_record({"OSD.latitude": "1.35", "OSD.longitude": "103.82",
+                            "OSD.height [ft]": "", "OSD.altitude [ft]": "180"})
+    assert record["alt_m"] == pytest.approx(54.864)

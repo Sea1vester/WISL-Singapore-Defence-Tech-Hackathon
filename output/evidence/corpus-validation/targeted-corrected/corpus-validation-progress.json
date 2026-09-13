@@ -1,0 +1,355 @@
+{
+  "completed": 12,
+  "total": 12,
+  "files_detail": [
+    {
+      "path": "dji_csv_battery_critical.csv",
+      "bytes": 101231,
+      "sha256": "932adf39f65d84aa6573d23e67dab1edfb2ca0ba72bdfac9d5001cffaee4fd52",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 185,
+      "canonical_records": 185,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 659.2
+    },
+    {
+      "path": "dji_csv_battery_low_rth.csv",
+      "bytes": 122637,
+      "sha256": "f91aa91762e6adde7dfe29e0f97f7d07568b03fa0410f5af2ebadf04d12d1afd",
+      "scenario": "battery_low_rth",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_low"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 801.1
+    },
+    {
+      "path": "dji_csv_c2_link_lost.csv",
+      "bytes": 123637,
+      "sha256": "9e937f7044cc51963c1dceb8874f19e7f3107bd2fcb975a28385cfa33683c52a",
+      "scenario": "c2_link_lost",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 790.7
+    },
+    {
+      "path": "dji_csv_compass_error.csv",
+      "bytes": 123327,
+      "sha256": "2e980fa579ba08a7da3bf32b825536f0198a4845f2631009525acd8787913c4d",
+      "scenario": "compass_error",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 794.3
+    },
+    {
+      "path": "dji_csv_gps_denied_frozen.csv",
+      "bytes": 122761,
+      "sha256": "98388663e8aa6b8f15d07296f40d18d4f3e6c440ef98317bcca6073a60d54a63",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 789.3
+    },
+    {
+      "path": "dji_csv_gps_jamming.csv",
+      "bytes": 124513,
+      "sha256": "1a1b914dc70e6d0c1b45db003046b45037ab822903dd2fda0bb1ab9c0cdc34b7",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 817.9
+    },
+    {
+      "path": "dji_csv_kinetic_tumble_cut.csv",
+      "bytes": 58475,
+      "sha256": "4b3c0203c6fb3b5c1eae6f3f9d5d4bf151a7da83920bd0ff9a3c4b90c71c7247",
+      "scenario": "kinetic_tumble_cut",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 104,
+      "canonical_records": 104,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 531.8
+    },
+    {
+      "path": "dji_csv_logger_dropout.csv",
+      "bytes": 122646,
+      "sha256": "b7ee5f98110be03e657645fbcce320479a8955d0d517dd44c99ae1b05f1beeac",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 891.1
+    },
+    {
+      "path": "dji_csv_lost_airborne.csv",
+      "bytes": 61631,
+      "sha256": "783284f31970a1429f9f540b2ba196eaf820ea2fa98fbceafafbec5d5176102e",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 110,
+      "canonical_records": 110,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "mission_incomplete"
+      ],
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 437.5
+    },
+    {
+      "path": "dji_csv_motor_fail_recover.csv",
+      "bytes": 123035,
+      "sha256": "15565e1ead635bd391a7c66fe8b18bc798aed080269c3fc3cc165c2abc1bcbf4",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "mechanical_failure"
+      ],
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 845.3
+    },
+    {
+      "path": "dji_csv_supplemental_gps_weak_recurrence.csv",
+      "bytes": 118768,
+      "sha256": "4fb673922655692b61ac84f2c244afd70043177b7594021d7884e2d3d7662220",
+      "scenario": null,
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 214,
+      "canonical_records": 214,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 765.7
+    },
+    {
+      "path": "dji_csv_supplemental_normal_control.csv",
+      "bytes": 110680,
+      "sha256": "eea7a01de29aec8aed1e7e7a5324f74bea4e5fb9a969a586a26f97daadacea3b",
+      "scenario": null,
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 203,
+      "canonical_records": 203,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 729.2
+    }
+  ]
+}

@@ -20,6 +20,7 @@ import {
   parseFlightPath,
   parseIncidents,
   parseIso8601Utc,
+  replayTimeForTimestamp,
 } from "../src/flight.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -81,6 +82,13 @@ test("timestamp interpolation", () => {
   assert.equal(pose.lower_sample, 0);
   assert.equal(pose.upper_sample, 1);
   assert.ok(Math.abs(pose.blend - 0.5) < 1e-9);
+});
+
+test("replay timestamp accepts only a recorded UTC range", () => {
+  const path = parseFlightPath(pathJson());
+  assert.equal(replayTimeForTimestamp(path, "2026-07-11T10:00:05Z"), path.samples[0].time_s + 5);
+  assert.equal(replayTimeForTimestamp(path, "2026-07-11T09:59:59Z"), null);
+  assert.equal(replayTimeForTimestamp(path, "not-a-timestamp"), null);
 });
 
 test("incident alignment", () => {

@@ -52,6 +52,7 @@ class RawUploadStatusResponse(BaseModel):
 class FlightSummary(BaseModel):
     id: str
     source: str
+    original_filename: str | None = None
     started_at: str
     ended_at: str | None = None
     created_at: str | None = None

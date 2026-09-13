@@ -1,0 +1,409 @@
+#!/usr/bin/env python3
+"""Independently audit an SDTH simulator corpus without changing its inputs.
+
+The audit intentionally tests the deployed parser -> deterministic L2 -> detector
+path rather than simulator internals.  It reports scenario labels as injected test
+conditions, never as confirmed operational causes.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+import multiprocessing as mp
+import os
+import platform
+import signal
+import shutil
+import sys
+import tempfile
+import time
+from collections import Counter, defaultdict
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+
+ROOT = Path(__file__).resolve().parents[2]
+API_ROOT = ROOT / "sdth-telemetry" / "platform-api"
+PARSERS_ROOT = ROOT / "sdth-telemetry"
+SCENARIOS_ROOT = ROOT / "sdth-synth" / "scenarios" / "hazards"
+
+for entry in (str(API_ROOT), str(PARSERS_ROOT)):
+    if entry not in sys.path:
+        sys.path.insert(0, entry)
+
+from app.canonical_series import series_from_l1_payload  # noqa: E402
+from app.detectors import detect_incidents, hazard_label, parse_timestamp  # noqa: E402
+from app.schemas import CANONICAL_JSON_SCHEMA  # noqa: E402
+from parsers.registry import parse_raw_log  # noqa: E402
+
+try:
+    import jsonschema
+except ImportError as exc:  # pragma: no cover - prerequisite error is useful
+    raise SystemExit("jsonschema is required; run using the repository virtualenv") from exc
+
+
+# Expectations are intentionally detector-level, based on the checked-in scenario
+# cards.  A warning confirms that the injected record survives conversion; it does
+# not independently establish any RF, mechanical, or operational cause.
+EXPECTED_DETECTIONS = {
+    "battery_critical": {"battery_critical"},
+    "battery_low_rth": {"battery_low"},
+    "c2_link_lost": {"operator_warning"},
+    "compass_error": {"operator_warning"},
+    "gps_jamming": {"operator_warning"},
+    "gps_denied_frozen": {"last_known_position"},
+    "kinetic_tumble_cut": {"attitude_shock", "mission_incomplete"},
+    "logger_dropout": {"telemetry_gap"},
+    "lost_airborne": {"mission_incomplete"},
+    "motor_fail_recover": {"attitude_shock", "operator_warning"},
+}
+
+FORMAT_CLASS = {
+    "dji_csv": "simulated kinematic format export",
+    "dji_excel": "simulated kinematic format export",
+    "hermes900": "simulated kinematic format export",
+    "orbiter4": "simulated kinematic format export",
+    "aunav": "simulated kinematic format export",
+    "vendor_hex": "simulated mock/minimal format export",
+    "px4_ulg": "SITL log artifact",
+    "ardupilot_bin": "SITL log artifact",
+    "ardupilot_tlog": "SITL log artifact",
+}
+
+
+def scenario_from_name(path: Path) -> str | None:
+    stem = path.stem
+    for scenario in sorted(EXPECTED_DETECTIONS, key=len, reverse=True):
+        if stem.endswith(f"_{scenario}"):
+            return scenario
+    return None
+
+
+def sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def finite_numbers(value: Any) -> bool:
+    if isinstance(value, dict):
+        return all(finite_numbers(item) for item in value.values())
+    if isinstance(value, list):
+        return all(finite_numbers(item) for item in value)
+    return not isinstance(value, float) or math.isfinite(value)
+
+
+def iso_timestamp(value: str) -> datetime | None:
+    return parse_timestamp(value)
+
+
+class DetectorTimeout(TimeoutError):
+    pass
+
+
+def _timeout_handler(_signum: int, _frame: Any) -> None:
+    raise DetectorTimeout("detector exceeded the per-file 15 second audit limit")
+
+
+def _get_path(value: dict[str, Any], keys: tuple[str, ...]) -> Any:
+    current: Any = value
+    for key in keys:
+        if not isinstance(current, dict):
+            return None
+        current = current.get(key)
+    return current
+
+
+def audit_one(path: Path, root: Path) -> dict[str, Any]:
+    started = time.perf_counter()
+    item: dict[str, Any] = {
+        "path": str(path.relative_to(root)),
+        "bytes": path.stat().st_size,
+        "sha256": sha256(path),
+        "scenario": scenario_from_name(path),
+        "parse_ok": False,
+        "canonical_schema_valid": False,
+        "canonical_required_fields_non_null": False,
+        "timestamps_monotonic": False,
+        "canonical_numeric_fields_finite": False,
+        "detection_expectation_met": False,
+    }
+    try:
+        payload, parser = parse_raw_log(path, sha256=item["sha256"], original_name=path.name)
+        series = series_from_l1_payload(payload)
+        item.update(
+            parser=parser,
+            classification=FORMAT_CLASS.get(parser, "unclassified"),
+            parse_ok=True,
+            l1_records=len(payload.get("records") or []),
+            canonical_records=len(series),
+            source=payload.get("source"),
+        )
+        schema_errors = []
+        for sample in series:
+            try:
+                jsonschema.validate(instance=sample, schema=CANONICAL_JSON_SCHEMA)
+            except jsonschema.ValidationError as exc:
+                schema_errors.append(exc.message)
+        item["canonical_schema_valid"] = not schema_errors
+        if schema_errors:
+            item["schema_errors"] = schema_errors[:3]
+
+        required_paths = (
+            ("flight_id",), ("timestamp_utc",), ("position", "lat"), ("position", "lon"),
+            ("position", "alt_m"), ("attitude", "roll_deg"), ("attitude", "pitch_deg"),
+            ("attitude", "yaw_deg"), ("battery", "percent"), ("battery", "voltage_v"),
+        )
+        item["canonical_required_fields_non_null"] = all(
+            all(_get_path(sample, keys) is not None for keys in required_paths) for sample in series
+        )
+        timestamps = [iso_timestamp(str(sample.get("timestamp_utc") or "")) for sample in series]
+        item["invalid_timestamp_count"] = sum(ts is None for ts in timestamps)
+        item["timestamps_monotonic"] = bool(series) and not item["invalid_timestamp_count"] and all(
+            left <= right for left, right in zip(timestamps, timestamps[1:]) if left and right
+        )
+        item["canonical_numeric_fields_finite"] = all(finite_numbers(sample) for sample in series)
+        previous_handler = signal.signal(signal.SIGALRM, _timeout_handler)
+        try:
+            signal.setitimer(signal.ITIMER_REAL, 15.0)
+            incidents = detect_incidents(series)
+            detected = sorted({incident.incident_type for incident in incidents})
+            labels = sorted(
+                {
+                    label
+                    for incident in incidents
+                    if (label := hazard_label(incident, series, incidents)) is not None
+                }
+            )
+            item["detector_completed"] = True
+            item["detected_incident_types"] = detected
+            item["derived_hazard_labels"] = labels
+        except DetectorTimeout as exc:
+            item["detector_completed"] = False
+            item["detector_error"] = str(exc)
+            item["detected_incident_types"] = []
+            item["derived_hazard_labels"] = []
+        finally:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            signal.signal(signal.SIGALRM, previous_handler)
+        expected = EXPECTED_DETECTIONS.get(item["scenario"])
+        item["expected_incident_types"] = sorted(expected) if expected else []
+        item["missing_expected_incident_types"] = sorted((expected or set()) - set(detected))
+        item["detection_expectation_met"] = not item["missing_expected_incident_types"]
+    except Exception as exc:  # Record all parser failures rather than stop corpus accounting.
+        item["error"] = f"{type(exc).__name__}: {exc}"
+    item["elapsed_ms"] = round((time.perf_counter() - started) * 1000, 1)
+    return item
+
+
+def _audit_child(path_string: str, root_string: str, queue: Any) -> None:
+    """Run one complete parser/L2/detector pass in a killable child process."""
+    try:
+        queue.put(audit_one(Path(path_string), Path(root_string)))
+    except BaseException as exc:  # pragma: no cover - child crash accounting
+        queue.put({"path": str(Path(path_string).relative_to(root_string)), "parse_ok": False, "error": f"child {type(exc).__name__}: {exc}"})
+
+
+def run_isolated_e2e(paths: list[Path], output_dir: Path) -> dict[str, Any]:
+    """Exercise multipart upload, worker parsing, L2 persistence, indexing and replay query.
+
+    This writes only an isolated temporary SQLite database and upload spool under
+    the evidence directory.  Queue and LLM calls are replaced locally so the test
+    remains deterministic and does not contact Redis/Ollama.
+    """
+    from fastapi.testclient import TestClient
+
+    temp_dir = Path(tempfile.mkdtemp(prefix="submission-e2e-", dir=output_dir))
+    try:
+        from app.config import settings
+        from app.db import db_session
+        from app.main import app
+        import app.ingest as ingest
+        import app.worker as worker
+
+        settings.database_path = str(temp_dir / "audit.db")
+        settings.raw_upload_dir = str(temp_dir / "uploads")
+        settings.ingest_api_keys = "corpus-audit-key"
+        # Newer app revisions expose this switch; keep the audit independent of
+        # optional model enrichment either way.
+        if hasattr(settings, "ingest_model_enrichment"):
+            settings.ingest_model_enrichment = False
+        queued: list[str] = []
+        ingest.enqueue_raw_upload = lambda _job: None
+        ingest.enqueue_translation_job = queued.append
+        worker.enqueue_translation_job = queued.append
+        worker.translate_with_repair = lambda _payload: (_ for _ in ()).throw(RuntimeError("audit: LLM disabled"))
+        outcomes: list[dict[str, Any]] = []
+        began = time.perf_counter()
+        with TestClient(app) as client:
+            for path in paths:
+                response = client.post(
+                    "/v1/logs/upload",
+                    files={"file": (path.name, path.read_bytes())},
+                    headers={"Authorization": "Bearer corpus-audit-key"},
+                )
+                outcome: dict[str, Any] = {"path": path.name, "upload_status_code": response.status_code}
+                if response.status_code == 202:
+                    upload_id = response.json()["upload_id"]
+                    worker.process_raw_upload(upload_id)
+                    if queued:
+                        worker.process_job(queued.pop(0))
+                    status = client.get(f"/v1/uploads/{upload_id}", headers={"Authorization": "Bearer corpus-audit-key"})
+                    outcome["upload"] = status.json()
+                    flight_id = status.json().get("flight_id")
+                    if flight_id:
+                        path_response = client.get(f"/v1/flights/{flight_id}/path", headers={"Authorization": "Bearer corpus-audit-key"})
+                        incident_response = client.get(f"/v1/flights/{flight_id}/incidents", headers={"Authorization": "Bearer corpus-audit-key"})
+                        outcome["replay_path_status_code"] = path_response.status_code
+                        outcome["replay_sample_count"] = path_response.json().get("count") if path_response.status_code == 200 else None
+                        outcome["incident_query_status_code"] = incident_response.status_code
+                        outcome["incident_types"] = sorted({row["incident_type"] for row in incident_response.json().get("items", [])}) if incident_response.status_code == 200 else []
+                        with db_session() as conn:
+                            outcome["canonical_record_count"] = conn.execute("SELECT count(*) FROM canonical_records WHERE flight_id = ?", (flight_id,)).fetchone()[0]
+                outcomes.append(outcome)
+        return {
+            "performed": True,
+            "isolated_db": True,
+            "representatives": outcomes,
+            "elapsed_ms": round((time.perf_counter() - began) * 1000, 1),
+        }
+    except Exception as exc:
+        return {"performed": False, "error": f"{type(exc).__name__}: {exc}"}
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--input", type=Path, required=True)
+    parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--e2e", action="store_true")
+    args = parser.parse_args()
+    root = args.input.resolve()
+    out = args.out.resolve()
+    out.mkdir(parents=True, exist_ok=True)
+    files = sorted(path for path in root.rglob("*") if path.is_file() and path.name != "manifest.json")
+    began = time.perf_counter()
+    results: list[dict[str, Any]] = []
+    # The application parser/detector path handles large binary streams.  Put a
+    # hard process boundary around each member so one pathological member cannot
+    # make the audit itself unbounded.  A timeout is retained as an outcome.
+    for path in files:
+        queue: Any = mp.Queue()
+        child = mp.Process(target=_audit_child, args=(str(path), str(root), queue))
+        child.start()
+        child.join(8.0)
+        if child.is_alive():
+            child.terminate()
+            child.join()
+            item = {
+                "path": str(path.relative_to(root)), "bytes": path.stat().st_size,
+                "sha256": sha256(path), "scenario": scenario_from_name(path),
+                "parse_ok": False, "canonical_schema_valid": False,
+                "canonical_required_fields_non_null": False, "timestamps_monotonic": False,
+                "canonical_numeric_fields_finite": False, "detection_expectation_met": False,
+                "audit_timeout": True, "error": "parser/L2/detector path exceeded 8 second per-file limit",
+            }
+        else:
+            try:
+                item = queue.get(timeout=1.0)
+            except Exception:
+                item = {
+                    "path": str(path.relative_to(root)), "bytes": path.stat().st_size,
+                    "sha256": sha256(path), "scenario": scenario_from_name(path),
+                    "parse_ok": False, "canonical_schema_valid": False,
+                    "canonical_required_fields_non_null": False, "timestamps_monotonic": False,
+                    "canonical_numeric_fields_finite": False, "detection_expectation_met": False,
+                    "error": f"audit child exited {child.exitcode} without a result",
+                }
+        results.append(item)
+        (out / "corpus-validation-progress.json").write_text(
+            json.dumps({"completed": len(results), "total": len(files), "files_detail": results}, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    by_parser = Counter(item.get("parser", "unparsed") for item in results)
+    by_scenario: dict[str, dict[str, Any]] = {}
+    for scenario in sorted(EXPECTED_DETECTIONS):
+        members = [item for item in results if item.get("scenario") == scenario]
+        by_scenario[scenario] = {
+            "format_exports": len(members),
+            "parse_successes": sum(item["parse_ok"] for item in members),
+            "expectation_met": sum(item["detection_expectation_met"] for item in members),
+            "expected_incident_types": sorted(EXPECTED_DETECTIONS[scenario]),
+        }
+    # One generator run per scenario card, represented by multiple skins.  The
+    # inference follows filename+scenario structure and is not a provenance claim.
+    unique_scenarios = sorted({item["scenario"] for item in results if item.get("scenario")})
+    report: dict[str, Any] = {
+        "audit_name": "WISL submission corpus independent validation",
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "input": str(root),
+        "criteria": {
+            "parse_success": "parse_raw_log returns an L1 payload",
+            "canonical_schema": "each parser record projects to L2 and validates against CANONICAL_JSON_SCHEMA",
+            "integrity": "required canonical scalar fields are non-null; timestamps parse and are non-decreasing; all canonical numeric fields are finite",
+            "scenario_expectations": "scenario-card injected conditions are compared with detector types; results do not prove real-world causes",
+            "independence": "format skins of the same scenario are counted as one simulated mission, not recurrence evidence",
+        },
+        "environment": {"python": sys.version, "platform": platform.platform(), "cwd": os.getcwd()},
+        "totals": {
+            "files": len(results),
+            "parse_successes": sum(item["parse_ok"] for item in results),
+            "schema_valid_files": sum(item["canonical_schema_valid"] for item in results),
+            "non_null_canonical_files": sum(item["canonical_required_fields_non_null"] for item in results),
+            "monotonic_timestamp_files": sum(item["timestamps_monotonic"] for item in results),
+            "finite_numeric_files": sum(item["canonical_numeric_fields_finite"] for item in results),
+            "detection_expectations_met": sum(item["detection_expectation_met"] for item in results),
+            "detector_completed_files": sum(item.get("detector_completed", False) for item in results),
+            "detector_timeout_files": sum("detector_error" in item for item in results),
+            "whole_path_timeout_files": sum(item.get("audit_timeout", False) for item in results),
+            "unique_simulated_scenarios": len(unique_scenarios),
+            "normal_control_present": any("normal_control" in item["path"] for item in results),
+        },
+        "format_parser_counts": dict(sorted(by_parser.items())),
+        "scenario_summary": by_scenario,
+        "independence": {
+            "inferred_unique_missions": unique_scenarios,
+            "format_exports_per_scenario": {scenario: by_scenario[scenario]["format_exports"] for scenario in unique_scenarios},
+            "qualified_same_signature_recurrence_pair": None,
+            "comparison_pair_not_recurrence_evidence": ["gps_jamming", "gps_denied_frozen"],
+            "reason": "Only gps_jamming injects a GPS-weak warning. gps_denied_frozen is a distinct card but has a last_known_position signature, so this corpus cannot demonstrate recurrence of one GPS-weak detector signature.",
+        },
+        "limitations": [
+            "All corpus members are simulator-generated; kinematic skins are format exports and three binary families are SITL artifacts, not field-flight evidence.",
+            "No normal/control mission was found in this hazards-only directory.",
+            "The `gps_jamming` label denotes an injected GPS-weak warning; the audit does not infer RF jamming from GPS telemetry or warning text.",
+            "The detector's `jamming` display label can also arise from a frozen-position heuristic; it remains a triage label, not a causal finding.",
+            "An 8-second subprocess bound is applied to the complete parser/L2/detector path, and a 15-second nested detector bound is retained. Timeouts are reported as processing-performance failures, not silent negative detections.",
+            "Root manifest.json names one PX4 file only and does not inventory or checksum this 90-file corpus.",
+        ],
+        "elapsed_ms": round((time.perf_counter() - began) * 1000, 1),
+        "files_detail": results,
+    }
+    if args.e2e:
+        representatives = [
+            next((path for path in files if path.name.startswith("dji_csv_gps_jamming")), None),
+            next(
+                (
+                    path
+                    for path in files
+                    if path.name.startswith("dji_csv_gps_denied_frozen")
+                    or path.name.startswith("orbiter4_gps_denied_frozen")
+                ),
+                None,
+            ),
+        ]
+        report["isolated_upload_processing_e2e"] = run_isolated_e2e([path for path in representatives if path], out)
+    (out / "corpus-validation.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(json.dumps(report["totals"], sort_keys=True))
+    return 0 if report["totals"]["parse_successes"] == len(files) else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     ingest_api_keys: str = "dev-teammate-key-change-me"
     ollama_base_url: str = "http://host.docker.internal:11434"
     ollama_model: str = "deepseek-r1:7b"
+    local_demo_worker: bool = False
+    ingest_model_enrichment: bool = True
+    demo_analysis_timeout_seconds: float = 120.0
     job_queue_key: str = "sdth:translation_jobs"
     raw_upload_queue_key: str = "sdth:raw_uploads"
     raw_upload_dir: str = "./data/raw-uploads"

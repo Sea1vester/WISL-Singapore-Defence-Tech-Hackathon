@@ -18,6 +18,9 @@ sdth-telemetry/demo-output/
 data/
 *.html
 !sdth-replay/public/**/*.html
+!sdth-demo/**/*.html
+tmp/
+output/evidence/corpus-validation/targeted-input/
 ~$*
 *.local.pptx
 *.pt

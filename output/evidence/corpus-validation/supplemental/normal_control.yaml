@@ -1,0 +1,46 @@
+name: supplemental_normal_control
+aircraft_name: Mini 4 Pro
+seed: 201
+dt_s: 1.0
+start_battery_pct: 82
+end_battery_pct: 73
+min_battery_pct: 70
+cruise_alt_m: 28
+wind_ms: 1.8
+home:
+  lat: 52.41820
+  lon: -2.58460
+phases:
+  - name: ground
+    duration_s: 12
+  - name: takeoff
+    duration_s: 18
+    alt_m: 28
+    speed_ms: 1.0
+  - name: cruise
+    duration_s: 55
+    north_m: 120
+    east_m: 35
+    alt_m: 28
+    speed_ms: 3.6
+  - name: hover
+    duration_s: 15
+    north_m: 120
+    east_m: 35
+    alt_m: 28
+  - name: cruise
+    duration_s: 45
+    north_m: 20
+    east_m: 95
+    alt_m: 24
+    speed_ms: 3.1
+  - name: rth
+    duration_s: 38
+    north_m: 0
+    east_m: 0
+    alt_m: 24
+    speed_ms: 3.2
+  - name: land
+    duration_s: 20
+    alt_m: 0
+    speed_ms: 0.8

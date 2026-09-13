@@ -1,0 +1,319 @@
+{
+  "endpoint": "POST /v1/demo/analysis",
+  "elapsed_seconds": 68.329,
+  "measurement": "one live wall-clock HTTP trial after parser correction; no general latency claim",
+  "evidence_references_valid": true,
+  "response": {
+    "status": "generated",
+    "model": "deepseek-r1:7b",
+    "local": true,
+    "summary": "The flight data shows three incidents across four flights. Two flights had operator warnings related to GPS signal weakness and unstable hovering, while one flight experienced a telemetry gap lasting 17 seconds. All incidents occurred during the early morning hours, suggesting possible environmental factors or system issues.",
+    "hypotheses": [
+      {
+        "analysis": "Possible environmental factors such as reduced air density or interference could have contributed to the GPS signal weakness observed in two flights. Additionally, the operator warnings about unstable hovering might be linked to low airspeed or turbulence. The telemetry gap in one flight could be due to a loss of signal or interference, possibly exacerbated by environmental conditions.",
+        "evidence_ids": [
+          "fb5e9cb6-4700-4677-83d5-ca8d1fdc62b8",
+          "75bf63f3-1806-437f-a4a3-1a274236a275"
+        ],
+        "follow_up": "Review the environmental conditions during the early morning and assess if interference or reduced air density could explain the GPS signal issues. Additionally, check for turbulence data to correlate with operator warnings."
+      },
+      {
+        "analysis": "The operator warnings about GPS signal weakness and unstable hovering might be linked to the same underlying cause, such as low airspeed or turbulence. The telemetry gap could be a separate issue, possibly due to a loss of signal or interference.",
+        "evidence_ids": [
+          "fb5e9cb6-4700-4677-83d5-ca8d1fdc62b8",
+          "75bf63f3-1806-437f-a4a3-1a274236a275"
+        ],
+        "follow_up": "Review the flight data for airspeed and turbulence metrics to determine if they correlate with the operator warnings. Additionally, investigate the cause of the telemetry gap to see if it's related to the same factors as the GPS issues."
+      },
+      {
+        "analysis": "The operator warnings and the telemetry gap might be connected to similar issues, such as a malfunction in the flight control system or interference. Further investigation is needed to determine if these incidents are part of a broader system failure.",
+        "evidence_ids": [
+          "fb5e9cb6-4700-4677-83d5-ca8d1fdc62b8",
+          "75bf63f3-1806-437f-a4a3-1a274236a275"
+        ],
+        "follow_up": "Review the flight data for signs of system malfunctions or interference. If possible, compare the incident data with known system logs to identify potential causes."
+      }
+    ],
+    "evidence": [
+      {
+        "id": "fb5e9cb6-4700-4677-83d5-ca8d1fdc62b8",
+        "flight_id": "flight-4fb673922655692b61ac",
+        "timestamp_utc": "2026-03-18T11:23:12.000000Z",
+        "incident_type": "operator_warning",
+        "signature": "operator_warning",
+        "summary": "Normalized warning: GPS signal weak. Hovering unstable. Fly with caution (Code: 30008).",
+        "evidence": {
+          "sample": {
+            "timestamp_utc": "2026-03-18T11:23:12.000000Z",
+            "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+          },
+          "samples": [
+            {
+              "timestamp_utc": "2026-03-18T11:23:13.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:14.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:15.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:16.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:17.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:18.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:19.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:20.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:21.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:22.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:23.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:24.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:25.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:26.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:27.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:28.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:29.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:30.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:31.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:32.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:33.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:34.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T11:23:35.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            }
+          ],
+          "position": {
+            "lat": 53.04750417,
+            "lon": -3.00315896,
+            "alt_m": 42.0014,
+            "timestamp_utc": "2026-03-18T11:23:12.000000Z"
+          },
+          "hazard": "jamming"
+        },
+        "records_url": "/v1/flights/flight-4fb673922655692b61ac/records"
+      },
+      {
+        "id": "939ef8a4-a17f-4616-a62c-9332fcb4cf3d",
+        "flight_id": "flight-b7ee5f98110be03e6576",
+        "timestamp_utc": "2026-03-18T09:49:29.000000Z",
+        "incident_type": "telemetry_gap",
+        "signature": "telemetry_gap",
+        "summary": "Telemetry dropped for 17.0s.",
+        "evidence": {
+          "dt_s": 17.0,
+          "position": {
+            "lat": 51.18320939,
+            "lon": -1.82126532,
+            "alt_m": 38.0086,
+            "timestamp_utc": "2026-03-18T09:49:29.000000Z"
+          }
+        },
+        "records_url": "/v1/flights/flight-b7ee5f98110be03e6576/records"
+      },
+      {
+        "id": "75bf63f3-1806-437f-a4a3-1a274236a275",
+        "flight_id": "flight-1a1b914dc70e6d0c1b45",
+        "timestamp_utc": "2026-03-18T09:42:30.000000Z",
+        "incident_type": "operator_warning",
+        "signature": "operator_warning",
+        "summary": "Normalized warning: GPS signal weak. Hovering unstable. Fly with caution (Code: 30008).",
+        "evidence": {
+          "sample": {
+            "timestamp_utc": "2026-03-18T09:42:30.000000Z",
+            "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+          },
+          "samples": [
+            {
+              "timestamp_utc": "2026-03-18T09:42:31.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:32.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:33.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:34.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:35.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:36.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:37.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:38.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:39.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:40.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:41.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:42.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:43.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:44.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:45.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:46.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:47.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:48.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:49.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:50.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:51.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:52.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:53.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:54.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:55.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:56.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            },
+            {
+              "timestamp_utc": "2026-03-18T09:42:57.000000Z",
+              "warning": "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+            }
+          ],
+          "position": {
+            "lat": 51.17970939,
+            "lon": -1.82470804,
+            "alt_m": 38.0086,
+            "timestamp_utc": "2026-03-18T09:42:30.000000Z"
+          },
+          "hazard": "jamming"
+        },
+        "records_url": "/v1/flights/flight-1a1b914dc70e6d0c1b45/records"
+      }
+    ],
+    "coverage": {
+      "total_flights": 4,
+      "included_flights": 4,
+      "total_incidents": 3,
+      "included_incidents": 3,
+      "raw_samples_in_prompt": false
+    },
+    "limitations": [
+      "Model output is a hypothesis for human review, not a verified cause or a flight instruction.",
+      "Input contains bounded summaries and incident evidence, not every raw telemetry sample.",
+      "Multiple exports may describe the same simulated mission; counts are stored flight records.",
+      "The analysis is based on the provided evidence and may not account for all contributing factors. More comprehensive data analysis and contextual information could provide deeper insights."
+    ]
+  }
+}

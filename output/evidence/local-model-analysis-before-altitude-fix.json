@@ -1,0 +1,49 @@
+{
+  "endpoint": "POST /v1/demo/analysis",
+  "model": "deepseek-r1:7b",
+  "local": true,
+  "status": "generated",
+  "question": "Summarize recurring observations and possible explanations to investigate.",
+  "elapsed_seconds_observed_range": [45, 70],
+  "elapsed_measurement_note": "The live local request completed after the initial 30-second command window; process observation established this bounded range. No elapsed value was returned by the API.",
+  "coverage": {
+    "total_flights": 2,
+    "included_flights": 2,
+    "total_incidents": 6,
+    "included_incidents": 6,
+    "raw_samples_in_prompt": false
+  },
+  "generated_output": {
+    "summary": "The data shows two flights with three incidents each, totaling six incidents. The incidents include altitude spikes, operator warnings, and a telemetry gap. The altitude spikes occurred at different points in the flight, with varying altitudes and rates of ascent. The operator warning was triggered due to unstable hovering and a weak GPS signal. The telemetry gap lasted for 17 seconds. These incidents occurred during the same flight duration, suggesting they might be related to similar operational issues. However, without more context or data, it's difficult to determine the exact causes or patterns linking these incidents.",
+    "hypotheses": [
+      {
+        "analysis": "The operator warning and altitude spikes may be related to the same issue, such as a malfunctioning flight control system or environmental factors like strong winds. The telemetry gap could be due to a loss of signal or a hardware failure. More data on the environmental conditions and system statuses during these incidents would help in identifying the root causes.",
+        "evidence_ids": [
+          "16883151-0e55-4eb1-aaad-36656bdb34e3",
+          "c3a459bd-8a40-4b25-a8a7-9d0e564952a1",
+          "a9484379-50d8-45ee-a02c-7bfe002c1a03",
+          "ceaa6a32-11e7-4d4e-8a62-ac233b9b14ea"
+        ],
+        "follow_up": "Review the flight data for environmental conditions and system status during the incidents with evidence_ids 16883151, c3a459bd, a9484379, and ceaa6a32."
+      }
+    ],
+    "limitations": [
+      "Model output is a hypothesis for human review, not a verified cause or a flight instruction.",
+      "Input contains bounded summaries and incident evidence, not every raw telemetry sample.",
+      "Multiple exports may describe the same simulated mission; counts are stored flight records.",
+      "The analysis is based on the provided evidence and may not account for all factors. More comprehensive data or external information could provide a more accurate understanding."
+    ]
+  },
+  "evidence_id_validation": {
+    "passed": true,
+    "supplied_ids": [
+      "16883151-0e55-4eb1-aaad-36656bdb34e3",
+      "c3a459bd-8a40-4b25-a8a7-9d0e564952a1",
+      "1311cfcf-d9a7-4a29-94b0-5292f5e1f9c7",
+      "a9484379-50d8-45ee-a02c-7bfe002c1a03",
+      "fa2448da-db42-4d73-8011-80265c6cda6e",
+      "ceaa6a32-11e7-4d4e-8a62-ac233b9b14ea"
+    ],
+    "note": "The model-cited IDs were independently compared with the six evidence records returned in the same live API response."
+  }
+}

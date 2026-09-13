@@ -5,6 +5,14 @@ Targets both ends of the fleet: cheap, commercial-off-the-shelf drones (DJI, PX4
 
 Target parser coverage: DJI, PX4/Auterion, ArduPilot, Elbit Hermes 900, Aeronautics Orbiter 4, and aunav.NEO HD (Taurus UGV) — six brands across both fleet segments, on equal footing in the brand catalog.
 
+## Current submission demo — 13 September 2026
+
+Run `./sdth-telemetry/scripts/demo-console.sh`, then open <http://127.0.0.1:8010/demo/>. The new console provides raw upload, real processing status, incident evidence, recorded replay, deterministic operator queries, recurring patterns, reviewable bulletins and optional local-model analysis. See the [setup and demonstration runbook](docs/submission/demo-runbook.md).
+
+The intended synthetic/SITL hazard corpus contains 90 exports across ten scenarios. The [bounded audit](docs/submission/corpus-validation.md) completed structural checks on 70/90 files; 20 exceeded its eight-second bound, and only 36/90 met scenario-detection expectations. A focused corrected DJI CSV evaluation passed ten original scenarios plus two supplemental missions (12/12). This is format-level software evidence, not hardware compatibility or operational validation. The audit exposed and fixed false altitude spikes from treating zero relative height as absent.
+
+The [technical report](output/pdf/WISL_FinalReport_v1.pdf), [cited use-case research](docs/submission/research-brief.md), [two-minute video handoff](docs/submission/video-handoff.md), [three-minute pitch script](pitch-script.md) and [reserve Q&A](docs/submission/pitch-qa-kiv.md) accompany this build. Video recording and external submission remain outstanding. The older counts below describe prior work and are not the denominator of this submission audit.
+
 ## Layout
 
 - [`sdth-telemetry/`](sdth-telemetry/README.md) — ingest API, deterministic canonical series, optional local Ollama enrichment, incident index, two-laptop demo scripts.

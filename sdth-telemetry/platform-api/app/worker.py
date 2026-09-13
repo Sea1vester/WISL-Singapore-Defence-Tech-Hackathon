@@ -205,11 +205,12 @@ def process_job(job_id: str) -> None:
     enrichment_error = None
     latency_ms = 0
     model = settings.ollama_model
-    try:
-        enrichment, latency_ms, model = translate_with_repair(l1_payload)
-    except Exception as exc:
-        enrichment_error = f"Model enrichment unavailable: {exc}"
-        logger.warning("%s", enrichment_error)
+    if settings.ingest_model_enrichment:
+        try:
+            enrichment, latency_ms, model = translate_with_repair(l1_payload)
+        except Exception as exc:
+            enrichment_error = f"Model enrichment unavailable: {exc}"
+            logger.warning("%s", enrichment_error)
 
     enrichment_id = new_id()
     with db_session() as conn:

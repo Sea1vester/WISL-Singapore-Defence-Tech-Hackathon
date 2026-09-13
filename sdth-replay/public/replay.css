@@ -604,6 +604,32 @@ body {
   gap: 3px;
 }
 
+/* ---- Embedded mission view ---- */
+/* The outer review console owns mission context and evidence. Keep this
+   iframe focused on the recorded path, incident markers, and transport. */
+html.replay-embed #panel,
+html.replay-embed #banner,
+html.replay-embed #cameraPip,
+body.replay-embed #panel,
+body.replay-embed #banner,
+body.replay-embed #cameraPip {
+  display: none !important;
+}
+
+html.replay-embed #transport,
+body.replay-embed #transport {
+  left: 0;
+  right: 0;
+  padding: 10px 14px;
+}
+
+@media (max-width: 640px) {
+  html.replay-embed #transport #speeds button:nth-child(n + 5),
+  body.replay-embed #transport #speeds button:nth-child(n + 5) {
+    display: none;
+  }
+}
+
 /* ---- Camera frame PiP (nearest onTick) ---- */
 .camera-pip {
   position: absolute;

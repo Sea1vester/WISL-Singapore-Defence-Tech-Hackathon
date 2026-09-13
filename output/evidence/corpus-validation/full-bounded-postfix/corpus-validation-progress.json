@@ -1,0 +1,2325 @@
+{
+  "completed": 90,
+  "total": 90,
+  "files_detail": [
+    {
+      "path": "Aeronautics/orbiter4/orbiter4_battery_critical.json",
+      "bytes": 39052,
+      "sha256": "63406fd7bfbec5c610637627cafe81287b3e16a2460b827dcff4fc7a8faadd57",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 185,
+      "canonical_records": 185,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 757.5
+    },
+    {
+      "path": "Aeronautics/orbiter4/orbiter4_battery_low_rth.json",
+      "bytes": 47020,
+      "sha256": "be050cf2e2a851efc33ad42b42ff5182012154a62d234f4ee516176175e650d3",
+      "scenario": "battery_low_rth",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_low"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 882.6
+    },
+    {
+      "path": "Aeronautics/orbiter4/orbiter4_c2_link_lost.json",
+      "bytes": 47078,
+      "sha256": "d72f16c76beaf077f0f599d4206bea3aa0ef07d9fb61ea5aebff50a53da501c2",
+      "scenario": "c2_link_lost",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 821.7
+    },
+    {
+      "path": "Aeronautics/orbiter4/orbiter4_compass_error.json",
+      "bytes": 46998,
+      "sha256": "a59f18069960f4c7f43108eac3ec41ff06c74faaecb558effa36ad401a5c0e59",
+      "scenario": "compass_error",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 929.9
+    },
+    {
+      "path": "Aeronautics/orbiter4/orbiter4_gps_denied_frozen.json",
+      "bytes": 47319,
+      "sha256": "118f9694b9a15a4a29ae320b18a8515f8d6bf921f5c7386dbc4d569d5a577456",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 929.4
+    },
+    {
+      "path": "Aeronautics/orbiter4/orbiter4_gps_jamming.json",
+      "bytes": 47043,
+      "sha256": "e346c2b85d6a459a363b6e27f74637a3efef5b1664344c6194d2f3cc0290893f",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 1089.2
+    },
+    {
+      "path": "Aeronautics/orbiter4/orbiter4_kinetic_tumble_cut.json",
+      "bytes": 21719,
+      "sha256": "4a707b0ce65296c638125772ffdbd1f954dcf633bbcffd8038137964f40ea71a",
+      "scenario": "kinetic_tumble_cut",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 104,
+      "canonical_records": 104,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "elapsed_ms": 581.0
+    },
+    {
+      "path": "Aeronautics/orbiter4/orbiter4_logger_dropout.json",
+      "bytes": 47062,
+      "sha256": "9c524cfbc8198c9cb295053b27e8c6e4f3ff5abe76d2218cf577d0673746565d",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 1392.9
+    },
+    {
+      "path": "Aeronautics/orbiter4/orbiter4_lost_airborne.json",
+      "bytes": 22956,
+      "sha256": "e135ba5f25dc8c2aa7e59bb2208d378817474a06f6465897becef0a53a79fad0",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 110,
+      "canonical_records": 110,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "elapsed_ms": 504.5
+    },
+    {
+      "path": "Aeronautics/orbiter4/orbiter4_motor_fail_recover.json",
+      "bytes": 46966,
+      "sha256": "f879f622e2f62dc77f97c95d8214c2f298d360ab169d38f40266915af4fdffcf",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "orbiter4",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "orbiter4-json",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 1029.3
+    },
+    {
+      "path": "ArduPilot/ardupilot_bin/ardupilot_bin_battery_critical.bin",
+      "bytes": 26607616,
+      "sha256": "f3bbc7879aa779467ceead19ab8ad47912f08fe7ac9974a7ce5055afa3709bd1",
+      "scenario": "battery_critical",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "ArduPilot/ardupilot_bin/ardupilot_bin_battery_low_rth.bin",
+      "bytes": 26578944,
+      "sha256": "63a80fdd4f5cef9bbe7ebf0705acc3cdba412abc15e189cd14800d1873500a98",
+      "scenario": "battery_low_rth",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "ArduPilot/ardupilot_bin/ardupilot_bin_c2_link_lost.bin",
+      "bytes": 26578944,
+      "sha256": "3ec1e5b055aa774dae249ecf5ccf81e88c9dc786a744fc7015027b31e3aeb19d",
+      "scenario": "c2_link_lost",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "ArduPilot/ardupilot_bin/ardupilot_bin_compass_error.bin",
+      "bytes": 26570752,
+      "sha256": "b359db45dfe86ca3cccc1e1b1794aaf9adedb86f51f125c4f5320c62e7bc6df9",
+      "scenario": "compass_error",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "ArduPilot/ardupilot_bin/ardupilot_bin_gps_denied_frozen.bin",
+      "bytes": 26636288,
+      "sha256": "91815b5f30bb69656481960f7488f12f4d56f273304ccfbcd6b24444b9d20b05",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "ArduPilot/ardupilot_bin/ardupilot_bin_gps_jamming.bin",
+      "bytes": 26628096,
+      "sha256": "3545ed466c2d80b9440976cbdc32dc564ca3c93d0a1c41346741425105903405",
+      "scenario": "gps_jamming",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "ArduPilot/ardupilot_bin/ardupilot_bin_kinetic_tumble_cut.bin",
+      "bytes": 26574848,
+      "sha256": "a941f439e90cc6adc8fe36e6da06373a5ca314a3f7452633571881f3653a46a2",
+      "scenario": "kinetic_tumble_cut",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "ArduPilot/ardupilot_bin/ardupilot_bin_logger_dropout.bin",
+      "bytes": 26591232,
+      "sha256": "89db95331c8ca96561089d27ef5afa491a9c76cd6b414d5ee0719192276e7d34",
+      "scenario": "logger_dropout",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "ArduPilot/ardupilot_bin/ardupilot_bin_lost_airborne.bin",
+      "bytes": 26578944,
+      "sha256": "6f314e7d3813fd23bd5c0c7279b2ec80eed0a2a94b37a4867d3a4d5b0094739e",
+      "scenario": "lost_airborne",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "ArduPilot/ardupilot_bin/ardupilot_bin_motor_fail_recover.bin",
+      "bytes": 26599424,
+      "sha256": "30a16cf966962aaf2a087a79e33e10f722552674a06eb0a5f908b16864109713",
+      "scenario": "motor_fail_recover",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "ArduPilot/ardupilot_tlog/ardupilot_tlog_battery_critical.tlog",
+      "bytes": 936093,
+      "sha256": "855ff7d521a7367ecb16331892fc8ba0f5eb90b54f35f12debf6a0bfe1f3e99b",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "ardupilot_tlog",
+      "classification": "SITL log artifact",
+      "l1_records": 765,
+      "canonical_records": 765,
+      "source": "ardupilot-tlog",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "missing_expected_incident_types": [
+        "battery_critical"
+      ],
+      "elapsed_ms": 3545.6
+    },
+    {
+      "path": "ArduPilot/ardupilot_tlog/ardupilot_tlog_battery_low_rth.tlog",
+      "bytes": 935840,
+      "sha256": "0d41d95d8d163ed95ff0c8aec02cf89f75752d8f60fe1a480d036cc373ab7951",
+      "scenario": "battery_low_rth",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "ardupilot_tlog",
+      "classification": "SITL log artifact",
+      "l1_records": 765,
+      "canonical_records": 765,
+      "source": "ardupilot-tlog",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_low"
+      ],
+      "missing_expected_incident_types": [
+        "battery_low"
+      ],
+      "elapsed_ms": 3632.9
+    },
+    {
+      "path": "ArduPilot/ardupilot_tlog/ardupilot_tlog_c2_link_lost.tlog",
+      "bytes": 936132,
+      "sha256": "a464fbd08bf12b2475a7e59b670595c54df593fe9ec5a542b93a0927982bdfd4",
+      "scenario": "c2_link_lost",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "ardupilot_tlog",
+      "classification": "SITL log artifact",
+      "l1_records": 765,
+      "canonical_records": 765,
+      "source": "ardupilot-tlog",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 3704.9
+    },
+    {
+      "path": "ArduPilot/ardupilot_tlog/ardupilot_tlog_compass_error.tlog",
+      "bytes": 936055,
+      "sha256": "d3e690c64c06059be0d853a4314ac07bc7b169d2537903bf427b4e2b75843d3a",
+      "scenario": "compass_error",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "ardupilot_tlog",
+      "classification": "SITL log artifact",
+      "l1_records": 765,
+      "canonical_records": 765,
+      "source": "ardupilot-tlog",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 3825.3
+    },
+    {
+      "path": "ArduPilot/ardupilot_tlog/ardupilot_tlog_gps_denied_frozen.tlog",
+      "bytes": 935676,
+      "sha256": "1e93f4f5f11b86c6da7f25f25e48a27772f82c071d63edd74d28ca89db5ed9f6",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "ardupilot_tlog",
+      "classification": "SITL log artifact",
+      "l1_records": 765,
+      "canonical_records": 765,
+      "source": "ardupilot-tlog",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "missing_expected_incident_types": [
+        "last_known_position"
+      ],
+      "elapsed_ms": 6819.9
+    },
+    {
+      "path": "ArduPilot/ardupilot_tlog/ardupilot_tlog_gps_jamming.tlog",
+      "bytes": 935739,
+      "sha256": "fe7476111249fed5aab3b66fc190c4dd6e1e5716856a8e295ba50efe3c99ac5f",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "ardupilot_tlog",
+      "classification": "SITL log artifact",
+      "l1_records": 765,
+      "canonical_records": 765,
+      "source": "ardupilot-tlog",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 3918.8
+    },
+    {
+      "path": "ArduPilot/ardupilot_tlog/ardupilot_tlog_kinetic_tumble_cut.tlog",
+      "bytes": 935647,
+      "sha256": "9bbe46d8b36942fe54b90a9d1a0e3f4ca45cea9e243dfba0aa55364fa34e62ee",
+      "scenario": "kinetic_tumble_cut",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "ardupilot_tlog",
+      "classification": "SITL log artifact",
+      "l1_records": 765,
+      "canonical_records": 765,
+      "source": "ardupilot-tlog",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "elapsed_ms": 4652.2
+    },
+    {
+      "path": "ArduPilot/ardupilot_tlog/ardupilot_tlog_logger_dropout.tlog",
+      "bytes": 936156,
+      "sha256": "5a64a549ce0759a5717e9264b7eb675005dd3ff3d0b4e8091b0c300558d9252d",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "ardupilot_tlog",
+      "classification": "SITL log artifact",
+      "l1_records": 765,
+      "canonical_records": 765,
+      "source": "ardupilot-tlog",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "missing_expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "elapsed_ms": 3499.1
+    },
+    {
+      "path": "ArduPilot/ardupilot_tlog/ardupilot_tlog_lost_airborne.tlog",
+      "bytes": 936145,
+      "sha256": "27cdbcced6201f517f15169fc345efde92429f56f9fa20f2f36c8612e8651025",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "ardupilot_tlog",
+      "classification": "SITL log artifact",
+      "l1_records": 765,
+      "canonical_records": 765,
+      "source": "ardupilot-tlog",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "elapsed_ms": 3255.3
+    },
+    {
+      "path": "ArduPilot/ardupilot_tlog/ardupilot_tlog_motor_fail_recover.tlog",
+      "bytes": 935635,
+      "sha256": "cee5ed2547845fabe51f29779d59da12b86680ef7a7f92ebe84d8ebc38853bd5",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "ardupilot_tlog",
+      "classification": "SITL log artifact",
+      "l1_records": 765,
+      "canonical_records": 765,
+      "source": "ardupilot-tlog",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "elapsed_ms": 3385.5
+    },
+    {
+      "path": "DJI/dji_csv/dji_csv_battery_critical.csv",
+      "bytes": 101231,
+      "sha256": "932adf39f65d84aa6573d23e67dab1edfb2ca0ba72bdfac9d5001cffaee4fd52",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 185,
+      "canonical_records": 185,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 837.7
+    },
+    {
+      "path": "DJI/dji_csv/dji_csv_battery_low_rth.csv",
+      "bytes": 122637,
+      "sha256": "f91aa91762e6adde7dfe29e0f97f7d07568b03fa0410f5af2ebadf04d12d1afd",
+      "scenario": "battery_low_rth",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_low"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 768.1
+    },
+    {
+      "path": "DJI/dji_csv/dji_csv_c2_link_lost.csv",
+      "bytes": 123637,
+      "sha256": "9e937f7044cc51963c1dceb8874f19e7f3107bd2fcb975a28385cfa33683c52a",
+      "scenario": "c2_link_lost",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 767.1
+    },
+    {
+      "path": "DJI/dji_csv/dji_csv_compass_error.csv",
+      "bytes": 123327,
+      "sha256": "2e980fa579ba08a7da3bf32b825536f0198a4845f2631009525acd8787913c4d",
+      "scenario": "compass_error",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 815.5
+    },
+    {
+      "path": "DJI/dji_csv/dji_csv_gps_denied_frozen.csv",
+      "bytes": 122761,
+      "sha256": "98388663e8aa6b8f15d07296f40d18d4f3e6c440ef98317bcca6073a60d54a63",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 740.7
+    },
+    {
+      "path": "DJI/dji_csv/dji_csv_gps_jamming.csv",
+      "bytes": 124513,
+      "sha256": "1a1b914dc70e6d0c1b45db003046b45037ab822903dd2fda0bb1ab9c0cdc34b7",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 726.4
+    },
+    {
+      "path": "DJI/dji_csv/dji_csv_kinetic_tumble_cut.csv",
+      "bytes": 58475,
+      "sha256": "4b3c0203c6fb3b5c1eae6f3f9d5d4bf151a7da83920bd0ff9a3c4b90c71c7247",
+      "scenario": "kinetic_tumble_cut",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 104,
+      "canonical_records": 104,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 341.2
+    },
+    {
+      "path": "DJI/dji_csv/dji_csv_logger_dropout.csv",
+      "bytes": 122646,
+      "sha256": "b7ee5f98110be03e657645fbcce320479a8955d0d517dd44c99ae1b05f1beeac",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 735.4
+    },
+    {
+      "path": "DJI/dji_csv/dji_csv_lost_airborne.csv",
+      "bytes": 61631,
+      "sha256": "783284f31970a1429f9f540b2ba196eaf820ea2fa98fbceafafbec5d5176102e",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 110,
+      "canonical_records": 110,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "mission_incomplete"
+      ],
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 359.4
+    },
+    {
+      "path": "DJI/dji_csv/dji_csv_motor_fail_recover.csv",
+      "bytes": 123035,
+      "sha256": "15565e1ead635bd391a7c66fe8b18bc798aed080269c3fc3cc165c2abc1bcbf4",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_csv",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-csv",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "mechanical_failure"
+      ],
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 721.4
+    },
+    {
+      "path": "DJI/dji_excel/dji_excel_battery_critical.xlsx",
+      "bytes": 113054,
+      "sha256": "4d1e010f75c14a4859fcd200b410bd6016a9b3bae875a73bddc3534df503d041",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 185,
+      "canonical_records": 185,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 1126.3
+    },
+    {
+      "path": "DJI/dji_excel/dji_excel_battery_low_rth.xlsx",
+      "bytes": 135712,
+      "sha256": "046582a208fc62cb81f27cf2782329630e06863de142a84a944550c033e0aa75",
+      "scenario": "battery_low_rth",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_low"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 1253.8
+    },
+    {
+      "path": "DJI/dji_excel/dji_excel_c2_link_lost.xlsx",
+      "bytes": 135187,
+      "sha256": "8eefc269fe53937a2cf11d4158d23b100468a60fcd5f25e1a727f4800e433268",
+      "scenario": "c2_link_lost",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 1189.5
+    },
+    {
+      "path": "DJI/dji_excel/dji_excel_compass_error.xlsx",
+      "bytes": 135226,
+      "sha256": "4592f84a701d087dfee396d94f88ec9b7dc922f516b3b15a6da771b6a058df54",
+      "scenario": "compass_error",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 1135.6
+    },
+    {
+      "path": "DJI/dji_excel/dji_excel_gps_denied_frozen.xlsx",
+      "bytes": 135674,
+      "sha256": "aefff3457c7b85ddde03a9887677d7274071743f7030d25ad20e174ba35f8ffe",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 1143.0
+    },
+    {
+      "path": "DJI/dji_excel/dji_excel_gps_jamming.xlsx",
+      "bytes": 135157,
+      "sha256": "2f4bd75fc1f5a248ec894819185d1162324b77cdaa62e98e47b8c686c115adcb",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 1310.4
+    },
+    {
+      "path": "DJI/dji_excel/dji_excel_kinetic_tumble_cut.xlsx",
+      "bytes": 66712,
+      "sha256": "1a32565115d7184318da433b2189e174258b92b016da0d9d4ad757a15ac32642",
+      "scenario": "kinetic_tumble_cut",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 104,
+      "canonical_records": 104,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 595.5
+    },
+    {
+      "path": "DJI/dji_excel/dji_excel_logger_dropout.xlsx",
+      "bytes": 135196,
+      "sha256": "cc9b0743b438934a8c4807f89ae5bf8d5efcbeaa838f3a0d9aabac9f15afb1fa",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 1139.2
+    },
+    {
+      "path": "DJI/dji_excel/dji_excel_lost_airborne.xlsx",
+      "bytes": 70004,
+      "sha256": "9dcaf5f6dda869a3194224eada864f0b3fb42dc7f597783624ee71f415e4ee5c",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 110,
+      "canonical_records": 110,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "mission_incomplete"
+      ],
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 615.9
+    },
+    {
+      "path": "DJI/dji_excel/dji_excel_motor_fail_recover.xlsx",
+      "bytes": 135326,
+      "sha256": "5c9f2f4d8ad5e7fec52c09689586ee3d77bb075283df836757419f12e1a7f0f1",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "dji_excel",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "dji-excel",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [
+        "mechanical_failure"
+      ],
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 1142.3
+    },
+    {
+      "path": "Elbit/hermes900/hermes900_battery_critical.stanag",
+      "bytes": 37144,
+      "sha256": "3ca56b1202afcb0987fcb74bf829b713e83724826b6ab208dcb0be474f797f2e",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 185,
+      "canonical_records": 185,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 588.4
+    },
+    {
+      "path": "Elbit/hermes900/hermes900_battery_low_rth.stanag",
+      "bytes": 45332,
+      "sha256": "92cc1277790737693c2c83cef810786bbd69d089931616ec99a65d7ae6ebde4e",
+      "scenario": "battery_low_rth",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_low"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 726.4
+    },
+    {
+      "path": "Elbit/hermes900/hermes900_c2_link_lost.stanag",
+      "bytes": 45332,
+      "sha256": "ec0d3a0a02751ab86346253a59112a97d064a5d201fbf48f04c5503be316b4c9",
+      "scenario": "c2_link_lost",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 728.1
+    },
+    {
+      "path": "Elbit/hermes900/hermes900_compass_error.stanag",
+      "bytes": 45332,
+      "sha256": "a9f011056623f74c8eba38c652426a124a36a8aa13121b60634f8c29277905d5",
+      "scenario": "compass_error",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 734.1
+    },
+    {
+      "path": "Elbit/hermes900/hermes900_gps_denied_frozen.stanag",
+      "bytes": 45416,
+      "sha256": "4367674e9f29db34946819571a57734848e7bfabc59fe487e96b2e0a3e506e74",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 725.3
+    },
+    {
+      "path": "Elbit/hermes900/hermes900_gps_jamming.stanag",
+      "bytes": 45332,
+      "sha256": "2e166de92ebb06393b6ddd336be337dbe63172e92c82f62ce52de61b2ca7bedf",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 713.5
+    },
+    {
+      "path": "Elbit/hermes900/hermes900_kinetic_tumble_cut.stanag",
+      "bytes": 20901,
+      "sha256": "3f87d67798f89e21be786d38328702c7f5beb5abe8ee35cf6fbabe64fa4ea1bd",
+      "scenario": "kinetic_tumble_cut",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 104,
+      "canonical_records": 104,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "elapsed_ms": 328.8
+    },
+    {
+      "path": "Elbit/hermes900/hermes900_logger_dropout.stanag",
+      "bytes": 45332,
+      "sha256": "2b5553cff648f9886dae632eeff605ec79df7ead9e434b5707013d370436b690",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 717.0
+    },
+    {
+      "path": "Elbit/hermes900/hermes900_lost_airborne.stanag",
+      "bytes": 22101,
+      "sha256": "b0084d626c702b93ae69582e76c0b1c533c648a893e2d3907c2c112cc52aa489",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 110,
+      "canonical_records": 110,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "elapsed_ms": 347.8
+    },
+    {
+      "path": "Elbit/hermes900/hermes900_motor_fail_recover.stanag",
+      "bytes": 45338,
+      "sha256": "bef61e46d73b07290f9eab761d938637174a7b66080de730caf1b31bebc303ea",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "hermes900",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "hermes900-stanag",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "attitude_shock"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 776.7
+    },
+    {
+      "path": "PX4/px4_ulg/px4_ulg_battery_critical.ulg",
+      "bytes": 16669071,
+      "sha256": "50e493bfa8ccb00ac5a4262ec223a7689fdd17ab09b1c917d4df67291ec21905",
+      "scenario": "battery_critical",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "PX4/px4_ulg/px4_ulg_battery_low_rth.ulg",
+      "bytes": 16567200,
+      "sha256": "3906141e8e9067dbd33c203775f71913f08ff3caa8df2de6ea42f79b5dbcb0ef",
+      "scenario": "battery_low_rth",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "PX4/px4_ulg/px4_ulg_c2_link_lost.ulg",
+      "bytes": 16514543,
+      "sha256": "e12807aee57f30c16ab8ee16f5072a8d49b6a081eea3b5eba589e6c7158fd3a7",
+      "scenario": "c2_link_lost",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "PX4/px4_ulg/px4_ulg_compass_error.ulg",
+      "bytes": 16613658,
+      "sha256": "ed7c750227071712457a14e6040cb5b0789e2266aceed3fd584f646719fa3ea4",
+      "scenario": "compass_error",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "PX4/px4_ulg/px4_ulg_gps_denied_frozen.ulg",
+      "bytes": 16595516,
+      "sha256": "9ec4c6cb5f77743236ada7f1b3e62903acf321d13a3a1e4352ea7515648293bd",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "PX4/px4_ulg/px4_ulg_gps_jamming.ulg",
+      "bytes": 16584964,
+      "sha256": "c28c6de155bdd7aa2714e71512b39922c91bde81ca3da825dd80e6aa29be573e",
+      "scenario": "gps_jamming",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "PX4/px4_ulg/px4_ulg_kinetic_tumble_cut.ulg",
+      "bytes": 9082357,
+      "sha256": "4046e7435eea988929a9833cd05778a6219a571098f0c5fbee3ceda8956a63f8",
+      "scenario": "kinetic_tumble_cut",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "PX4/px4_ulg/px4_ulg_logger_dropout.ulg",
+      "bytes": 16483439,
+      "sha256": "5f2681589d37dd3efe9b8289568ac8cdc900408a53055daedd7cb2ce6438783c",
+      "scenario": "logger_dropout",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "PX4/px4_ulg/px4_ulg_lost_airborne.ulg",
+      "bytes": 7374746,
+      "sha256": "d2837f2b24475339d7d24833e043d0029632c2fbd7eba5333411eee8b9c33593",
+      "scenario": "lost_airborne",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "PX4/px4_ulg/px4_ulg_motor_fail_recover.ulg",
+      "bytes": 16590102,
+      "sha256": "4822512fe8609bcffd9e93894257d749ac567794a94cd81dfb93719b2a3bb4d6",
+      "scenario": "motor_fail_recover",
+      "parse_ok": false,
+      "canonical_schema_valid": false,
+      "canonical_required_fields_non_null": false,
+      "timestamps_monotonic": false,
+      "canonical_numeric_fields_finite": false,
+      "detection_expectation_met": false,
+      "audit_timeout": true,
+      "error": "parser/L2/detector path exceeded 8 second per-file limit"
+    },
+    {
+      "path": "aunav/aunav/aunav_battery_critical.ros",
+      "bytes": 24360,
+      "sha256": "dcaf01f04c0d76d470ff804e8507c6b61116bde07a8978be0e6991e193dac580",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "aunav",
+      "classification": "simulated kinematic format export",
+      "l1_records": 185,
+      "canonical_records": 185,
+      "source": "aunav-ros",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 1440.3
+    },
+    {
+      "path": "aunav/aunav/aunav_battery_low_rth.ros",
+      "bytes": 29702,
+      "sha256": "25a72810355c8285856c30baa1886a1067c963061ef8c2750e7b8915b569662c",
+      "scenario": "battery_low_rth",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "aunav",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "aunav-ros",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "battery_low"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_low"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 821.1
+    },
+    {
+      "path": "aunav/aunav/aunav_c2_link_lost.ros",
+      "bytes": 29702,
+      "sha256": "81fce63a428e6f6d030b0bafc93ed395c08491c13ed011cdb12e21105ff363f6",
+      "scenario": "c2_link_lost",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "aunav",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "aunav-ros",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 828.5
+    },
+    {
+      "path": "aunav/aunav/aunav_compass_error.ros",
+      "bytes": 29702,
+      "sha256": "bd695084c115d23ae2556d469cb5e7b8e8c2b22dd8bebd954cef7f443012274a",
+      "scenario": "compass_error",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "aunav",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "aunav-ros",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 842.6
+    },
+    {
+      "path": "aunav/aunav/aunav_gps_denied_frozen.ros",
+      "bytes": 29690,
+      "sha256": "3ea69dd1395c340b9fb87f730a54fc408119faa4f1aa48ee9559682b8bba9576",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "aunav",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "aunav-ros",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 809.9
+    },
+    {
+      "path": "aunav/aunav/aunav_gps_jamming.ros",
+      "bytes": 29702,
+      "sha256": "51e41d3607c198d14912a2f3636e45818542e628798e4ab28b7d90162739a4df",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "aunav",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "aunav-ros",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "operator_warning"
+      ],
+      "elapsed_ms": 832.5
+    },
+    {
+      "path": "aunav/aunav/aunav_kinetic_tumble_cut.ros",
+      "bytes": 13671,
+      "sha256": "1818ab396179a9670ce2425aad29b9a2720ec4d66956ea3d652e1eff5a3c12c5",
+      "scenario": "kinetic_tumble_cut",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "aunav",
+      "classification": "simulated kinematic format export",
+      "l1_records": 104,
+      "canonical_records": 104,
+      "source": "aunav-ros",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "elapsed_ms": 388.6
+    },
+    {
+      "path": "aunav/aunav/aunav_logger_dropout.ros",
+      "bytes": 29702,
+      "sha256": "891c858bb6281ae7aa006aa53983d32a3023947eddb76d3b0a8e6905ae3e6213",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "aunav",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "aunav-ros",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 840.8
+    },
+    {
+      "path": "aunav/aunav/aunav_lost_airborne.ros",
+      "bytes": 14469,
+      "sha256": "f0c81930ec3bb22e11f08d3f15e70756592ee03dd2b024eafbf645833bac7bf8",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "aunav",
+      "classification": "simulated kinematic format export",
+      "l1_records": 110,
+      "canonical_records": 110,
+      "source": "aunav-ros",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "elapsed_ms": 617.1
+    },
+    {
+      "path": "aunav/aunav/aunav_motor_fail_recover.ros",
+      "bytes": 29702,
+      "sha256": "7ae344fe41a8b3dc10a24c782f542524efa64aa94fc5c181d847f63ba5f72a18",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "aunav",
+      "classification": "simulated kinematic format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "aunav-ros",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "elapsed_ms": 848.1
+    },
+    {
+      "path": "vendor/vendor_hex/vendor_hex_battery_critical.hex",
+      "bytes": 5365,
+      "sha256": "10adb2b332a93a0e0a7643c2a4bcfe4f5f3a366c7f78070076e07b4db48adb1d",
+      "scenario": "battery_critical",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "vendor_hex",
+      "classification": "simulated mock/minimal format export",
+      "l1_records": 185,
+      "canonical_records": 185,
+      "source": "vendor-hex",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "missing_expected_incident_types": [
+        "battery_critical"
+      ],
+      "elapsed_ms": 672.3
+    },
+    {
+      "path": "vendor/vendor_hex/vendor_hex_battery_low_rth.hex",
+      "bytes": 6525,
+      "sha256": "aa26731ed818a1b5785d782f422456fb1cb8619b52d4faa5c9084599743ff97f",
+      "scenario": "battery_low_rth",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "vendor_hex",
+      "classification": "simulated mock/minimal format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "vendor-hex",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "battery_low"
+      ],
+      "missing_expected_incident_types": [
+        "battery_low"
+      ],
+      "elapsed_ms": 971.1
+    },
+    {
+      "path": "vendor/vendor_hex/vendor_hex_c2_link_lost.hex",
+      "bytes": 6525,
+      "sha256": "71437805fc77d7355da0de5ceccb917b1eaa19482bbf7be78c1448fd54fa41d3",
+      "scenario": "c2_link_lost",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "vendor_hex",
+      "classification": "simulated mock/minimal format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "vendor-hex",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 809.2
+    },
+    {
+      "path": "vendor/vendor_hex/vendor_hex_compass_error.hex",
+      "bytes": 6525,
+      "sha256": "6aeec9e0827e37759843f2654403390c5f40cd41cae14d9e3c0a58759560d32d",
+      "scenario": "compass_error",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "vendor_hex",
+      "classification": "simulated mock/minimal format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "vendor-hex",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 806.2
+    },
+    {
+      "path": "vendor/vendor_hex/vendor_hex_gps_denied_frozen.hex",
+      "bytes": 6525,
+      "sha256": "742a7fa17cf00bbc02f89272a1345d5aaa064c720c5b025e3657d2d43bf1396a",
+      "scenario": "gps_denied_frozen",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "vendor_hex",
+      "classification": "simulated mock/minimal format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "vendor-hex",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "missing_expected_incident_types": [
+        "last_known_position"
+      ],
+      "elapsed_ms": 945.8
+    },
+    {
+      "path": "vendor/vendor_hex/vendor_hex_gps_jamming.hex",
+      "bytes": 6525,
+      "sha256": "7bd31771610ec4f1c747da9809ab0d894050d28f3aa4456d84d7a33c9955f848",
+      "scenario": "gps_jamming",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "vendor_hex",
+      "classification": "simulated mock/minimal format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "vendor-hex",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 1029.2
+    },
+    {
+      "path": "vendor/vendor_hex/vendor_hex_kinetic_tumble_cut.hex",
+      "bytes": 3016,
+      "sha256": "58f1bf20b7a938db9a17150b6a1954f2b93bc71abe7c0ded5b2fc1ae5771230b",
+      "scenario": "kinetic_tumble_cut",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "vendor_hex",
+      "classification": "simulated mock/minimal format export",
+      "l1_records": 104,
+      "canonical_records": 104,
+      "source": "vendor-hex",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "elapsed_ms": 420.0
+    },
+    {
+      "path": "vendor/vendor_hex/vendor_hex_logger_dropout.hex",
+      "bytes": 6525,
+      "sha256": "e93e61029b81af4a897a274387fbc4df429f5e3eefa7183a6af8cb1663bc6238",
+      "scenario": "logger_dropout",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": true,
+      "parser": "vendor_hex",
+      "classification": "simulated mock/minimal format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "vendor-hex",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning",
+        "telemetry_gap"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "missing_expected_incident_types": [],
+      "elapsed_ms": 864.3
+    },
+    {
+      "path": "vendor/vendor_hex/vendor_hex_lost_airborne.hex",
+      "bytes": 3190,
+      "sha256": "89ed7b7357d2a183186aa5de6e0be4b059f332eb38c6d62b6cde2b5da0226522",
+      "scenario": "lost_airborne",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "vendor_hex",
+      "classification": "simulated mock/minimal format export",
+      "l1_records": 110,
+      "canonical_records": 110,
+      "source": "vendor-hex",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "missing_expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "elapsed_ms": 391.5
+    },
+    {
+      "path": "vendor/vendor_hex/vendor_hex_motor_fail_recover.hex",
+      "bytes": 6525,
+      "sha256": "57e7d163e0a1eb9842e732de492e6807e6b33c0d4b83e57a301a44a6ead6d551",
+      "scenario": "motor_fail_recover",
+      "parse_ok": true,
+      "canonical_schema_valid": true,
+      "canonical_required_fields_non_null": true,
+      "timestamps_monotonic": true,
+      "canonical_numeric_fields_finite": true,
+      "detection_expectation_met": false,
+      "parser": "vendor_hex",
+      "classification": "simulated mock/minimal format export",
+      "l1_records": 225,
+      "canonical_records": 225,
+      "source": "vendor-hex",
+      "invalid_timestamp_count": 0,
+      "detector_completed": true,
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "derived_hazard_labels": [],
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "missing_expected_incident_types": [
+        "attitude_shock"
+      ],
+      "elapsed_ms": 800.8
+    }
+  ]
+}

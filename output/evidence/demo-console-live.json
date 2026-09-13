@@ -1,0 +1,90 @@
+[
+  {
+    "filename": "dji_csv_gps_jamming.csv",
+    "upload": {
+      "upload_id": "9a09ac13-0388-4f8f-b6d1-70e45275c5f9",
+      "status": "received",
+      "sha256": "1a1b914dc70e6d0c1b45db003046b45037ab822903dd2fda0bb1ab9c0cdc34b7",
+      "duplicate": false
+    },
+    "status": {
+      "upload_id": "9a09ac13-0388-4f8f-b6d1-70e45275c5f9",
+      "status": "ready",
+      "filename": "dji_csv_gps_jamming.csv",
+      "size_bytes": 124513,
+      "sha256": "1a1b914dc70e6d0c1b45db003046b45037ab822903dd2fda0bb1ab9c0cdc34b7",
+      "flight_id": "flight-1a1b914dc70e6d0c1b45",
+      "ingest_id": "27764753-3769-4491-852e-d9a9fb42c73a",
+      "error": null
+    },
+    "elapsed_seconds": 1.043,
+    "provenance": "original intended synthetic hazard corpus",
+    "parser": "corrected valid-zero relative height"
+  },
+  {
+    "filename": "dji_csv_logger_dropout.csv",
+    "upload": {
+      "upload_id": "8954f88b-f6a2-4f23-8008-7ca750610a1f",
+      "status": "received",
+      "sha256": "b7ee5f98110be03e657645fbcce320479a8955d0d517dd44c99ae1b05f1beeac",
+      "duplicate": false
+    },
+    "status": {
+      "upload_id": "8954f88b-f6a2-4f23-8008-7ca750610a1f",
+      "status": "ready",
+      "filename": "dji_csv_logger_dropout.csv",
+      "size_bytes": 122646,
+      "sha256": "b7ee5f98110be03e657645fbcce320479a8955d0d517dd44c99ae1b05f1beeac",
+      "flight_id": "flight-b7ee5f98110be03e6576",
+      "ingest_id": "337c6a54-bf85-4c78-904c-0721324c7304",
+      "error": null
+    },
+    "elapsed_seconds": 1.491,
+    "provenance": "original intended synthetic hazard corpus",
+    "parser": "corrected valid-zero relative height"
+  },
+  {
+    "filename": "dji_csv_supplemental_gps_weak_recurrence.csv",
+    "upload": {
+      "upload_id": "96467291-f546-42f9-b038-e1ee72e56bc0",
+      "status": "received",
+      "sha256": "4fb673922655692b61ac84f2c244afd70043177b7594021d7884e2d3d7662220",
+      "duplicate": false
+    },
+    "status": {
+      "upload_id": "96467291-f546-42f9-b038-e1ee72e56bc0",
+      "status": "ready",
+      "filename": "dji_csv_supplemental_gps_weak_recurrence.csv",
+      "size_bytes": 118768,
+      "sha256": "4fb673922655692b61ac84f2c244afd70043177b7594021d7884e2d3d7662220",
+      "flight_id": "flight-4fb673922655692b61ac",
+      "ingest_id": "a9cb1416-6bfb-47b8-a362-78ea924168c6",
+      "error": null
+    },
+    "elapsed_seconds": 0.974,
+    "provenance": "supplemental independent synthetic mission",
+    "parser": "corrected valid-zero relative height"
+  },
+  {
+    "filename": "dji_csv_supplemental_normal_control.csv",
+    "upload": {
+      "upload_id": "b9ef12db-750c-4cdd-834f-57ed1f768124",
+      "status": "received",
+      "sha256": "eea7a01de29aec8aed1e7e7a5324f74bea4e5fb9a969a586a26f97daadacea3b",
+      "duplicate": false
+    },
+    "status": {
+      "upload_id": "b9ef12db-750c-4cdd-834f-57ed1f768124",
+      "status": "ready",
+      "filename": "dji_csv_supplemental_normal_control.csv",
+      "size_bytes": 110680,
+      "sha256": "eea7a01de29aec8aed1e7e7a5324f74bea4e5fb9a969a586a26f97daadacea3b",
+      "flight_id": "flight-eea7a01de29aec8aed1e",
+      "ingest_id": "5ede270c-2c63-41ec-a1f6-935f3d092366",
+      "error": null
+    },
+    "elapsed_seconds": 0.969,
+    "provenance": "supplemental independent synthetic mission",
+    "parser": "corrected valid-zero relative height"
+  }
+]

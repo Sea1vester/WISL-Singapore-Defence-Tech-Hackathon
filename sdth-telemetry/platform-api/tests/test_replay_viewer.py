@@ -109,11 +109,11 @@ def test_dataset_list_and_load(client, tmp_path, monkeypatch):
 
 
 def test_replay_has_dark_space_theme():
-    """Cesium replay uses dark space theme with gold/cyan accents."""
+    """Cesium replay retains the existing dark WISL palette."""
     css = REPLAY_PUBLIC.joinpath("replay.css").read_text()
-    assert "--gold: #c9a227" in css
-    assert "--cyan: #3ecfc2" in css
-    assert "background: #0a0a12" in css
+    assert "--signal: #4fd8c4" in css
+    assert "--ink: #e9edf5" in css
+    assert "background: #0a0e16" in css
     assert "font-family" in css and "monospace" in css
 
 

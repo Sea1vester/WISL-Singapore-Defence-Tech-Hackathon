@@ -16,11 +16,19 @@ def get_redis() -> redis.Redis:
 
 
 def enqueue_translation_job(job_id: str) -> None:
+    if settings.local_demo_worker:
+        from app.local_worker import submit
+        submit("translation", job_id)
+        return
     client = get_redis()
     client.rpush(settings.job_queue_key, json.dumps({"job_id": job_id}))
 
 
 def enqueue_raw_upload(upload_id: str) -> None:
+    if settings.local_demo_worker:
+        from app.local_worker import submit
+        submit("raw_upload", upload_id)
+        return
     client = get_redis()
     client.rpush(settings.raw_upload_queue_key, json.dumps({"upload_id": upload_id}))
 
