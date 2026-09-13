@@ -19,9 +19,9 @@ Once dependencies are installed, only the last command is needed. Open **<http:/
 
 ### Use the replay workspace
 
-1. Open **Flight library** and choose a stored record. The last selected flight loads automatically when you return.
+1. Choose a stored record in the **Mission library** sidebar. Search filters the loaded records. On small screens, use **Flight library** to open the drawer. The last selected flight loads automatically when you return.
 2. To add a record, choose **Import log**, then drop a file in **Logs & uploads**. For a quick start, use **Try the included synthetic GPS-warning log** in that tab. Its bytes are processed by the real pipeline; duplicate uploads reuse the existing record.
-3. Wait for **Record normalized**. The replay fills the main view. Use its **Play/Pause**, **Restart**, playback-speed and timeline controls to inspect the recorded flight.
+3. Wait for **Record normalized**. The replay fills the main view. **Studio** presents the recorded path on a clean teal surface; **Map** adds geographic imagery. The enlarged aircraft model is for visibility. Use **Play/Pause**, **Restart**, playback-speed and timeline controls to inspect the recorded flight. The telemetry strip shows recorded altitude, battery and UTC; **Track speed** is derived from consecutive positions. The inset shows the recorded route.
 4. Use the bar below the replay: **Mission analysis** contains observations and record queries, **Recurring patterns** compares stored signatures, and **Bulletins** holds reviewable follow-up. Switching these tabs keeps the replay on screen.
 5. Click **Replay this observation** to pause at its recorded timestamp. Ask **What happened?**, **Where is the evidence?** or **Similar warnings** for deterministic evidence-backed answers.
 6. Expand **Local AI analysis** inside Mission analysis for optional fleet interpretation. Its explanations are unverified hypotheses, even when the referenced evidence IDs are valid.

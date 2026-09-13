@@ -16,7 +16,7 @@ import {
   replayTimeAtPercent,
   replayTimeForTimestamp,
   sampleEvent,
-} from "/replay/lib/flight.mjs?v=wisl-embed-11";
+} from "/replay/lib/flight.mjs?v=orbital-6";
 
 const CESIUM_VERSION = "1.125";
 const SPEED_VALUES = [0.5, 1, 2, 4, 8, 12];
@@ -86,6 +86,8 @@ const state = {
   pipVisualId: null,
   pipRequestId: null,
   pipObjectUrl: null,
+  mapVisible: params.get("embed") !== "1",
+  routeOverview: null,
 };
 
 const els = {
@@ -128,6 +130,16 @@ const els = {
   timelineTime: document.getElementById("timeline-time"),
   transportTelemetry: document.getElementById("transportTelemetry"),
   transportStatus: document.getElementById("transportStatus"),
+  orbitalAltitude: document.getElementById("orbitalAltitude"),
+  orbitalSpeed: document.getElementById("orbitalSpeed"),
+  orbitalBattery: document.getElementById("orbitalBattery"),
+  orbitalRecordedTime: document.getElementById("orbitalRecordedTime"),
+  routeOverviewPath: document.getElementById("routeOverviewPath"),
+  routeOverviewStart: document.getElementById("routeOverviewStart"),
+  routeOverviewCurrent: document.getElementById("routeOverviewCurrent"),
+  routeOverviewProgress: document.getElementById("routeOverviewProgress"),
+  studioViewButton: document.getElementById("studioViewButton"),
+  mapViewButton: document.getElementById("mapViewButton"),
 };
 
 function apiBase() {
@@ -289,23 +301,24 @@ async function createViewer() {
   // skybox outright gets the same dark-space look from backgroundColor
   // below, without a broken image load.
   viewer.scene.skyBox = undefined;
-  viewer.scene.skyAtmosphere = new Cesium.SkyAtmosphere();
+  viewer.scene.skyAtmosphere = undefined;
   viewer.scene.globe.showGroundAtmosphere = false;
   viewer.scene.globe.enableLighting = false;
   viewer.scene.globe.depthTestAgainstTerrain = true;
-  viewer.scene.backgroundColor = new Cesium.Color(0.039, 0.039, 0.071, 1.0);
+  viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#061925");
   viewer.scene.fog.enabled = true;
   viewer.scene.fog.density = 0.00015;
   viewer.scene.highDynamicRange = false;
-  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#111b22");
+  viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString("#194452");
   const imageryLayer = viewer.imageryLayers.get(0);
   if (imageryLayer) {
-    imageryLayer.brightness = 0.32;
+    imageryLayer.brightness = 0.26;
     imageryLayer.contrast = 1.2;
     imageryLayer.saturation = 0.04;
     imageryLayer.gamma = 0.78;
     imageryLayer.hue = 4.2;
-    imageryLayer.alpha = 0.84;
+    imageryLayer.alpha = 0.7;
+    imageryLayer.show = state.mapVisible;
   }
   // This is a Viewer property (rather than a reliable constructor setting in
   // every bundled Cesium build). Recorded paths may advance while imagery and
@@ -695,15 +708,16 @@ function uavVisual(color) {
       ? {
           model: {
             uri: UAV_MODEL_URI,
-            minimumPixelSize: 24,
-            maximumScale: 56,
-            color: primary,
+            minimumPixelSize: params.get("embed") === "1" ? 140 : 24,
+            maximumScale: params.get("embed") === "1" ? 180 : 56,
+            color: Cesium.Color.fromCssColorString("#fff1dc").withAlpha(0.96),
             colorBlendMode: Cesium.ColorBlendMode.MIX,
-            colorBlendAmount: 0.55,
+            colorBlendAmount: 0.18,
           },
         }
       : {}),
     point: {
+      show: !state.uavModelReady,
       pixelSize: 20,
       color: primary,
       outlineColor: Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.7),
@@ -720,7 +734,7 @@ function uavVisual(color) {
       outlineWidth: 3,
       style: Cesium.LabelStyle.FILL_AND_OUTLINE,
       showBackground: false,
-      pixelOffset: new Cesium.Cartesian2(0, -34),
+      pixelOffset: new Cesium.Cartesian2(0, params.get("embed") === "1" ? -65 : -34),
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
       scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 5000, 0.5),
     },
@@ -953,14 +967,22 @@ function animateTrailGlow(flightId, viewer) {
 
     // Fade the full path based on progress (dim ahead of drone)
     const pathAlpha = progress * 0.5;
-    const pathColor = Cesium.Color.fromCssColorString(COLORS[state.flights.indexOf(state.flights.find((f) => f.flight_id === flightId))] || COLORS[0]);
+    const pathColor = Cesium.Color.fromCssColorString(
+      params.get("embed") === "1"
+        ? "#ff9d4d"
+        : COLORS[state.flights.indexOf(state.flights.find((f) => f.flight_id === flightId))] || COLORS[0],
+    );
     pathEntity.polyline.material = new Cesium.ColorMaterialProperty(
       pathColor.withAlpha(Math.max(0.1, pathAlpha)),
     );
 
     // Brighten trail entity (shown behind drone)
     const trailAlpha = 0.8 + 0.2 * (1 - progress);
-    const trailColor = Cesium.Color.fromCssColorString(COLORS[state.flights.indexOf(state.flights.find((f) => f.flight_id === flightId))] || COLORS[0]);
+    const trailColor = Cesium.Color.fromCssColorString(
+      params.get("embed") === "1"
+        ? "#ff9d4d"
+        : COLORS[state.flights.indexOf(state.flights.find((f) => f.flight_id === flightId))] || COLORS[0],
+    );
     trailEntity.polyline.material = new Cesium.ColorMaterialProperty(
       trailColor.withAlpha(trailAlpha),
     );
@@ -996,6 +1018,7 @@ function addTreeToGlobe(tree, index) {
 }
 
 async function addFlightToGlobe(flight, color, track) {
+  const visualColor = params.get("embed") === "1" ? "#ff9d4d" : color;
   const start = Cesium.JulianDate.fromIso8601(flight.samples[0].timestamp);
   const stop = Cesium.JulianDate.fromIso8601(flight.samples[flight.samples.length - 1].timestamp);
   if (track) {
@@ -1008,6 +1031,7 @@ async function addFlightToGlobe(flight, color, track) {
     state.timelineFlightStop = Cesium.JulianDate.clone(stop);
   }
   const sampled = new Cesium.SampledPositionProperty();
+  const orientations = new Cesium.SampledProperty(Cesium.Quaternion);
   const positions = [];
   const sampleHeights = await sampleTerrainHeights(
     flight.samples.map((sample) => [sample.lon, sample.lat]),
@@ -1021,6 +1045,16 @@ async function addFlightToGlobe(flight, color, track) {
       globeAltM(flight, sample.alt_m, sampleHeights[index] || 0),
     );
     sampled.addSample(time, position);
+    const heading = Cesium.Math.toRadians(Number.isFinite(sample.yaw_deg) ? sample.yaw_deg : 0);
+    const pitch = Cesium.Math.toRadians(Number.isFinite(sample.pitch_deg) ? sample.pitch_deg : 0);
+    const roll = Cesium.Math.toRadians(Number.isFinite(sample.roll_deg) ? sample.roll_deg : 0);
+    orientations.addSample(
+      time,
+      Cesium.Transforms.headingPitchRollQuaternion(
+        position,
+        new Cesium.HeadingPitchRoll(heading, pitch, roll),
+      ),
+    );
     positions.push(position);
   }
 
@@ -1031,7 +1065,7 @@ async function addFlightToGlobe(flight, color, track) {
       positions,
       width: 3,
       material: new Cesium.ColorMaterialProperty(
-        Cesium.Color.fromCssColorString(color).withAlpha(0.35),
+        Cesium.Color.fromCssColorString(visualColor).withAlpha(0.5),
       ),
     },
   });
@@ -1056,7 +1090,7 @@ async function addFlightToGlobe(flight, color, track) {
     polyline: {
       width: 4,
       material: new Cesium.ColorMaterialProperty(
-        Cesium.Color.fromCssColorString(color).withAlpha(0.85),
+        Cesium.Color.fromCssColorString(visualColor).withAlpha(0.95),
       ),
       outlineColor: Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.4),
       outlineWidth: 1,
@@ -1071,19 +1105,19 @@ async function addFlightToGlobe(flight, color, track) {
       new Cesium.TimeInterval({ start, stop }),
     ]),
     position: sampled,
-    orientation: new Cesium.VelocityOrientationProperty(sampled),
+    orientation: orientations,
     viewFrom: new Cesium.Cartesian3(-40, -32, 24),
-    ...uavVisual(color),
+    ...uavVisual(visualColor),
     path: {
       leadTime: 0,
       trailTime: 30,
       width: 3,
       material: new Cesium.ColorMaterialProperty(
-        Cesium.Color.fromCssColorString(color).withAlpha(0.6),
+        Cesium.Color.fromCssColorString(visualColor).withAlpha(0.78),
       ),
     },
   });
-  attachModelFallback(uav, color);
+  attachModelFallback(uav, visualColor);
 
   // ---- Incident markers ----
   const markers = [];
@@ -1361,6 +1395,67 @@ function scrubToPercent(pct) {
   state.viewer.scene.requestRender();
 }
 
+function groundSpeedMps(flight, pose) {
+  const lower = flight.samples[pose.lower_sample];
+  const upper = flight.samples[pose.upper_sample];
+  if (!lower || !upper || upper.time_s <= lower.time_s) return null;
+  const toRadians = (value) => value * Math.PI / 180;
+  const dLat = toRadians(upper.lat - lower.lat);
+  const dLon = toRadians(upper.lon - lower.lon);
+  const lat1 = toRadians(lower.lat);
+  const lat2 = toRadians(upper.lat);
+  const arc = 2 * Math.atan2(
+    Math.sqrt(Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2),
+    Math.sqrt(1 - (Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2)),
+  );
+  return 6_371_000 * arc / (upper.time_s - lower.time_s);
+}
+
+function updateRouteOverview(flight, pose) {
+  if (params.get("embed") !== "1" || !flight.samples.length) return;
+  if (state.routeOverview?.flightId !== flight.flight_id) {
+    const width = 240;
+    const height = 132;
+    const pad = 12;
+    const meanLat = flight.samples.reduce((sum, sample) => sum + sample.lat, 0) / flight.samples.length;
+    const refLat = flight.samples[0].lat;
+    const refLon = flight.samples[0].lon;
+    const cosLat = Math.cos(meanLat * Math.PI / 180);
+    const local = flight.samples.map((sample) => [
+      (sample.lon - refLon) * cosLat,
+      sample.lat - refLat,
+    ]);
+    const minX = Math.min(...local.map(([x]) => x));
+    const maxX = Math.max(...local.map(([x]) => x));
+    const minY = Math.min(...local.map(([, y]) => y));
+    const maxY = Math.max(...local.map(([, y]) => y));
+    const scale = Math.min((width - 2 * pad) / (maxX - minX || 1), (height - 2 * pad) / (maxY - minY || 1));
+    const project = (lat, lon) => [
+      pad + (((lon - refLon) * cosLat - minX) * scale),
+      height - pad - ((lat - refLat - minY) * scale),
+    ];
+    const points = flight.samples.map((sample) => project(sample.lat, sample.lon));
+    els.routeOverviewPath.setAttribute("d", points.map(([x, y], index) => `${index ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" "));
+    state.routeOverview = {
+      flightId: flight.flight_id,
+      project,
+      start: points[0],
+      duration: flight.samples.at(-1).time_s - flight.samples[0].time_s,
+      startedAt: flight.samples[0].time_s,
+    };
+  }
+  const [startX, startY] = state.routeOverview.start;
+  const [currentX, currentY] = state.routeOverview.project(pose.lat, pose.lon);
+  els.routeOverviewStart.setAttribute("cx", startX.toFixed(1));
+  els.routeOverviewStart.setAttribute("cy", startY.toFixed(1));
+  els.routeOverviewCurrent.setAttribute("cx", currentX.toFixed(1));
+  els.routeOverviewCurrent.setAttribute("cy", currentY.toFixed(1));
+  const progress = state.routeOverview.duration > 0
+    ? (pose.time_s - state.routeOverview.startedAt) / state.routeOverview.duration
+    : 0;
+  els.routeOverviewProgress.textContent = `${Math.round(clamp(progress, 0, 1) * 100)}%`;
+}
+
 function renderHud(flight, pose) {
   const banner = bannerState(flight, pose.time_s);
   const key = incidentKey(banner);
@@ -1375,6 +1470,14 @@ function renderHud(flight, pose) {
   els.playButton.textContent = state.viewer.clock.shouldAnimate ? "Pause" : "Play";
   els.playButton.className = state.viewer.clock.shouldAnimate ? "active" : "";
   els.transportTelemetry.textContent = `${formatIso8601Utc(pose.time_s).slice(11, 19)} UTC · ${pose.alt_m.toFixed(0)} m`;
+  if (params.get("embed") === "1") {
+    const speed = groundSpeedMps(flight, pose);
+    els.orbitalAltitude.textContent = pose.alt_m.toFixed(1);
+    els.orbitalSpeed.textContent = speed == null ? "—" : speed.toFixed(1);
+    els.orbitalBattery.textContent = Number.isFinite(pose.battery_pct) ? pose.battery_pct.toFixed(0) : "—";
+    els.orbitalRecordedTime.textContent = formatIso8601Utc(pose.time_s).slice(11, 19);
+    updateRouteOverview(flight, pose);
+  }
   els.flightMeta.textContent = `Flight ${state.active + 1}/${state.flights.length}  ${flight.flight_id}`;
   els.sourceLine.textContent = `${flight.source} · ${flight.data_origin}`;
   els.timeLine.textContent = `${formatIso8601Utc(pose.time_s)}   alt ${pose.alt_m.toFixed(1)} m`;
@@ -1952,6 +2055,26 @@ function setPlaying(playing) {
   viewer.scene.requestRender();
 }
 
+function setPresentationMode(mapVisible) {
+  state.mapVisible = mapVisible;
+  const viewer = state.viewer;
+  const imageryLayer = viewer?.imageryLayers.get(0);
+  if (imageryLayer) {
+    imageryLayer.show = mapVisible;
+    imageryLayer.alpha = mapVisible ? 1 : 0;
+    imageryLayer.brightness = mapVisible ? 0.58 : 0.26;
+    imageryLayer.contrast = mapVisible ? 1 : 1.2;
+    imageryLayer.saturation = mapVisible ? 1 : 0.04;
+    imageryLayer.hue = mapVisible ? 0 : 4.2;
+  }
+  if (viewer) {
+    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString(mapVisible ? "#111b22" : "#194452");
+    viewer.scene.requestRender();
+  }
+  els.studioViewButton.setAttribute("aria-pressed", String(!mapVisible));
+  els.mapViewButton.setAttribute("aria-pressed", String(mapVisible));
+}
+
 function resetPlayback() {
   const flight = state.flights[state.active];
   if (!flight || !state.viewer) {
@@ -1969,6 +2092,9 @@ function resetPlayback() {
 }
 
 function bindControls() {
+  setPresentationMode(state.mapVisible);
+  els.studioViewButton.addEventListener("click", () => setPresentationMode(false));
+  els.mapViewButton.addEventListener("click", () => setPresentationMode(true));
   els.tokenInput.value = state.token;
   els.tokenInput.addEventListener("change", async () => {
     saveToken(els.tokenInput.value);

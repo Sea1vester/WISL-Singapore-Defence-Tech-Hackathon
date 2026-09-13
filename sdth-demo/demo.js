@@ -1,7 +1,8 @@
-import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=studio-5";
+import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=cockpit-1";
 
 const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0 };
 const $ = (id) => document.getElementById(id);
+const wideLayout = window.matchMedia("(min-width: 760px)");
 const els = { apiDot: $("apiDot"), apiState: $("apiState"), authPanel: $("authPanel"), token: $("tokenInput"), uploadMessage: $("uploadMessage"), uploadStatus: $("uploadStatus"), traceDetail: $("traceDetail"), file: $("logFile"), flightList: $("flightList"), flightMeta: $("flightMeta"), selectedFlightTitle: $("selectedFlightTitle"), incidentTitle: $("incidentTitle"), incidentCount: $("incidentCount"), incidentList: $("incidentList"), modelState: $("modelState"), replayEmpty: $("replayEmpty"), replayFrame: $("replayFrame"), openReplay: $("openReplay"), patternList: $("patternList"), bulletinList: $("bulletinList"), analysisAnswer: $("analysisAnswer"), question: $("questionInput"), localAnalysis: $("localAnalysis"), localAnalysisBody: $("localAnalysisBody") };
 
 function authHeaders(json = false) { const headers = state.token ? { Authorization: `Bearer ${state.token}` } : {}; return json ? { ...headers, "Content-Type": "application/json" } : headers; }
@@ -16,7 +17,7 @@ async function api(path, options = {}) {
 }
 function setApi(status, text) { els.apiDot.className = `live-dot ${status}`; els.apiState.textContent = text; }
 function setMessage(text, kind = "") { els.uploadMessage.textContent = text; els.uploadMessage.className = `notice ${kind}`; }
-function fmtTime(value) { if (!value) return "Recorded time unavailable"; const date = new Date(value); return Number.isNaN(date) ? value : date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }); }
+function fmtTime(value) { if (!value) return "Recorded time unavailable"; const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }); }
 function label(value) { return String(value || "unclassified").replaceAll("_", " "); }
 function escapeHtml(value) { const div = document.createElement("div"); div.textContent = value ?? ""; return div.innerHTML; }
 
@@ -66,17 +67,22 @@ async function uploadFile(file) {
 }
 function renderFlights() {
   els.flightList.replaceChildren();
+  $("libraryCount").textContent = String(state.flights.length).padStart(2, "0");
   if (!state.flights.length) { els.flightList.textContent = state.token ? "No recorded flights are available yet." : "Connect a session to load recorded flights."; els.flightList.className = "flight-list empty-state"; return; }
   els.flightList.className = "flight-list";
-  for (const flight of state.flights) {
+  const search = $("missionSearch").value.trim().toLowerCase();
+  const matching = state.flights.filter(flight => `${flightDisplayName(flight)} ${flight.source || ""} ${flight.original_filename || ""}`.toLowerCase().includes(search));
+  if (!matching.length) { els.flightList.textContent = "No matching missions. Try a different search."; return; }
+  for (const flight of matching) {
     const node = $("flightTemplate").content.firstElementChild.cloneNode(true);
     node.classList.toggle("selected", flight.id === state.selectedFlight?.id);
-    const provenance = simulationProvenance(flight);
-    node.querySelector(".flight-source").textContent = `${flightDisplayName(flight)}${provenance ? ` · ${provenance}` : ""}`;
+    node.setAttribute("aria-pressed", String(flight.id === state.selectedFlight?.id));
+    node.querySelector(".flight-source").textContent = flightDisplayName(flight);
     node.querySelector(".flight-time").textContent = fmtTime(flight.started_at);
     node.addEventListener("click", () => selectFlight(flight.id));
     els.flightList.append(node);
   }
+  if (!search) els.flightList.querySelector(".selected")?.scrollIntoView({block:"nearest"});
 }
 async function refreshFlights() {
   if (!state.token) { renderFlights(); return; }
@@ -118,7 +124,7 @@ function renderIncidents(items) {
 }
 function setReplay(flightId, timestamp = null) {
   const fullUrl = new URL("/replay/", window.location.origin); fullUrl.searchParams.set("flights", flightId); if (state.token) fullUrl.searchParams.set("token", state.token);
-  const frameUrl = new URL(fullUrl); frameUrl.searchParams.set("embed", "1"); frameUrl.searchParams.set("v", "studio-5"); if (timestamp) { fullUrl.searchParams.set("timestamp", timestamp); frameUrl.searchParams.set("timestamp", timestamp); }
+  const frameUrl = new URL(fullUrl); frameUrl.searchParams.set("embed", "1"); frameUrl.searchParams.set("v", "cockpit-1"); if (timestamp) { fullUrl.searchParams.set("timestamp", timestamp); frameUrl.searchParams.set("timestamp", timestamp); }
   els.replayFrame.src = frameUrl.toString(); els.replayFrame.hidden = false; els.replayEmpty.hidden = true; els.openReplay.href = fullUrl.toString(); els.openReplay.classList.remove("disabled");
 }
 async function selectFlight(flightId, timestamp = null) {
@@ -126,7 +132,7 @@ async function selectFlight(flightId, timestamp = null) {
   const version = ++state.selectionVersion;
   state.selectedFlight = flight; sessionStorage.setItem("wislSelectedFlight", flightId); renderFlights(); setLibrary(false);
   els.analysisAnswer.textContent = "Ask about this mission or open an observation in replay."; renderLocalAnalysis(null);
-  const provenance = simulationProvenance(flight); els.selectedFlightTitle.textContent = flightDisplayName(flight); els.flightMeta.textContent = `${fmtTime(flight.started_at)} · ${flight.id}${provenance ? ` · ${provenance}` : ""}`; els.incidentTitle.textContent = "Loading indexed evidence…"; els.incidentCount.textContent = "…";
+  const provenance = simulationProvenance(flight); els.selectedFlightTitle.textContent = flightDisplayName(flight); els.selectedFlightTitle.title = flightDisplayName(flight); els.flightMeta.textContent = `${fmtTime(flight.started_at)}${flight.source ? ` · ${label(flight.source)}` : ""}${provenance ? ` · ${provenance}` : ""}`; els.incidentTitle.textContent = "Loading indexed evidence…"; els.incidentCount.textContent = "…";
   setReplay(flightId, timestamp);
   try {
     const [incidents, report] = await Promise.all([api(`/v1/flights/${encodeURIComponent(flightId)}/incidents`), api(`/v1/flights/${encodeURIComponent(flightId)}/incident-report`).catch(() => null)]);
@@ -174,7 +180,8 @@ function showView(view) {
   if (view === "patterns") refreshPatterns();
   if (view === "bulletins") refreshBulletins();
 }
-function setLibrary(open) { $("flightLibrary").hidden = !open; $("libraryButton").setAttribute("aria-expanded", String(open)); if (open) setAuthPanel(false); }
+function setLibrary(open) { const visible = open || wideLayout.matches; $("flightLibrary").hidden = !visible; $("libraryButton").setAttribute("aria-expanded", String(visible)); if (open) { setAuthPanel(false); $("missionSearch").focus(); } }
+wideLayout.addEventListener("change", () => setLibrary(false));
 function setAuthPanel(open) { $("authPanel").hidden = !open; $("authButton").setAttribute("aria-expanded", String(open)); if (open) { setLibrary(false); els.token.focus(); } }
 async function connect() {
   state.token = els.token.value.trim();
@@ -189,7 +196,10 @@ $("clearToken").addEventListener("click", () => { sessionStorage.removeItem("wis
 $("libraryButton").addEventListener("click", () => setLibrary($("flightLibrary").hidden));
 $("emptyLibraryButton").addEventListener("click", () => state.token ? setLibrary(true) : setAuthPanel(true));
 $("closeLibrary").addEventListener("click", () => setLibrary(false));
-$("importButton").addEventListener("click", () => { setLibrary(false); showView("logs"); $("dropzone").scrollIntoView({block:"nearest",behavior:"smooth"}); });
+function openImport() { setLibrary(false); showView("logs"); $("dropzone").scrollIntoView({block:"nearest",behavior:"smooth"}); }
+$("importButton").addEventListener("click", openImport);
+$("sidebarImport").addEventListener("click", openImport);
+$("missionSearch").addEventListener("input", renderFlights);
 $("sampleButton").addEventListener("click", async () => {
   if (!state.token) { setAuthPanel(true); return; }
   const button = $("sampleButton"); button.disabled = true;
@@ -212,5 +222,6 @@ tabs.forEach((button,index) => {
   button.addEventListener("click", () => showView(button.dataset.view));
   button.addEventListener("keydown", event => { const target = event.key === "ArrowRight" ? (index+1)%tabs.length : event.key === "ArrowLeft" ? (index+tabs.length-1)%tabs.length : event.key === "Home" ? 0 : event.key === "End" ? tabs.length-1 : null; if (target !== null) { event.preventDefault(); tabs[target].focus(); showView(tabs[target].dataset.view); } });
 });
+setLibrary(false);
 els.token.value = state.token; pipeline("", "No log is being processed.");
 if (state.token) { setApi("", "Connecting…"); refreshFlights(); refreshPatterns(); refreshBulletins(); loadDemoStatus(); } else renderFlights();

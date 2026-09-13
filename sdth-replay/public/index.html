@@ -14,11 +14,22 @@
       rel="stylesheet"
       href="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Widgets/widgets.css"
     />
-    <link rel="stylesheet" href="./replay.css?v=wisl-embed-11" />
+    <link rel="stylesheet" href="./replay.css?v=orbital-6" />
   </head>
   <body>
     <div id="cesiumContainer"></div>
     <div id="hud">
+      <div id="viewMode" aria-label="Replay presentation mode">
+        <button id="studioViewButton" type="button" aria-pressed="true">Studio</button>
+        <button id="mapViewButton" type="button" aria-pressed="false">Map</button>
+        <span>MODEL · NOT TO SCALE</span>
+      </div>
+      <section id="orbitalTelemetry" aria-label="Recorded flight telemetry">
+        <div><span>ALTITUDE</span><strong id="orbitalAltitude">—</strong><small>m</small></div>
+        <div><span>TRACK SPEED</span><strong id="orbitalSpeed">—</strong><small>m/s</small></div>
+        <div><span>BATTERY</span><strong id="orbitalBattery">—</strong><small>%</small></div>
+        <div><span>RECORDED TIME</span><strong id="orbitalRecordedTime">—</strong><small>UTC</small></div>
+      </section>
       <div id="banner" class="banner ok">
         <button id="bannerClose" class="banner-close" type="button" aria-label="Dismiss banner">
           Close
@@ -93,8 +104,17 @@
         <img id="cameraPipImg" alt="Nearest camera frame" />
         <p id="cameraPipCap" class="camera-pip-cap">camera frame</p>
       </div>
+      <aside id="routeOverview" aria-label="Recorded route overview">
+        <div class="overview-title">RECORDED ROUTE <span id="routeOverviewProgress">0%</span></div>
+        <svg viewBox="0 0 240 132" role="img" aria-label="Plan view of recorded flight route">
+          <path id="routeOverviewPath" d="" />
+          <circle id="routeOverviewStart" r="3" />
+          <circle id="routeOverviewCurrent" r="5" />
+        </svg>
+        <p id="modelScaleNote">REPRESENTATIVE MODEL · NOT TO SCALE</p>
+      </aside>
     </div>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Cesium.js"></script>
-    <script type="module" src="./replay.js?v=wisl-embed-11"></script>
+    <script type="module" src="./replay.js?v=orbital-6"></script>
   </body>
 </html>

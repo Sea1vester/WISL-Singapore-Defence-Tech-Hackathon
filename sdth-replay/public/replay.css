@@ -628,11 +628,169 @@ body.replay-embed #cameraPip {
   display: none !important;
 }
 
+#orbitalTelemetry,
+#routeOverview,
+#viewMode {
+  display: none;
+}
+
+html.replay-embed #viewMode,
+body.replay-embed #viewMode {
+  position: absolute;
+  top: 72px;
+  right: 18px;
+  z-index: 24;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid rgba(122, 226, 218, 0.3);
+  border-radius: 7px;
+  background: rgba(5, 19, 29, 0.82);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+}
+
+#viewMode button {
+  border: 0;
+  border-radius: 4px;
+  padding: 5px 7px;
+  background: transparent;
+  color: #8ea5ae;
+  font: 700 9px/1 "SF Mono", monospace;
+  letter-spacing: 0.07em;
+  cursor: pointer;
+}
+
+#viewMode button[aria-pressed="true"] {
+  background: #ff9d4d;
+  color: #17212a;
+}
+
+#viewMode span {
+  margin-left: 5px;
+  padding-right: 3px;
+  color: #78919a;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+html.replay-embed #orbitalTelemetry,
+body.replay-embed #orbitalTelemetry {
+  position: absolute;
+  top: 106px;
+  left: 18px;
+  right: 18px;
+  z-index: 21;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(123, 226, 218, 0.2);
+  border-radius: 9px;
+  background: rgba(5, 19, 29, 0.72);
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+html.replay-embed #orbitalTelemetry > div,
+body.replay-embed #orbitalTelemetry > div {
+  min-width: 0;
+  padding: 9px 12px 10px;
+  background: linear-gradient(145deg, rgba(15, 45, 58, 0.72), rgba(7, 22, 33, 0.64));
+}
+
+html.replay-embed #orbitalTelemetry span,
+body.replay-embed #orbitalTelemetry span {
+  display: block;
+  margin-bottom: 3px;
+  color: #91a9b2;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+html.replay-embed #orbitalTelemetry strong,
+body.replay-embed #orbitalTelemetry strong {
+  color: #e0fff9;
+  font-family: "SF Mono", "Cascadia Code", monospace;
+  font-size: clamp(19px, 2.1vw, 31px);
+  font-weight: 500;
+  letter-spacing: -0.07em;
+}
+
+html.replay-embed #orbitalTelemetry small,
+body.replay-embed #orbitalTelemetry small {
+  margin-left: 4px;
+  color: #ffad63;
+  font-size: 9px;
+}
+
+html.replay-embed #routeOverview,
+body.replay-embed #routeOverview {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 21;
+  display: block;
+  width: 218px;
+  padding: 10px;
+  border: 1px solid rgba(255, 164, 90, 0.38);
+  border-radius: 10px;
+  background: rgba(5, 20, 30, 0.84);
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(12px);
+}
+
+.overview-title {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  color: #b8d1d5;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.overview-title span { color: #ffad63; }
+
+#routeOverview svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+  background:
+    linear-gradient(rgba(104, 225, 195, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(104, 225, 195, 0.045) 1px, transparent 1px),
+    #071d2a;
+  background-size: 16px 16px;
+}
+
+#routeOverviewPath {
+  fill: none;
+  stroke: #ff9d4d;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#routeOverviewStart { fill: #68e1c3; stroke: #06202b; stroke-width: 2; }
+#routeOverviewCurrent { fill: #fff4db; stroke: #ff9d4d; stroke-width: 3; }
+
+#modelScaleNote {
+  margin: 6px 0 0;
+  color: #78919a;
+  font-size: 7px;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
 html.replay-embed #transport,
 body.replay-embed #transport {
   left: 14px;
-  right: 14px;
+  right: auto;
   bottom: 14px;
+  width: min(520px, calc(100% - 46px));
   min-height: 78px;
   padding: 7px 9px;
   display: grid;
@@ -680,7 +838,7 @@ body.replay-embed #transport #resetButton {
 html.replay-embed #transport #playButton.active,
 body.replay-embed #transport #playButton.active {
   color: #09120f;
-  background: #68e1c3;
+  background: #ff9d4d;
 }
 
 html.replay-embed #transportStatus,
@@ -722,6 +880,29 @@ body.replay-embed .cesium-viewer-bottom {
 }
 
 @media (max-width: 640px) {
+  html.replay-embed #viewMode,
+  body.replay-embed #viewMode { top: 72px; right: 12px; }
+
+  #viewMode span { display: none; }
+  html.replay-embed #orbitalTelemetry,
+  body.replay-embed #orbitalTelemetry {
+    top: 104px;
+    left: 12px;
+    right: 12px;
+  }
+
+  html.replay-embed #orbitalTelemetry > div,
+  body.replay-embed #orbitalTelemetry > div { padding: 7px 8px 8px; }
+
+  html.replay-embed #orbitalTelemetry strong,
+  body.replay-embed #orbitalTelemetry strong { font-size: 18px; }
+
+  html.replay-embed #routeOverview,
+  body.replay-embed #routeOverview { right: 12px; bottom: 12px; width: 132px; padding: 7px; }
+
+  html.replay-embed #transport,
+  body.replay-embed #transport { left: 12px; bottom: 12px; width: calc(100% - 180px); }
+
   html.replay-embed #transport #speeds button:nth-child(n + 5),
   body.replay-embed #transport #speeds button:nth-child(n + 5),
   html.replay-embed #transportStatus,
@@ -730,6 +911,14 @@ body.replay-embed .cesium-viewer-bottom {
   body.replay-embed #transportTelemetry {
     display: none;
   }
+}
+
+@media (max-width: 480px) {
+  html.replay-embed #routeOverview,
+  body.replay-embed #routeOverview { display: none; }
+
+  html.replay-embed #transport,
+  body.replay-embed #transport { width: calc(100% - 24px); }
 }
 
 /* ---- Camera frame PiP (nearest onTick) ---- */

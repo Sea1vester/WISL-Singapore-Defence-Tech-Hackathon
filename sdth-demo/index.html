@@ -3,13 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#090e14" />
+  <meta name="theme-color" content="#071520" />
   <title>WISL · Mission replay</title>
-  <link rel="stylesheet" href="./demo.css?v=studio-5" />
+  <link rel="stylesheet" href="./demo.css?v=cockpit-1" />
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="#" aria-label="WISL home"><span class="brand-mark">W</span>WISL<span class="brand-divider"></span><span class="product-name">Flight review</span></a>
+    <a class="brand" href="#" aria-label="WISL home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 2 30 16 16 30 2 16Z"/><path d="m16 9 7 7-7 7-7-7Z"/></svg></span><span>WISL<span class="brand-light"> REPLAY</span></span></a>
+    <p class="workspace-label"><span></span> Recorded mission workspace</p>
     <div class="topbar-actions">
       <span class="connection"><span class="live-dot" id="apiDot"></span><span id="apiState">Not connected</span></span>
       <button id="authButton" class="quiet-button" type="button" aria-expanded="false">Session</button>
@@ -22,14 +23,18 @@
     <button id="saveToken" class="button" type="button">Connect</button><button id="clearToken" class="text-button" type="button">Clear session</button>
     <p>The key stays in this browser session.</p>
   </section>
+  <div class="workspace">
   <aside class="flight-library" id="flightLibrary" hidden aria-label="Flight library">
-    <div class="card-heading"><div><p class="eyebrow">Recorded flights</p><h2>Flight library</h2></div><div class="inline-actions"><button id="refreshFlights" class="icon-button" type="button" aria-label="Refresh flights">↻</button><button id="closeLibrary" class="icon-button" type="button" aria-label="Close flight library">×</button></div></div>
-    <p class="muted">Select a record to load its path and evidence.</p><div id="flightList" class="flight-list"></div>
+    <div class="card-heading"><div><p class="eyebrow">Your workspace</p><h2>Mission library <span id="libraryCount">00</span></h2></div><div class="inline-actions"><button id="refreshFlights" class="icon-button" type="button" aria-label="Refresh flights">↻</button><button id="closeLibrary" class="icon-button" type="button" aria-label="Close flight library">×</button></div></div>
+    <label class="mission-search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5"/><path d="m12 12 5 5"/></svg><input id="missionSearch" type="search" placeholder="Find a mission…" aria-label="Search loaded missions" /></label>
+    <div class="library-label"><span>RECORDED MISSIONS</span><span>SELECT ↙</span></div>
+    <div id="flightList" class="flight-list"></div>
+    <div class="sidebar-footer"><p class="eyebrow">From record to understanding</p><div class="review-steps"><span><b>01</b> Import</span><i>→</i><span><b>02</b> Replay</span><i>→</i><span><b>03</b> Review</span></div><button id="sidebarImport" class="button" type="button">＋ Import a flight log</button><p>Recorded evidence. Human decisions.</p></div>
   </aside>
   <main>
     <section class="replay-stage" aria-label="Mission replay">
-      <div class="stage-heading"><p class="eyebrow">Mission replay <span class="recorded-label">Recorded · 3D</span></p><h1 id="selectedFlightTitle">Your flight. In context.</h1><p id="flightMeta">Open a recorded flight to follow its path and investigate its evidence.</p></div>
-      <a id="openReplay" class="expand-link disabled" href="#" target="_blank" rel="noopener" aria-label="Open full replay">Expand ↗</a>
+      <div class="stage-heading"><p class="eyebrow"><span class="stage-dot"></span> Mission replay <span class="recorded-label">Recorded · 3D</span></p><h1 id="selectedFlightTitle">Your flight. In context.</h1><p id="flightMeta">Open a recorded flight to follow its path and investigate its evidence.</p></div>
+      <a id="openReplay" class="expand-link disabled" href="#" target="_blank" rel="noopener" aria-label="Open full replay">Full view ↗</a>
       <div id="replayEmpty" class="replay-empty">
         <div class="empty-orbit" aria-hidden="true"><span></span><span></span><span></span><i>W</i></div>
         <h2>Every flight has a story.</h2><p>Load a recorded mission, press play, and follow the evidence.</p>
@@ -44,13 +49,13 @@
         <button class="nav-link" id="tab-patterns" role="tab" aria-selected="false" aria-controls="patternsView" data-view="patterns" type="button" tabindex="-1">Recurring patterns</button>
         <button class="nav-link" id="tab-bulletins" role="tab" aria-selected="false" aria-controls="bulletinsView" data-view="bulletins" type="button" tabindex="-1">Bulletins</button>
         <button class="nav-link" id="tab-logs" role="tab" aria-selected="false" aria-controls="logsView" data-view="logs" type="button" tabindex="-1">Logs & uploads <span id="uploadTabDot" hidden>•</span></button>
-        <span class="dock-note">Recorded evidence · Human review</span>
+        <span class="dock-note"><i></i> Evidence workspace</span>
       </nav>
       <div class="dock-content">
         <section class="view active" role="tabpanel" aria-labelledby="tab-overview" id="overviewView">
           <div class="analysis-columns">
             <article class="evidence-column"><div class="card-heading"><div><p class="eyebrow">Indexed observations</p><h2 id="incidentTitle">No flight selected</h2></div></div><div id="incidentList" class="incident-list empty-state">Select a flight to inspect its recorded evidence.</div></article>
-            <article class="question-column"><div class="card-heading"><div><p class="eyebrow">Ask the record</p><h2>From a question to the evidence.</h2></div></div>
+            <article class="question-column"><div class="card-heading"><div><p class="eyebrow">Ask the record</p><h2>Ask this mission.</h2></div></div>
               <div class="query-presets"><button type="button" data-query="What happened on this flight?">What happened?</button><button type="button" data-query="Where is the evidence?">Where is the evidence?</button><button type="button" data-query="Which other flights have the same warning?">Similar warnings</button></div>
               <form id="questionForm"><input id="questionInput" aria-label="Question about recorded evidence" type="text" required placeholder="Ask about this mission…" /><button class="button secondary" type="submit">Ask ↗</button></form>
               <div id="analysisAnswer" class="analysis-answer empty-state" aria-live="polite">Answers link to the selected record and indexed fleet evidence.</div>
@@ -67,7 +72,8 @@
       </div>
     </section>
   </main>
-  <template id="flightTemplate"><button class="flight-row" type="button"><span class="flight-source"></span><span class="flight-time"></span><span class="flight-arrow">↗</span></button></template>
-  <script type="module" src="./demo.js?v=studio-5"></script>
+  </div>
+  <template id="flightTemplate"><button class="flight-row" type="button"><span class="flight-symbol" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M11 11 6 6m15 5 5-5M11 21l-5 5m15-5 5 5M11 11h10v10H11Z"/><circle cx="6" cy="6" r="4"/><circle cx="26" cy="6" r="4"/><circle cx="6" cy="26" r="4"/><circle cx="26" cy="26" r="4"/></svg></span><span class="flight-source"></span><span class="flight-time"></span><span class="flight-arrow">↗</span></button></template>
+  <script type="module" src="./demo.js?v=cockpit-1"></script>
 </body>
 </html>
