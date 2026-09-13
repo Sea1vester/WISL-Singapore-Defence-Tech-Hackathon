@@ -3,7 +3,7 @@
 CesiumJS 3D replay for recorded WISL flights.
 
 Laptop B serves the viewer at `/replay/` from the telemetry API.
-It draws WGS84 path samples on an ellipsoid globe with OpenStreetMap imagery, animates the UAV on the recorded clock, and overlays indexed incidents.
+It draws WGS84 path samples over cached terrain with OpenStreetMap imagery or an embedded tabletop treatment, animates the UAV on the recorded clock, and overlays indexed incidents.
 When `camera_frame` visuals have `frame_census` rows, `#censusLine` shows `cars N · people M` from the nearest `recorded_at` on that clock.
 That HUD is a laptop sidecar join, not an onboard detector.
 
@@ -53,7 +53,9 @@ pytest tests/test_replay_viewer.py
 ## Controls
 
 Cesium camera: pinch to zoom, drag to orbit the UAV (including from below), Home to reset.
-The globe uses real world elevation where available, drapes OSM imagery on that terrain, and plants OpenStreetMap trees near the flight.
+The embedded console defaults to **Tabletop**: a finite terrain model using cached Esri elevation, OpenStreetMap footprint geometry, painted facets and an understated focus effect. **Map** restores standard imagery over the same cached elevation. Both views disable cast shadows. Feature heights are illustrative and capped; the representative aircraft is enlarged. This is a replay visualisation, not an obstacle-clearance model. All 13 submission demo flights are covered by the three regional caches. Outside the cache bounds, the viewer explicitly reports flat, uncached terrain.
+
+See [data sources and cache regeneration](public/assets/TABLETOP-SOURCES.md).
 Play/pause and speed buttons drive the Cesium clock.
 Pick an ingested flight or a local dataset from the side panel.
 Census HUD updates with the clock when census rows exist for that flight.

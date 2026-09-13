@@ -14,16 +14,16 @@
       rel="stylesheet"
       href="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Widgets/widgets.css"
     />
-    <link rel="stylesheet" href="./replay.css?v=orbital-6" />
+    <link rel="stylesheet" href="./replay.css?v=tabletop-3" />
   </head>
   <body>
     <div id="cesiumContainer"></div>
     <div id="hud">
       <div id="viewMode" aria-label="Replay presentation mode">
-        <button id="studioViewButton" type="button" aria-pressed="true">Studio</button>
+        <button id="studioViewButton" type="button" aria-pressed="true">Tabletop</button>
         <button id="mapViewButton" type="button" aria-pressed="false">Map</button>
-        <span>MODEL · NOT TO SCALE</span>
       </div>
+      <div id="terrainContext" role="status">LOADING MAP CONTEXT</div>
       <section id="orbitalTelemetry" aria-label="Recorded flight telemetry">
         <div><span>ALTITUDE</span><strong id="orbitalAltitude">—</strong><small>m</small></div>
         <div><span>TRACK SPEED</span><strong id="orbitalSpeed">—</strong><small>m/s</small></div>
@@ -115,6 +115,6 @@
       </aside>
     </div>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Cesium.js"></script>
-    <script type="module" src="./replay.js?v=orbital-6"></script>
+    <script type="module" src="./replay.js?v=tabletop-3"></script>
   </body>
 </html>

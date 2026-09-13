@@ -1042,3 +1042,19 @@ body.replay-embed .cesium-viewer-bottom {
   left: 16px !important;
   right: 336px !important;
 }
+
+/* Tabletop map: keep source context readable without crowding the controls. */
+#terrainContext { display:none; }
+html.replay-embed #terrainContext {
+  display:block; position:absolute; top:163px; left:22px; z-index:20;
+  font:8px/1.5 ui-monospace,monospace; letter-spacing:.09em;
+  color:#abc4c7; text-shadow:0 1px 3px #061520; pointer-events:none;
+}
+html.replay-embed .cesium-widget-credits { font-size:9px; }
+html.replay-embed .cesium-widget-credits img { max-height:18px; width:auto; }
+
+html.replay-embed #cesiumContainer:after {
+  content:""; position:absolute; inset:0 0 auto; height:165px; z-index:2;
+  background:linear-gradient(#071722f5 0%,#071722c9 45%,#07172200 100%);
+  pointer-events:none;
+}

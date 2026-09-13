@@ -1,3 +1,5 @@
+import { createTabletop } from './tabletop.mjs?v=tabletop-3';
+import { loadTabletopAtlas, routeContext, atlasHeight, tabletopBounds, createCachedTerrain, createTabletopFinish } from './tabletop-context.mjs?v=tabletop-3';
 import {
   alignIncidents,
   bannerState,
@@ -16,7 +18,7 @@ import {
   replayTimeAtPercent,
   replayTimeForTimestamp,
   sampleEvent,
-} from "/replay/lib/flight.mjs?v=orbital-6";
+} from "/replay/lib/flight.mjs?v=tabletop-3";
 
 const CESIUM_VERSION = "1.125";
 const SPEED_VALUES = [0.5, 1, 2, 4, 8, 12];
@@ -88,6 +90,10 @@ const state = {
   pipObjectUrl: null,
   mapVisible: params.get("embed") !== "1",
   routeOverview: null,
+  atlas: [],
+  tabletop: null,
+  tabletopFinish: null,
+  mapContext: null,
 };
 
 const els = {
@@ -237,6 +243,7 @@ async function probeUavModel() {
 }
 
 async function createTerrainProvider() {
+  if (state.atlas.length) return createCachedTerrain(Cesium, state.atlas);
   // The embedded review stage must be immediately useful on an isolated
   // network. The ellipsoid keeps the real WGS84 path and camera while avoiding
   // an unbounded third-party terrain handshake.
@@ -267,6 +274,7 @@ async function createViewer() {
   const baseMap = new Cesium.OpenStreetMapImageryProvider({
     url: "https://tile.openstreetmap.org/",
   });
+  state.atlas = await loadTabletopAtlas();
   const terrainProvider = await createTerrainProvider();
   const viewer = new Cesium.Viewer("cesiumContainer", {
     animation: false,
@@ -286,6 +294,8 @@ async function createViewer() {
       gamma: 0.82,
     }),
     shouldAnimate: false,
+    shadows: false,
+    terrainShadows: Cesium.ShadowMode.DISABLED,
     // Recorded aircraft must progress without a user gesture. Cesium only
     // ticks its Clock while rendering; a demand-rendered scene can stop after
     // one frame even when shouldAnimate is true.
@@ -304,6 +314,8 @@ async function createViewer() {
   viewer.scene.skyAtmosphere = undefined;
   viewer.scene.globe.showGroundAtmosphere = false;
   viewer.scene.globe.enableLighting = false;
+  viewer.shadows = false;
+  viewer.scene.shadowMap.enabled = false;
   viewer.scene.globe.depthTestAgainstTerrain = true;
   viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#061925");
   viewer.scene.fog.enabled = true;
@@ -327,6 +339,10 @@ async function createViewer() {
   viewer.clock.shouldAnimate = false;
   viewer.clock.canAnimate = true;
   viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK_MULTIPLIER;
+  state.tabletopFinish = createTabletopFinish(viewer, Cesium);
+  state.tabletopFinish.enabled = !state.mapVisible;
+  viewer.cesiumWidget.creditDisplay.addStaticCredit(new Cesium.Credit(
+    '<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap</a> · <a href="https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer" target="_blank">Esri terrain</a>', true));
   enableInspectCamera(viewer);
   return viewer;
 }
@@ -392,8 +408,8 @@ function startOrbitFromCamera() {
   }
   const range = Cesium.Cartesian3.distance(viewer.camera.positionWC, target);
   state.orbit.heading = viewer.camera.heading;
-  state.orbit.pitch = params.get("embed") === "1" ? -0.52 : clamp(viewer.camera.pitch, -1.48, 1.48);
-  state.orbit.range = params.get("embed") === "1" ? clamp(range, 110, 420) : clamp(range, 4, 30000);
+  state.orbit.pitch = params.get("embed") === "1" ? clamp(viewer.camera.pitch, -1.25, -0.30) : clamp(viewer.camera.pitch, -1.48, 1.48);
+  state.orbit.range = params.get("embed") === "1" ? clamp(range, 210, 650) : clamp(range, 4, 30000);
   setOrbitEnabled(true);
 }
 
@@ -766,6 +782,7 @@ async function sampleTerrainHeights(lonLats) {
   if (!lonLats.length) {
     return [];
   }
+  if (state.atlas.length) return lonLats.map(([lon, lat]) => atlasHeight(state.atlas, lon, lat));
   const provider = state.viewer.terrainProvider;
   const cartographics = lonLats.map(([lon, lat]) => Cesium.Cartographic.fromDegrees(lon, lat));
   if (!provider || provider instanceof Cesium.EllipsoidTerrainProvider) {
@@ -1202,7 +1219,7 @@ function focusActiveRoute(flight) {
   if (positions?.length) {
     viewer.camera.flyToBoundingSphere(Cesium.BoundingSphere.fromPoints(positions), {
       duration: 0,
-      offset: new Cesium.HeadingPitchRange(0, -0.58, params.get("embed") === "1" ? 230 : 320),
+      offset: new Cesium.HeadingPitchRange(-0.5, -0.72, params.get("embed") === "1" ? 460 : 460),
     });
     startOrbitFromCamera();
     return;
@@ -1210,7 +1227,7 @@ function focusActiveRoute(flight) {
   try {
     void viewer.flyTo(path, {
       duration: 0.8,
-      offset: new Cesium.HeadingPitchRange(0, -0.58, params.get("embed") === "1" ? 230 : 320),
+      offset: new Cesium.HeadingPitchRange(-0.5, -0.72, params.get("embed") === "1" ? 460 : 460),
     }).then(() => startOrbitFromCamera());
   } catch {
     // An interrupted route fit is harmless; the next selected flight redraws it.
@@ -1544,6 +1561,16 @@ async function showActiveFlight() {
   state.followEntity = null;
   state.followFlightId = null;
   clearEntities();
+  state.tabletop?.destroy();
+  state.tabletop = null;
+  state.mapContext = routeContext(state.atlas, flight.samples);
+  if (state.mapContext) {
+    state.tabletop = createTabletop(state.viewer, state.mapContext, {
+      bounds: tabletopBounds(state.mapContext, flight.samples),
+      show: !state.mapVisible,
+    });
+  }
+  setPresentationMode(state.mapVisible);
   renderFlightList();
   renderFlightLegend();
   const pose = interpolate(flight, flight.samples[0].time_s);
@@ -2062,12 +2089,19 @@ function setPresentationMode(mapVisible) {
   if (imageryLayer) {
     imageryLayer.show = mapVisible;
     imageryLayer.alpha = mapVisible ? 1 : 0;
-    imageryLayer.brightness = mapVisible ? 0.58 : 0.26;
+    imageryLayer.brightness = mapVisible ? 0.70 : 0.26;
     imageryLayer.contrast = mapVisible ? 1 : 1.2;
     imageryLayer.saturation = mapVisible ? 1 : 0.04;
     imageryLayer.hue = mapVisible ? 0 : 4.2;
   }
+  state.tabletop?.setVisible(!mapVisible);
+  if (state.tabletopFinish) state.tabletopFinish.enabled = !mapVisible;
+  const contextNote = document.getElementById('terrainContext');
+  if (contextNote) contextNote.textContent = state.mapContext
+    ? (mapVisible ? 'OSM MAP · CACHED ELEVATION' : 'OSM FOOTPRINTS · STYLIZED HEIGHTS')
+    : 'TERRAIN UNCACHED · FLAT GLOBE';
   if (viewer) {
+    viewer.scene.globe.show = mapVisible || !state.tabletop;
     viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString(mapVisible ? "#111b22" : "#194452");
     viewer.scene.requestRender();
   }

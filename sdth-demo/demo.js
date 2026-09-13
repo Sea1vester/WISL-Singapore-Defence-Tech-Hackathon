@@ -1,4 +1,4 @@
-import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=cockpit-1";
+import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=tabletop-3";
 
 const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0 };
 const $ = (id) => document.getElementById(id);
@@ -124,7 +124,7 @@ function renderIncidents(items) {
 }
 function setReplay(flightId, timestamp = null) {
   const fullUrl = new URL("/replay/", window.location.origin); fullUrl.searchParams.set("flights", flightId); if (state.token) fullUrl.searchParams.set("token", state.token);
-  const frameUrl = new URL(fullUrl); frameUrl.searchParams.set("embed", "1"); frameUrl.searchParams.set("v", "cockpit-1"); if (timestamp) { fullUrl.searchParams.set("timestamp", timestamp); frameUrl.searchParams.set("timestamp", timestamp); }
+  const frameUrl = new URL(fullUrl); frameUrl.searchParams.set("embed", "1"); frameUrl.searchParams.set("v", "tabletop-3"); if (timestamp) { fullUrl.searchParams.set("timestamp", timestamp); frameUrl.searchParams.set("timestamp", timestamp); }
   els.replayFrame.src = frameUrl.toString(); els.replayFrame.hidden = false; els.replayEmpty.hidden = true; els.openReplay.href = fullUrl.toString(); els.openReplay.classList.remove("disabled");
 }
 async function selectFlight(flightId, timestamp = null) {
