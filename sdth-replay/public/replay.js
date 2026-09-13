@@ -1,5 +1,6 @@
-import { createTabletop } from './tabletop.mjs?v=tabletop-3';
-import { loadTabletopAtlas, routeContext, atlasHeight, tabletopBounds, createCachedTerrain, createTabletopFinish } from './tabletop-context.mjs?v=tabletop-3';
+window.addEventListener('error', event => console.error('Replay diagnostic', event.error?.stack || event.message));
+import { createStreamingTabletop } from './tabletop-stream.mjs?v=stream-3';
+import { loadTabletopAtlas, routeContext, atlasHeight, tabletopBounds, createCachedTerrain, createTabletopFinish } from './tabletop-context.mjs?v=stream-4';
 import {
   alignIncidents,
   bannerState,
@@ -18,7 +19,7 @@ import {
   replayTimeAtPercent,
   replayTimeForTimestamp,
   sampleEvent,
-} from "/replay/lib/flight.mjs?v=tabletop-3";
+} from "/replay/lib/flight.mjs?v=stream-3";
 
 const CESIUM_VERSION = "1.125";
 const SPEED_VALUES = [0.5, 1, 2, 4, 8, 12];
@@ -94,6 +95,7 @@ const state = {
   tabletop: null,
   tabletopFinish: null,
   mapContext: null,
+  terrainProgress: null,
 };
 
 const els = {
@@ -274,8 +276,7 @@ async function createViewer() {
   const baseMap = new Cesium.OpenStreetMapImageryProvider({
     url: "https://tile.openstreetmap.org/",
   });
-  state.atlas = await loadTabletopAtlas();
-  const terrainProvider = await createTerrainProvider();
+  const terrainProvider = new Cesium.EllipsoidTerrainProvider();
   const viewer = new Cesium.Viewer("cesiumContainer", {
     animation: false,
     timeline: false,
@@ -724,9 +725,9 @@ function uavVisual(color) {
       ? {
           model: {
             uri: UAV_MODEL_URI,
-            minimumPixelSize: params.get("embed") === "1" ? 140 : 24,
-            maximumScale: params.get("embed") === "1" ? 180 : 56,
-            color: Cesium.Color.fromCssColorString("#fff1dc").withAlpha(0.96),
+            minimumPixelSize: params.get("embed") === "1" ? 28 : 24,
+            maximumScale: 24,
+            color: Cesium.Color.fromCssColorString("#fff1dc"),
             colorBlendMode: Cesium.ColorBlendMode.MIX,
             colorBlendAmount: 0.18,
           },
@@ -750,7 +751,7 @@ function uavVisual(color) {
       outlineWidth: 3,
       style: Cesium.LabelStyle.FILL_AND_OUTLINE,
       showBackground: false,
-      pixelOffset: new Cesium.Cartesian2(0, params.get("embed") === "1" ? -65 : -34),
+      pixelOffset: new Cesium.Cartesian2(0, params.get("embed") === "1" ? -24 : -24),
       disableDepthTestDistance: Number.POSITIVE_INFINITY,
       scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 5000, 0.5),
     },
@@ -1153,14 +1154,14 @@ async function addFlightToGlobe(flight, color, track) {
         globeAltM(flight, incident.alt_m, incidentHeights[index] || 0),
       ),
       point: {
-        pixelSize: 12,
-        color:
+        pixelSize: params.get("embed") === "1" ? 18 : 12,
+        color: params.get("embed") === "1" ? Cesium.Color.TRANSPARENT :
           incident.severity === "critical"
             ? Cesium.Color.fromCssColorString("#e8564f")
             : incident.severity === "warning"
               ? Cesium.Color.fromCssColorString("#f2a93b")
               : Cesium.Color.fromCssColorString("#4fd8c4"),
-        outlineColor: Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.8),
+        outlineColor: params.get("embed") === "1" ? Cesium.Color.fromCssColorString(incident.severity === "critical" ? "#e8564f" : "#ffad5f") : Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.8),
         outlineWidth: 1.5,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
         scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 10000, 0.5),
@@ -1563,11 +1564,17 @@ async function showActiveFlight() {
   clearEntities();
   state.tabletop?.destroy();
   state.tabletop = null;
+  state.terrainProgress = null;
   state.mapContext = routeContext(state.atlas, flight.samples);
   if (state.mapContext) {
-    state.tabletop = createTabletop(state.viewer, state.mapContext, {
+    state.tabletop = createStreamingTabletop(state.viewer, state.mapContext, {
       bounds: tabletopBounds(state.mapContext, flight.samples),
       show: !state.mapVisible,
+      onProgress: progress => {
+        if(drawId!==state.globeDraw)return;
+        state.terrainProgress=progress;
+        updateTerrainContext();
+      },
     });
   }
   setPresentationMode(state.mapVisible);
@@ -1856,8 +1863,8 @@ async function loadLiveFlight(flightId) {
 }
 
 async function loadOfflineDemo() {
-  const path = await fetch("./assets/demo_path.json").then((response) => response.json());
-  const incidents = await fetch("./assets/demo_incidents.json").then((response) => response.json());
+  const path = await fetch("./assets/demo_path.json?v=stream-4").then((response) => response.json());
+  const incidents = await fetch("./assets/demo_incidents.json?v=stream-4").then((response) => response.json());
   const flight = await hydrateFlight(path, { incidents });
   return [flight];
 }
@@ -2082,6 +2089,17 @@ function setPlaying(playing) {
   viewer.scene.requestRender();
 }
 
+function updateTerrainContext() {
+  const note=document.getElementById('terrainContext');
+  if(!note)return;
+  const p=state.terrainProgress;
+  note.textContent=!state.mapContext ? 'TERRAIN UNCACHED · FLAT GLOBE'
+    : state.mapVisible ? 'OSM MAP · CACHED ELEVATION'
+    : p && !p.complete ? `LOADING SURROUNDINGS · TERRAIN ${p.terrain}/${p.terrainTotal} · MAP ${p.map}/${p.mapTotal}`
+    : p?.failed ? 'TERRAIN READY · SOME MAP DETAILS UNAVAILABLE'
+    : '9× TERRAIN · OSM FOOTPRINTS · STYLIZED HEIGHTS';
+}
+
 function setPresentationMode(mapVisible) {
   state.mapVisible = mapVisible;
   const viewer = state.viewer;
@@ -2096,10 +2114,7 @@ function setPresentationMode(mapVisible) {
   }
   state.tabletop?.setVisible(!mapVisible);
   if (state.tabletopFinish) state.tabletopFinish.enabled = !mapVisible;
-  const contextNote = document.getElementById('terrainContext');
-  if (contextNote) contextNote.textContent = state.mapContext
-    ? (mapVisible ? 'OSM MAP · CACHED ELEVATION' : 'OSM FOOTPRINTS · STYLIZED HEIGHTS')
-    : 'TERRAIN UNCACHED · FLAT GLOBE';
+  updateTerrainContext();
   if (viewer) {
     viewer.scene.globe.show = mapVisible || !state.tabletop;
     viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString(mapVisible ? "#111b22" : "#194452");
@@ -2260,12 +2275,16 @@ function bindControls() {
 
 async function bootstrap(create = true) {
   if (create) {
-    await probeUavModel();
+    const atlasReady=loadTabletopAtlas();
+    const modelReady=probeUavModel();
     state.viewer = await createViewer();
     bindControls();
     attachClock();
     setupClickToFollow(state.viewer);
     setupIncidentTooltip(state.viewer);
+    state.atlas=await atlasReady;
+    state.viewer.terrainProvider=await createTerrainProvider();
+    await modelReady;
   }
   const requested = (params.get("flights") || "")
     .split(",")

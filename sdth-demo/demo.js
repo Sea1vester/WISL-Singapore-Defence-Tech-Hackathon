@@ -1,6 +1,10 @@
-import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=tabletop-3";
+import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=stream-5";
 
-const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0 };
+const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false };
+const DEMO_LIBRARY_LOGS = [
+  { url: "/demo/fixtures/dji_csv_gps_jamming.csv", name: "dji_csv_gps_jamming.csv", type: "text/csv" },
+  { url: "/demo/fixtures/orbiter4_gps_denied_frozen.json", name: "orbiter4_gps_denied_frozen.json", type: "application/json" },
+];
 const $ = (id) => document.getElementById(id);
 const wideLayout = window.matchMedia("(min-width: 760px)");
 const els = { apiDot: $("apiDot"), apiState: $("apiState"), authPanel: $("authPanel"), token: $("tokenInput"), uploadMessage: $("uploadMessage"), uploadStatus: $("uploadStatus"), traceDetail: $("traceDetail"), file: $("logFile"), flightList: $("flightList"), flightMeta: $("flightMeta"), selectedFlightTitle: $("selectedFlightTitle"), incidentTitle: $("incidentTitle"), incidentCount: $("incidentCount"), incidentList: $("incidentList"), modelState: $("modelState"), replayEmpty: $("replayEmpty"), replayFrame: $("replayFrame"), openReplay: $("openReplay"), patternList: $("patternList"), bulletinList: $("bulletinList"), analysisAnswer: $("analysisAnswer"), question: $("questionInput"), localAnalysis: $("localAnalysis"), localAnalysisBody: $("localAnalysisBody") };
@@ -124,7 +128,7 @@ function renderIncidents(items) {
 }
 function setReplay(flightId, timestamp = null) {
   const fullUrl = new URL("/replay/", window.location.origin); fullUrl.searchParams.set("flights", flightId); if (state.token) fullUrl.searchParams.set("token", state.token);
-  const frameUrl = new URL(fullUrl); frameUrl.searchParams.set("embed", "1"); frameUrl.searchParams.set("v", "tabletop-3"); if (timestamp) { fullUrl.searchParams.set("timestamp", timestamp); frameUrl.searchParams.set("timestamp", timestamp); }
+  const frameUrl = new URL(fullUrl); frameUrl.searchParams.set("embed", "1"); frameUrl.searchParams.set("v", "stream-3"); if (timestamp) { fullUrl.searchParams.set("timestamp", timestamp); frameUrl.searchParams.set("timestamp", timestamp); }
   els.replayFrame.src = frameUrl.toString(); els.replayFrame.hidden = false; els.replayEmpty.hidden = true; els.openReplay.href = fullUrl.toString(); els.openReplay.classList.remove("disabled");
 }
 async function selectFlight(flightId, timestamp = null) {
@@ -183,11 +187,55 @@ function showView(view) {
 function setLibrary(open) { const visible = open || wideLayout.matches; $("flightLibrary").hidden = !visible; $("libraryButton").setAttribute("aria-expanded", String(visible)); if (open) { setAuthPanel(false); $("missionSearch").focus(); } }
 wideLayout.addEventListener("change", () => setLibrary(false));
 function setAuthPanel(open) { $("authPanel").hidden = !open; $("authButton").setAttribute("aria-expanded", String(open)); if (open) { setLibrary(false); els.token.focus(); } }
+async function waitForUpload(uploadId) {
+  const deadline = Date.now() + 60000;
+  while (Date.now() < deadline) {
+    let upload;
+    try { upload = await api(`/v1/uploads/${encodeURIComponent(uploadId)}`); }
+    catch { upload = await api(`/v1/logs/${encodeURIComponent(uploadId)}/status`); }
+    if (uploadComplete(upload.status)) return upload;
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+  throw new Error("Demo log processing timed out.");
+}
+
+async function seedDemoLibrary() {
+  if (!state.token || state.seedingLibrary) return;
+  const already = new Set(state.flights.flatMap((flight) => [flight.original_filename, flight.filename, flight.upload_filename].filter(Boolean)));
+  const pending = DEMO_LIBRARY_LOGS.filter((item) => !already.has(item.name));
+  if (!pending.length) return;
+  state.seedingLibrary = true;
+  setApi("", "Loading demo missions…");
+  try {
+    let firstId = null;
+    for (const item of pending) {
+      const response = await fetch(item.url);
+      if (!response.ok) throw new Error(`The demo log ${item.name} could not be loaded.`);
+      const data = new FormData();
+      data.append("file", new File([await response.blob()], item.name, { type: item.type }));
+      const uploaded = await fetch("/v1/logs/upload", { method: "POST", headers: authHeaders(), body: data });
+      const body = await uploaded.json().catch(() => ({}));
+      if (!uploaded.ok) throw new Error(detail(body));
+      const ready = await waitForUpload(body.upload_id);
+      if (ready.status === "failed") throw new Error(ready.error || `${item.name} could not be processed.`);
+      if (ready.flight_id && !firstId) firstId = ready.flight_id;
+    }
+    await refreshFlights();
+    if (firstId && !state.selectedFlight) await selectFlight(firstId);
+    setApi("online", "Demo missions ready");
+  } catch (error) {
+    setApi("error", error.message);
+  } finally {
+    state.seedingLibrary = false;
+  }
+}
+
 async function connect() {
   state.token = els.token.value.trim();
   if (!state.token) return;
   sessionStorage.setItem("wislDemoToken", state.token); setAuthPanel(false); setApi("", "Connecting…");
   await Promise.all([refreshFlights(), refreshPatterns(), refreshBulletins(), loadDemoStatus()]);
+  await seedDemoLibrary();
 }
 $("authButton").addEventListener("click", () => setAuthPanel($("authPanel").hidden));
 $("saveToken").addEventListener("click", connect);
@@ -224,4 +272,4 @@ tabs.forEach((button,index) => {
 });
 setLibrary(false);
 els.token.value = state.token; pipeline("", "No log is being processed.");
-if (state.token) { setApi("", "Connecting…"); refreshFlights(); refreshPatterns(); refreshBulletins(); loadDemoStatus(); } else renderFlights();
+if (state.token) { setApi("", "Connecting…"); refreshFlights().then(() => Promise.all([refreshPatterns(), refreshBulletins(), loadDemoStatus(), seedDemoLibrary()])); } else renderFlights();

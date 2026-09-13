@@ -202,10 +202,10 @@ function groundFunction(data, options) {
   return (lon, lat) => elevationHeightAt(elevation, lon, lat);
 }
 
-function terrainTriangles(C, elevation, getGround, renderBounds) {
+function terrainTriangles(C, elevation, getGround, renderBounds, resolution = 32) {
   const bounds = normalizeBounds(renderBounds) || normalizeBounds(elevation?.bounds);
-  const columns = Math.min(48, Math.floor(Number(elevation?.columns)));
-  const rows = Math.min(48, Math.floor(Number(elevation?.rows)));
+  const columns = Math.min(resolution, Math.floor(Number(elevation?.columns)));
+  const rows = Math.min(resolution, Math.floor(Number(elevation?.rows)));
   if (!bounds || columns < 2 || rows < 2 || !Array.isArray(elevation?.heights)) return [];
   const result = [];
   for (let row = 0; row < rows - 1; row += 1) for (let col = 0; col < columns - 1; col += 1) {
@@ -242,8 +242,9 @@ export function createTabletop(viewer, data, options = {}) {
   ];
   const elevationHeights = Array.isArray(elevation?.heights) ? elevation.heights.map(Number).filter(Number.isFinite) : [];
   const baseHeight = Number.isFinite(Number(options.baseHeight)) ? Number(options.baseHeight) : (elevationHeights.length ? Math.min(...elevationHeights) - 8 : -9);
-  if (elevation?.heights) {
-    add(terrainTriangles(C, elevation, ground, bounds));
+  if (options.terrain !== false && elevation?.heights) {
+    add(terrainTriangles(C, elevation, ground, bounds, options.resolution || 32));
+    if (options.edges !== false) {
     // A continuous, opaque resin edge holds the sampled terrain above its finite base.
     const corners = slab;
     const edgeWalls = [];
@@ -261,13 +262,14 @@ export function createTabletop(viewer, data, options = {}) {
       }), '#42767e'));
     }
     add(edgeWalls);
+    }
   }
-  else add([instance(C, polygon(C, slab, ground((bounds.west + bounds.east) / 2, (bounds.south + bounds.north) / 2) - 1, baseHeight), PALETTE.slab)]);
+  else if (options.terrain !== false) add([instance(C, polygon(C, slab, ground((bounds.west + bounds.east) / 2, (bounds.south + bounds.north) / 2) - 1, baseHeight), PALETTE.slab)]);
 
   const buildings = [], walls = [], roofs = [], trims = [], roads = [], strokes = [], surfaces = [], seams = [], siteLines = [];
   const centerLon=(bounds.west+bounds.east)/2, centerLat=(bounds.south+bounds.north)/2;
   const distance=element=>Math.min(...(element.geometry||[]).map(p=>(p.lon-centerLon)**2+(p.lat-centerLat)**2));
-  const elements = Array.isArray(data?.elements) ? data.elements.filter(element =>
+  const elements = options.features !== false && Array.isArray(data?.elements) ? data.elements.filter(element =>
     element.geometry?.some(p=>p.lon>=bounds.west&&p.lon<=bounds.east&&p.lat>=bounds.south&&p.lat<=bounds.north)
   ).sort((a,b)=>distance(a)-distance(b)).slice(0, MAX_FEATURES) : [];
   let buildingIndex = 0;
@@ -314,7 +316,7 @@ export function createTabletop(viewer, data, options = {}) {
     }
   }
   // Grid seams are constrained to the supplied rectangular tabletop, never geography.
-  for (let i = 1; i < 5; i += 1) {
+  for (let i = 1; options.seams !== false && i < 5; i += 1) {
     const lon = bounds.west + (bounds.east - bounds.west) * i / 5;
     const lat = bounds.south + (bounds.north - bounds.south) * i / 5;
     const vertical = [{ lon, lat: bounds.south }, { lon, lat: bounds.north }];

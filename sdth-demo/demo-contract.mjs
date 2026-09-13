@@ -39,11 +39,14 @@ export function flightDisplayName(flight) {
   };
   if (syntheticNames[filename]) return syntheticNames[filename];
   const knownNames = {
+    "dji_csv_gps_jamming.csv": "GPS-weak warning · DJI CSV",
+    "orbiter4_gps_denied_frozen.json": "Frozen position · Orbiter JSON",
     "flight-1a1b914dc70e6d0c1b45": "GPS-weak mission",
     "flight-b7ee5f98110be03e6576": "Telemetry-dropout mission",
     "flight-4fb673922655692b61ac": "Supplemental GPS-weak mission",
     "flight-eea7a01de29aec8aed1e": "Supplemental normal-control mission",
   };
+  if (knownNames[filename]) return knownNames[filename];
   if (knownNames[flight?.id]) return knownNames[flight.id];
   if (filename) return String(filename).replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ");
   return flight?.source || flight?.id || "Recorded flight";

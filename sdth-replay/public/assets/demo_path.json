@@ -14,17 +14,17 @@
   },
   "count": 12,
   "samples": [
-    {"t": "2026-07-11T10:00:00Z", "lat": 1.352100, "lon": 103.819800, "alt_m": 2, "yaw_deg": 20, "battery_pct": 96, "battery_v": 16.5, "flight_mode": "TAKEOFF"},
-    {"t": "2026-07-11T10:00:04Z", "lat": 1.352180, "lon": 103.819860, "alt_m": 18, "yaw_deg": 35, "battery_pct": 94, "battery_v": 16.3, "flight_mode": "AUTO"},
-    {"t": "2026-07-11T10:00:09Z", "lat": 1.352310, "lon": 103.819980, "alt_m": 32, "yaw_deg": 45, "battery_pct": 91, "battery_v": 16.1, "flight_mode": "AUTO"},
-    {"t": "2026-07-11T10:00:15Z", "lat": 1.352480, "lon": 103.820170, "alt_m": 44, "yaw_deg": 52, "battery_pct": 87, "battery_v": 15.9, "flight_mode": "AUTO"},
-    {"t": "2026-07-11T10:00:22Z", "lat": 1.352690, "lon": 103.820250, "alt_m": 51, "yaw_deg": 12, "battery_pct": 82, "battery_v": 15.7, "flight_mode": "AUTO", "tip": "Reached survey altitude"},
-    {"t": "2026-07-11T10:00:29Z", "lat": 1.352910, "lon": 103.820120, "alt_m": 54, "yaw_deg": 325, "battery_pct": 76, "battery_v": 15.5, "flight_mode": "AUTO"},
-    {"t": "2026-07-11T10:00:36Z", "lat": 1.353030, "lon": 103.819860, "alt_m": 55, "yaw_deg": 282, "battery_pct": 68, "battery_v": 15.2, "flight_mode": "AUTO", "warning": "Wind compensation active"},
-    {"t": "2026-07-11T10:00:43Z", "lat": 1.352900, "lon": 103.819600, "alt_m": 49, "yaw_deg": 232, "battery_pct": 57, "battery_v": 14.9, "flight_mode": "RTH"},
-    {"t": "2026-07-11T10:00:51Z", "lat": 1.352650, "lon": 103.819480, "alt_m": 40, "yaw_deg": 206, "battery_pct": 46, "battery_v": 14.7, "flight_mode": "RTH"},
-    {"t": "2026-07-11T10:00:58Z", "lat": 1.352390, "lon": 103.819570, "alt_m": 28, "yaw_deg": 168, "battery_pct": 37, "battery_v": 14.5, "flight_mode": "RTH"},
-    {"t": "2026-07-11T10:01:05Z", "lat": 1.352190, "lon": 103.819710, "alt_m": 13, "yaw_deg": 145, "battery_pct": 31, "battery_v": 14.3, "flight_mode": "LAND"},
-    {"t": "2026-07-11T10:01:11Z", "lat": 1.352100, "lon": 103.819800, "alt_m": 1, "yaw_deg": 110, "battery_pct": 28, "battery_v": 14.2, "flight_mode": "LANDED"}
+    {"t": "2026-07-11T10:00:00Z", "lat": 53.047000, "lon": -3.004000, "alt_m": 2, "yaw_deg": 20, "battery_pct": 96, "battery_v": 16.5, "flight_mode": "TAKEOFF"},
+    {"t": "2026-07-11T10:00:04Z", "lat": 53.047080, "lon": -3.003940, "alt_m": 18, "yaw_deg": 35, "battery_pct": 94, "battery_v": 16.3, "flight_mode": "AUTO"},
+    {"t": "2026-07-11T10:00:09Z", "lat": 53.047210, "lon": -3.003820, "alt_m": 32, "yaw_deg": 45, "battery_pct": 91, "battery_v": 16.1, "flight_mode": "AUTO"},
+    {"t": "2026-07-11T10:00:15Z", "lat": 53.047380, "lon": -3.003630, "alt_m": 44, "yaw_deg": 52, "battery_pct": 87, "battery_v": 15.9, "flight_mode": "AUTO"},
+    {"t": "2026-07-11T10:00:22Z", "lat": 53.047590, "lon": -3.003550, "alt_m": 51, "yaw_deg": 12, "battery_pct": 82, "battery_v": 15.7, "flight_mode": "AUTO", "tip": "Reached survey altitude"},
+    {"t": "2026-07-11T10:00:29Z", "lat": 53.047810, "lon": -3.003680, "alt_m": 54, "yaw_deg": 325, "battery_pct": 76, "battery_v": 15.5, "flight_mode": "AUTO"},
+    {"t": "2026-07-11T10:00:36Z", "lat": 53.047930, "lon": -3.003940, "alt_m": 55, "yaw_deg": 282, "battery_pct": 68, "battery_v": 15.2, "flight_mode": "AUTO", "warning": "Wind compensation active"},
+    {"t": "2026-07-11T10:00:43Z", "lat": 53.047800, "lon": -3.004200, "alt_m": 49, "yaw_deg": 232, "battery_pct": 57, "battery_v": 14.9, "flight_mode": "RTH"},
+    {"t": "2026-07-11T10:00:51Z", "lat": 53.047550, "lon": -3.004320, "alt_m": 40, "yaw_deg": 206, "battery_pct": 46, "battery_v": 14.7, "flight_mode": "RTH"},
+    {"t": "2026-07-11T10:00:58Z", "lat": 53.047290, "lon": -3.004230, "alt_m": 28, "yaw_deg": 168, "battery_pct": 37, "battery_v": 14.5, "flight_mode": "RTH"},
+    {"t": "2026-07-11T10:01:05Z", "lat": 53.047090, "lon": -3.004090, "alt_m": 13, "yaw_deg": 145, "battery_pct": 31, "battery_v": 14.3, "flight_mode": "LAND"},
+    {"t": "2026-07-11T10:01:11Z", "lat": 53.047000, "lon": -3.004000, "alt_m": 1, "yaw_deg": 110, "battery_pct": 28, "battery_v": 14.2, "flight_mode": "LANDED"}
   ]
 }

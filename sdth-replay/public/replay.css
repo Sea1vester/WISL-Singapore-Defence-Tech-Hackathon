@@ -790,15 +790,19 @@ body.replay-embed #transport {
   left: 14px;
   right: auto;
   bottom: 14px;
-  width: min(520px, calc(100% - 46px));
+  width: min(460px, calc(100% - 28px));
+  max-width: calc(100% - 28px);
   min-height: 78px;
+  min-width: 0;
   padding: 7px 9px;
   display: grid;
-  grid-template-columns: auto auto auto auto auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, auto) auto minmax(0, 1fr);
   grid-template-areas:
-    "scrubber scrubber scrubber scrubber scrubber scrubber"
-    "play reset speeds elapsed telemetry status";
+    "scrubber scrubber scrubber scrubber scrubber"
+    "play reset speeds elapsed status";
   gap: 7px;
+  overflow: hidden;
+  box-sizing: border-box;
   border: 1px solid rgba(104, 225, 195, 0.27);
   border-radius: 7px;
   background: rgba(9, 14, 20, 0.82);
@@ -849,11 +853,10 @@ body.replay-embed #transportStatus {
 }
 
 html.replay-embed #transportTelemetry,
-body.replay-embed #transportTelemetry {
-  grid-area: telemetry;
-  color: #b9d2dc;
-  font-size: 10px;
-  white-space: nowrap;
+body.replay-embed #transportTelemetry,
+html.replay-embed #transport #speeds button:nth-child(n + 5),
+body.replay-embed #transport #speeds button:nth-child(n + 5) {
+  display: none;
 }
 
 html.replay-embed #transportStatus,
@@ -901,7 +904,7 @@ body.replay-embed .cesium-viewer-bottom {
   body.replay-embed #routeOverview { right: 12px; bottom: 12px; width: 132px; padding: 7px; }
 
   html.replay-embed #transport,
-  body.replay-embed #transport { left: 12px; bottom: 12px; width: calc(100% - 180px); }
+  body.replay-embed #transport { left: 12px; bottom: 12px; width: min(420px, calc(100% - 28px)); }
 
   html.replay-embed #transport #speeds button:nth-child(n + 5),
   body.replay-embed #transport #speeds button:nth-child(n + 5),

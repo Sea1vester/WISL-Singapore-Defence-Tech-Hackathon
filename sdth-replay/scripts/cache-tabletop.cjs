@@ -1,11 +1,22 @@
-// Offline map cache builder. Run with NODE_PATH pointing to a temporary `lerc@4.0.4`
-// install. OSM response is an Overpass `out geom` JSON file passed as argv[2].
+// Offline map/terrain cache builder. Run with NODE_PATH pointing to a temporary
+// `lerc@4.0.4` install. The input can be an Overpass `out geom` response or an
+// existing tabletop cache; --bounds lets an existing map extract retain its OSM
+// provenance while its elevation coverage is expanded.
 const fs = require('node:fs');
 const path = require('node:path');
 const Lerc = require('lerc');
 const endpoint = 'https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer';
-const osm = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
-const bounds = osm.bounds || {west:-1.833,south:51.175,east:-1.819,north:51.184};
+const input = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+const name = process.argv[3] || 'stonehenge';
+const boundsFlag = process.argv.indexOf('--bounds');
+const parseBounds = value => {
+  const [west,south,east,north] = String(value).split(',').map(Number);
+  if (![west,south,east,north].every(Number.isFinite) || west >= east || south >= north) throw new Error('Invalid --bounds west,south,east,north');
+  return {west,south,east,north};
+};
+const bounds = boundsFlag >= 0 ? parseBounds(process.argv[boundsFlag + 1]) : (input.bounds || {west:-1.833,south:51.175,east:-1.819,north:51.184});
+const existingCache = Array.isArray(input.elements) && input.elevation;
+const mapBounds = existingCache ? (input.source?.mapBounds || input.bounds) : input.bounds;
 const level = 14;
 const tiles = new Map();
 async function heightAt(lon, lat) {
@@ -32,7 +43,9 @@ async function heightAt(lon, lat) {
  await Lerc.load();
  const rows=49,columns=49,heights=[];
  for(let r=0;r<rows;r++) for(let c=0;c<columns;c++) heights.push(await heightAt(bounds.west+(bounds.east-bounds.west)*c/(columns-1), bounds.south+(bounds.north-bounds.south)*r/(rows-1)));
- const data={bounds,source:{map:'© OpenStreetMap contributors',mapUrl:'https://www.openstreetmap.org/copyright',elevation:'Esri World Elevation / Terrain3D',elevationUrl:endpoint,elevationTileLevel:level,retrievedAt:new Date().toISOString(),osmTimestamp:osm.osm3s?.timestamp_osm_base,notes:'Mapped footprints; illustrative vertical feature dimensions. Elevation grid sampled from Esri LERC tiles. Row 0 is south. No surveyed obstacle or clearance claims.'},elevation:{bounds,rows,columns,heights},elements:osm.elements.map(e=>({type:e.type,id:e.id,tags:Object.fromEntries(Object.entries(e.tags||{}).filter(([k])=>!k.includes(':')||k==='building:levels')),geometry:e.geometry}))};
- const out=path.resolve(__dirname,`../public/assets/tabletop-${process.argv[3] || 'stonehenge'}.json`);fs.writeFileSync(out,JSON.stringify(data));
+ const source={...(existingCache ? input.source : {}),map:'© OpenStreetMap contributors',mapUrl:'https://www.openstreetmap.org/copyright',mapBounds, mapBoundsProvenance: existingCache ? (input.source?.mapBoundsProvenance || 'Original bounded OpenStreetMap extract retained while elevation coverage was expanded.') : 'Bounded OpenStreetMap extract used for this cache.',elevation:'Esri World Elevation / Terrain3D',elevationUrl:endpoint,elevationTileLevel:level,retrievedAt:new Date().toISOString(),osmTimestamp:existingCache ? input.source?.osmTimestamp : input.osm3s?.timestamp_osm_base,notes:'Mapped footprints; illustrative vertical feature dimensions. Elevation grid sampled from Esri LERC tiles. Row 0 is south. No surveyed obstacle or clearance claims.'};
+ const elements=existingCache ? input.elements : input.elements.map(e=>({type:e.type,id:e.id,tags:Object.fromEntries(Object.entries(e.tags||{}).filter(([k])=>!k.includes(':')||k==='building:levels')),geometry:e.geometry}));
+ const data={bounds,source,elevation:{bounds,rows,columns,heights},elements};
+ const out=path.resolve(__dirname,`../public/assets/tabletop-${name}.json`);fs.writeFileSync(out,JSON.stringify(data));
  console.log(out, 'elevation',Math.min(...heights),Math.max(...heights),'features',data.elements.length,'tiles',tiles.size);
 })().catch(e=>{console.error(e);process.exit(1)});

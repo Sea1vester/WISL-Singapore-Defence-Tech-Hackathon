@@ -36,6 +36,7 @@ button:hover{filter:brightness(1.1)}
 .session-bar label{font-size:12px;white-space:nowrap}
 .session-bar input{width:260px;padding:7px 10px}
 .session-bar p{margin-left:auto;color:var(--muted);font-size:11px}
+.session-bar code{font:11px ui-monospace,monospace;color:#d7e6ec}
 input{background:#080f17;border:1px solid #2b3d4f;border-radius:6px;color:var(--ink);min-width:0}
 .flight-library{position:absolute;right:22px;top:67px;z-index:20;width:min(430px,calc(100vw - 32px));padding:19px;background:#111a24;border:1px solid #35475a;box-shadow:0 24px 80px #000a;border-radius:10px}
 .flight-list{margin-top:13px;max-height:62vh;overflow:auto}
@@ -66,7 +67,7 @@ input{background:#080f17;border:1px solid #2b3d4f;border-radius:6px;color:var(--
 .empty-orbit i{display:grid;place-items:center;position:absolute;inset:25px 45px;color:var(--signal);font:24px Georgia,serif;font-style:normal;text-shadow:0 0 22px #ff955f66}
 
 .analysis-dock{background:#0d141d}
-.tabbar{display:flex;align-items:stretch;gap:23px;height:48px;padding:0 26px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabbar{display:flex;align-items:stretch;gap:23px;height:48px;padding:0 26px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;min-width:0}
 .nav-link{flex:0 0 auto;position:relative;border:0;background:none;color:var(--muted);padding:0 0;font-size:12px;font-weight:500;white-space:nowrap;display:flex;align-items:center;gap:8px}
 .nav-link.active{color:var(--ink)}
 .nav-link.active:after{content:"";height:2px;position:absolute;bottom:0;left:0;right:0;background:var(--signal)}
@@ -244,7 +245,7 @@ body { height:100dvh; overflow:hidden; background:#091b27; }
 .replay-empty h2 { color:#d5e6eb; font-weight:400; }
 .empty-orbit { width:180px; height:118px; }
 .empty-orbit i { inset:28px 65px; font-size:30px; }
-.analysis-dock { min-height:0; margin:0 18px 16px; border:1px solid #31505f; border-radius:6px; background:#091d2b; box-shadow:0 12px 35px #00101925; overflow:hidden; z-index:2; }
+.analysis-dock { min-height:0; margin:0 0 0; border:1px solid #31505f; border-left:0; border-right:0; border-radius:0; background:#091d2b; box-shadow:0 12px 35px #00101925; overflow:hidden; z-index:2; }
 .tabbar { height:49px; gap:26px; padding:0 22px; border-color:#223d4c; background:#081b28; }
 .nav-link { font-size:11px; color:#6f8d9e; }
 .nav-link.active { color:#eddbcf; }
@@ -281,10 +282,10 @@ body { height:100dvh; overflow:hidden; background:#091b27; }
 .stages li { border-color:#345462; }
 .upload-layout { gap:24px; }
 .session-bar { position:absolute; z-index:40; top:68px; left:0; right:0; background:#0a2231; border-color:#426171; box-shadow:0 15px 40px #0007; }
-@media (min-width:1500px) { .workspace{grid-template-columns:290px minmax(0,1fr)} .flight-library{padding:28px 23px 20px} .workspace>main{grid-template-rows:minmax(480px,1fr) 280px} .stage-heading{top:28px;left:32px} .analysis-dock{margin:0 24px 20px} }
+@media (min-width:1500px) { .workspace{grid-template-columns:290px minmax(0,1fr)} .flight-library{padding:28px 23px 20px} .workspace>main{grid-template-rows:minmax(480px,1fr) 280px} .stage-heading{top:28px;left:32px} .analysis-dock{margin:0} }
 @media (max-width:1250px) { .workspace-label{display:none} .connection{display:none} .workspace{grid-template-columns:240px minmax(0,1fr)} .dock-note{display:none} .tabbar{gap:22px;padding:0 18px} .view{padding:18px} .analysis-columns{gap:18px} .evidence-column{padding-right:18px} }
-@media (min-width:760px) and (max-width:899px) { .workspace{grid-template-columns:218px minmax(0,1fr)} .flight-library{padding:20px 13px 14px} .flight-source{font-size:10px} .flight-row{grid-template-columns:20px minmax(0,1fr) 8px;padding:11px 8px;gap:6px} .flight-symbol svg{width:20px} .stage-heading{left:20px;top:22px;max-width:calc(100% - 110px)} .stage-heading h1{font-size:18px} .stage-heading>p:last-child{font-size:8px} .expand-link{right:15px;font-size:9px;padding:6px 8px} .analysis-dock{margin:0 12px 12px} .tabbar{gap:18px;padding:0 14px} .nav-link{font-size:10px} .view{padding:15px} .analysis-columns{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px} .evidence-column{padding-right:16px} .card-heading h2{font-size:12px} .upload-layout{grid-template-columns:1fr} }
-@media (max-width:759px) { body{height:auto;overflow:auto;min-width:340px} .topbar{height:60px;padding:0 15px} .brand{font-size:17px;gap:8px} .brand-mark{width:26px}.brand-mark svg{width:26px} .topbar-actions{gap:6px} .topbar .button{padding:8px 10px;font-size:10px} .quiet-button{font-size:10px;padding:7px 8px} #libraryButton{display:block} .workspace{display:block;height:auto;min-height:0} .workspace>main{display:block} .flight-library{position:fixed;left:0;top:60px;bottom:0;width:min(310px,88vw);height:calc(100dvh - 60px);z-index:25;box-shadow:30px 0 90px #0009} #closeLibrary{display:block} .replay-stage{height:64vh;min-height:485px} .stage-heading{top:22px;left:20px;max-width:calc(100% - 112px)} .stage-heading h1{font-size:19px} .recorded-label{display:inline;margin-left:0;font-size:7px} .expand-link{top:24px;right:14px;font-size:10px;padding:6px 8px} .analysis-dock{height:340px;margin:0 12px 14px} .tabbar{height:48px;gap:20px;padding:0 15px} .nav-link{font-size:10px} .analysis-columns{grid-template-columns:1fr} .evidence-column{border-right:0;border-bottom:1px solid #233d4b;padding:0 0 18px} .view{padding:18px} .upload-layout{grid-template-columns:1fr} .session-bar{top:60px} }
+@media (min-width:760px) and (max-width:899px) { .workspace{grid-template-columns:218px minmax(0,1fr)} .flight-library{padding:20px 13px 14px} .flight-source{font-size:10px} .flight-row{grid-template-columns:20px minmax(0,1fr) 8px;padding:11px 8px;gap:6px} .flight-symbol svg{width:20px} .stage-heading{left:20px;top:22px;max-width:calc(100% - 110px)} .stage-heading h1{font-size:18px} .stage-heading>p:last-child{font-size:8px} .expand-link{right:15px;font-size:9px;padding:6px 8px} .analysis-dock{margin:0} .tabbar{gap:18px;padding:0 14px} .nav-link{font-size:10px} .view{padding:15px} .analysis-columns{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px} .evidence-column{padding-right:16px} .card-heading h2{font-size:12px} .upload-layout{grid-template-columns:1fr} }
+@media (max-width:759px) { body{height:auto;overflow:auto;min-width:340px} .topbar{height:60px;padding:0 15px} .brand{font-size:17px;gap:8px} .brand-mark{width:26px}.brand-mark svg{width:26px} .topbar-actions{gap:6px} .topbar .button{padding:8px 10px;font-size:10px} .quiet-button{font-size:10px;padding:7px 8px} #libraryButton{display:block} .workspace{display:block;height:auto;min-height:0} .workspace>main{display:block} .flight-library{position:fixed;left:0;top:60px;bottom:0;width:min(310px,88vw);height:calc(100dvh - 60px);z-index:25;box-shadow:30px 0 90px #0009} #closeLibrary{display:block} .replay-stage{height:64vh;min-height:485px} .stage-heading{top:22px;left:20px;max-width:calc(100% - 112px)} .stage-heading h1{font-size:19px} .recorded-label{display:inline;margin-left:0;font-size:7px} .expand-link{top:24px;right:14px;font-size:10px;padding:6px 8px} .analysis-dock{height:340px;margin:0} .tabbar{height:48px;gap:20px;padding:0 15px} .nav-link{font-size:10px} .analysis-columns{grid-template-columns:1fr} .evidence-column{border-right:0;border-bottom:1px solid #233d4b;padding:0 0 18px} .view{padding:18px} .upload-layout{grid-template-columns:1fr} .session-bar{top:60px} }
 @media (max-height:760px) and (min-width:760px) { body{overflow:auto}.workspace{height:710px}.workspace>main{grid-template-rows:minmax(420px,1fr) 254px} }
 .workspace { grid-template-rows:minmax(0,1fr); }
 .flight-library { min-height:0; }
