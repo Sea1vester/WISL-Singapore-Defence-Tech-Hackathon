@@ -7,6 +7,21 @@ DEMO_CSV = Path(__file__).resolve().parents[2] / "fixtures" / "demo" / "controll
 REPLAY_PUBLIC = Path(__file__).resolve().parents[3] / "sdth-replay" / "public"
 
 
+def test_root_redirects_to_demo_console(client):
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code == 307
+    assert response.headers["location"] == "/demo/"
+
+
+def test_demo_console_is_served(client):
+    response = client.get("/demo/")
+    assert response.status_code == 200
+    body = response.text
+    assert "WISL" in body
+    assert "Mission library" in body
+    assert "demo.js" in body
+
+
 def test_replay_page_is_public(client):
     response = client.get("/replay/")
     assert response.status_code == 200
@@ -16,6 +31,7 @@ def test_replay_page_is_public(client):
     assert "cesium.com/downloads/cesiumjs" in body
     assert 'id="bannerClose"' in body
     assert "banner-close" in body
+    assert 'href="/demo/"' in body
 
 
 def test_replay_assets_and_logic_are_served(client):

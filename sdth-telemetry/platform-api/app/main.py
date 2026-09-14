@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
@@ -68,6 +69,11 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
+def root() -> RedirectResponse:
+    return RedirectResponse(url="/demo/", status_code=307)
+
+
 def _mount_replay() -> None:
     replay_dir = Path(settings.replay_static_dir)
     if not replay_dir.is_dir():
@@ -82,9 +88,13 @@ def _mount_replay() -> None:
 
 _mount_replay()
 
-_demo_dir = Path(__file__).resolve().parents[3] / "sdth-demo"
-if _demo_dir.is_dir():
+
+_demo_dir = Path(settings.demo_static_dir)
+if (_demo_dir / "index.html").is_file():
     app.mount("/demo", StaticFiles(directory=_demo_dir, html=True), name="demo")
+    logger.info("Serving WISL console from %s", _demo_dir)
+else:
+    logger.warning("WISL console missing at %s; /demo will 404", _demo_dir)
 
 
 def main() -> None:

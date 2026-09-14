@@ -15,11 +15,28 @@ export OLLAMA_MODEL="${OLLAMA_MODEL:-deepseek-r1:7b}"
 export LOCAL_DEMO_WORKER=true
 export INGEST_MODEL_ENRICHMENT=false
 export REPLAY_STATIC_DIR="$TASK_ROOT/sdth-replay/public"
+export DEMO_STATIC_DIR="$TASK_ROOT/sdth-demo"
 export API_HOST=127.0.0.1
 export API_PORT="${API_PORT:-8010}"
 # The existing API key is entered in the console, never embedded in the page.
 export INGEST_API_KEYS="${INGEST_API_KEYS:-dev-teammate-key-change-me}"
-printf 'WISL console: http://127.0.0.1:%s/demo/\n' "$API_PORT"
+DEMO_URL="http://127.0.0.1:${API_PORT}/demo/"
+printf 'WISL console: %s\n' "$DEMO_URL"
+printf 'Open that URL. http://127.0.0.1:%s/ now redirects there.\n' "$API_PORT"
+printf '/replay/ is the 3D embed only, not the dashboard.\n'
 printf 'Local demo only. Enter your INGEST_API_KEYS value in the console connection panel.\n'
+(
+  for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do
+    if "$TASK_PYTHON" -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:${API_PORT}/health', timeout=1)" >/dev/null 2>&1; then
+      break
+    fi
+    sleep 0.4
+  done
+  if command -v open >/dev/null; then
+    open "$DEMO_URL" >/dev/null 2>&1 || true
+  elif command -v xdg-open >/dev/null; then
+    xdg-open "$DEMO_URL" >/dev/null 2>&1 || true
+  fi
+) &
 cd "$TASK_ROOT/sdth-telemetry/platform-api"
 exec "$TASK_PYTHON" -m uvicorn app.main:app --host 127.0.0.1 --port "$API_PORT"

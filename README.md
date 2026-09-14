@@ -15,7 +15,14 @@ python3 -m venv .venv
 ./sdth-telemetry/scripts/demo-console.sh
 ```
 
-Once dependencies are installed, only the last command is needed. Open **<http://127.0.0.1:8010/demo/>**. In **Session**, enter the development key `dev-teammate-key-change-me`, or one key from your `INGEST_API_KEYS` setting. This launcher runs the API and one background ingestion worker locally; Redis is not needed. Stop it with Ctrl+C. Run it again to recover interrupted ingestion jobs.
+Once dependencies are installed, only the last command is needed.
+The launcher prints and opens **<http://127.0.0.1:8010/demo/>**.
+`http://127.0.0.1:8010/` now redirects there.
+Do not use `/replay/` as the homepage; that is only the embedded 3D view.
+In **Session**, enter the development key `dev-teammate-key-change-me`, or one key from your `INGEST_API_KEYS` setting.
+This launcher runs the API and one background ingestion worker locally; Redis is not needed.
+Stop it with Ctrl+C.
+Run it again to recover interrupted ingestion jobs.
 
 ### Use the replay workspace
 

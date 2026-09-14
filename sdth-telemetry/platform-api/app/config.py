@@ -23,6 +23,12 @@ def _default_replay_dir() -> str:
     return _first_existing(*searched, Path("/replay/public"), fallback="/replay/public")
 
 
+def _default_demo_dir() -> str:
+    here = Path(__file__).resolve()
+    searched = [parent / "sdth-demo" for parent in here.parents]
+    return _first_existing(*searched, fallback="/demo")
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -42,6 +48,7 @@ class Settings(BaseSettings):
     raw_upload_max_bytes: int = 100 * 1024 * 1024
     raw_datasets_dir: str = Field(default_factory=_default_datasets_dir)
     replay_static_dir: str = Field(default_factory=_default_replay_dir)
+    demo_static_dir: str = Field(default_factory=_default_demo_dir)
     redact_operator_location: bool = True
     retention_days: int = 30
     api_host: str = "0.0.0.0"
