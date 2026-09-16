@@ -114,12 +114,9 @@ print("[local demo] This bulletin is reviewable guidance, not a vehicle command.
 PY
 
 if [[ "$LAUNCH_REPLAY" == "1" ]]; then
-  token_q="$(
-    python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$API_KEY"
-  )"
-  replay_url="${BASE_URL%/}/replay/?token=${token_q}&flights=${alpha_id},${bravo_id}"
-  log "Opening Cesium replay for $alpha_id and $bravo_id"
-  log "Replay: $replay_url"
+  replay_url="${BASE_URL%/}/demo/"
+  log "Opening WISL console for $alpha_id and $bravo_id"
+  log "Console: $replay_url"
   if command -v open >/dev/null 2>&1; then
     open "$replay_url" >/dev/null 2>&1 || true
   elif command -v xdg-open >/dev/null 2>&1; then
@@ -127,5 +124,5 @@ if [[ "$LAUNCH_REPLAY" == "1" ]]; then
   fi
 fi
 
-log "Ingest complete. Open replay with:"
-log "  ${BASE_URL%/}/replay/?token=\$INGEST_API_KEYS&flights=${alpha_id},${bravo_id}"
+log "Ingest complete. Open the console at:"
+log "  ${BASE_URL%/}/demo/"
