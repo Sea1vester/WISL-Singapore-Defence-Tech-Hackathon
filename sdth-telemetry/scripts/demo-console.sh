@@ -22,8 +22,7 @@ export API_PORT="${API_PORT:-8010}"
 export INGEST_API_KEYS="${INGEST_API_KEYS:-dev-teammate-key-change-me}"
 DEMO_URL="http://127.0.0.1:${API_PORT}/demo/"
 printf 'WISL console: %s\n' "$DEMO_URL"
-printf 'Open that URL. http://127.0.0.1:%s/ now redirects there.\n' "$API_PORT"
-printf '/replay/ is the 3D embed only, not the dashboard.\n'
+printf 'Open that URL. http://127.0.0.1:%s/ and /replay/ redirect there.\n' "$API_PORT"
 printf 'Local demo only. Enter your INGEST_API_KEYS value in the console connection panel.\n'
 (
   for _ in 1 2 3 4 5 6 7 8 9 10 11 12; do

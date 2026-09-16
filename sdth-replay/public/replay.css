@@ -639,11 +639,6 @@ body {
 /* ---- Embedded mission view ---- */
 /* The outer review console owns mission context and evidence. Keep this
    iframe focused on the recorded path, incident markers, and transport. */
-html.replay-embed .console-home,
-body.replay-embed .console-home {
-  display: none;
-}
-
 html.replay-embed #panel,
 html.replay-embed #banner,
 html.replay-embed #cameraPip,

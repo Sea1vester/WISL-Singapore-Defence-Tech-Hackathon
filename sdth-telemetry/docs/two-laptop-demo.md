@@ -36,7 +36,7 @@ cd sdth-telemetry
 ./scripts/demo-laptop-b.sh
 ```
 
-The launcher starts Ollama if present, starts Docker Compose, waits for `/health`, prints the Tailscale URL for Laptop A, and opens `http://localhost:8000/replay/` on Laptop B.
+The launcher starts Ollama if present, starts Docker Compose, waits for `/health`, prints the Tailscale URL for Laptop A, and opens `http://localhost:8000/demo/` on Laptop B.
 
 The viewer is served by the API.
 Laptop A does not open replay.
@@ -44,7 +44,7 @@ Laptop A does not open replay.
 If a browser does not open, load:
 
 ```text
-http://localhost:8000/replay/?token=$INGEST_API_KEYS&latest=1
+http://localhost:8000/demo/
 ```
 
 ## Laptop A - controller

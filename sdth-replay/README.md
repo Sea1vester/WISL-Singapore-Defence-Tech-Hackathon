@@ -2,7 +2,8 @@
 
 CesiumJS 3D replay for recorded WISL flights.
 
-Laptop B serves the viewer at `/replay/` from the telemetry API.
+The WISL console at `/demo/` embeds this viewer at `/replay/?embed=1`.
+Bare `/replay/` redirects to the console.
 It draws WGS84 path samples over cached terrain with OpenStreetMap imagery or an embedded tabletop treatment, animates the UAV on the recorded clock, and overlays indexed incidents.
 When `camera_frame` visuals have `frame_census` rows, `#censusLine` shows `cars N · people M` from the nearest `recorded_at` on that clock.
 That HUD is a laptop sidecar join, not an onboard detector.
@@ -30,13 +31,11 @@ cd sdth-telemetry
 Manual URL:
 
 ```text
-http://localhost:8000/replay/?token=$INGEST_API_KEYS&latest=1
-http://localhost:8000/replay/?token=$INGEST_API_KEYS&flights=<id1>,<id2>
+http://localhost:8000/demo/
 ```
 
-Without flight ids, the page loads the bundled offline demo JSON.
-The side panel lists ingested flights and files from `raw_telemetry-datasets/` on Laptop B.
-Select a dataset to parse it and visualize the path.
+Open a recorded flight from the console Mission library.
+The embed loads that flight's path. Without a flight id it uses the bundled offline demo JSON.
 
 ## Tests
 
@@ -57,5 +56,5 @@ The embedded console defaults to **Tabletop**: a finite terrain model using cach
 
 See [data sources and cache regeneration](public/assets/TABLETOP-SOURCES.md).
 Play/pause and speed buttons drive the Cesium clock.
-Pick an ingested flight or a local dataset from the side panel.
+Pick a recorded flight from the console Mission library.
 Census HUD updates with the clock when census rows exist for that flight.

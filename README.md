@@ -17,8 +17,8 @@ python3 -m venv .venv
 
 Once dependencies are installed, only the last command is needed.
 The launcher prints and opens **<http://127.0.0.1:8010/demo/>**.
-`http://127.0.0.1:8010/` now redirects there.
-Do not use `/replay/` as the homepage; that is only the embedded 3D view.
+`http://127.0.0.1:8010/` and `/replay/` now redirect there.
+`/replay/?embed=1` is only the 3D view inside the console.
 In **Session**, enter the development key `dev-teammate-key-change-me`, or one key from your `INGEST_API_KEYS` setting.
 This launcher runs the API and one background ingestion worker locally; Redis is not needed.
 Stop it with Ctrl+C.
@@ -68,11 +68,11 @@ Submission handoffs: [technical report](output/pdf/WISL_FinalReport_v1.pdf), [ci
 
 - [`sdth-telemetry/`](sdth-telemetry/README.md) — ingest API, deterministic canonical series, optional local Ollama enrichment, incident index, two-laptop demo scripts.
 - [`sdth-ingestion pipeline/`](sdth-ingestion%20pipeline/README.md) — in-house parsers plus the controller directory watcher.
-- [`sdth-replay/`](sdth-replay/README.md) — CesiumJS 3D replay served by the Laptop B API.
+- [`sdth-demo/`](sdth-demo/) — WISL mission console at `/demo/`.
+- [`sdth-replay/`](sdth-replay/README.md) — CesiumJS 3D replay embedded by the console.
 - [`sdth-vision/`](sdth-vision/README.md) — laptop sidecar for `camera_frame` ingest and `frame_census`. Not onboard inference.
 - [`sdth-synth/`](sdth-synth/README.md) — generate new vendor-native logs from a kinematic core. Gold corpus stays frozen.
 - `sdth-telemetry/fixtures/demo/` — two DJI CSV fixtures for the hackathon demo.
-- `isaac-3d/` — leftover OpenGL visualizer. The supported replay is Cesium.
 
 ## What we actually ran
 

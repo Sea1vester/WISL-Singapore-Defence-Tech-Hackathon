@@ -135,9 +135,13 @@ function renderIncidents(items) {
   });
 }
 function setReplay(flightId, timestamp = null) {
-  const fullUrl = new URL("/replay/", window.location.origin); fullUrl.searchParams.set("flights", flightId); if (state.token) fullUrl.searchParams.set("token", state.token);
-  const frameUrl = new URL(fullUrl); frameUrl.searchParams.set("embed", "1"); frameUrl.searchParams.set("v", "stream-3"); if (timestamp) { fullUrl.searchParams.set("timestamp", timestamp); frameUrl.searchParams.set("timestamp", timestamp); }
-  els.replayFrame.src = frameUrl.toString(); els.replayFrame.hidden = false; els.replayEmpty.hidden = true; els.openReplay.href = fullUrl.toString(); els.openReplay.classList.remove("disabled");
+  const frameUrl = new URL("/replay/", window.location.origin);
+  frameUrl.searchParams.set("flights", flightId);
+  frameUrl.searchParams.set("embed", "1");
+  frameUrl.searchParams.set("v", "stream-3");
+  if (state.token) frameUrl.searchParams.set("token", state.token);
+  if (timestamp) frameUrl.searchParams.set("timestamp", timestamp);
+  els.replayFrame.src = frameUrl.toString(); els.replayFrame.hidden = false; els.replayEmpty.hidden = true; els.openReplay.href = frameUrl.toString(); els.openReplay.classList.remove("disabled");
 }
 async function selectFlight(flightId, timestamp = null) {
   const flight = state.flights.find((item) => item.id === flightId) || { id: flightId };

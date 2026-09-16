@@ -81,11 +81,8 @@ else
 fi
 
 if [[ "$LAUNCH_REPLAY" == "1" ]]; then
-  token_q="$(
-    python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$API_KEY"
-  )"
-  replay_url="${BASE_URL%/}/replay/?token=${token_q}&latest=1"
-  log "Opening Cesium replay at ${replay_url}"
+  replay_url="${BASE_URL%/}/demo/"
+  log "Opening WISL console at ${replay_url}"
   if command -v open >/dev/null 2>&1; then
     open "$replay_url" >/dev/null 2>&1 || true
   elif command -v xdg-open >/dev/null 2>&1; then

@@ -22,8 +22,14 @@ def test_demo_console_is_served(client):
     assert "demo.js" in body
 
 
-def test_replay_page_is_public(client):
-    response = client.get("/replay/")
+def test_standalone_replay_redirects_to_demo_console(client):
+    response = client.get("/replay/", follow_redirects=False)
+    assert response.status_code == 307
+    assert response.headers["location"] == "/demo/"
+
+
+def test_replay_embed_is_public(client):
+    response = client.get("/replay/?embed=1")
     assert response.status_code == 200
     body = response.text
     assert "Cesium" in body
@@ -31,7 +37,6 @@ def test_replay_page_is_public(client):
     assert "cesium.com/downloads/cesiumjs" in body
     assert 'id="bannerClose"' in body
     assert "banner-close" in body
-    assert 'href="/demo/"' in body
 
 
 def test_replay_assets_and_logic_are_served(client):

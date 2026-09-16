@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 import logging
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -72,6 +72,14 @@ def health() -> dict[str, str]:
 @app.api_route("/", methods=["GET", "HEAD"], include_in_schema=False)
 def root() -> RedirectResponse:
     return RedirectResponse(url="/demo/", status_code=307)
+
+
+@app.middleware("http")
+async def send_standalone_replay_to_console(request: Request, call_next):
+    path = request.url.path
+    if path in {"/replay", "/replay/", "/replay/index.html"} and request.query_params.get("embed") != "1":
+        return RedirectResponse(url="/demo/", status_code=307)
+    return await call_next(request)
 
 
 def _mount_replay() -> None:
