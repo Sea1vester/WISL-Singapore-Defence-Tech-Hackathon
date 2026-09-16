@@ -14,7 +14,11 @@ python3 -m venv .venv
 
 If the environment already exists, only run the last command. Use `WISL_PYTHON=/absolute/path/to/python` to select another installed environment. The launcher binds to loopback and uses a single background worker with SQLite; Redis is unnecessary for this local demo. The standard deployment's Redis queue remains available.
 
-Open **Session** and enter the value of `INGEST_API_KEYS`. The development default is `dev-teammate-key-change-me`; it is a public local development value, not a production credential. The console keeps the entered value for the browser session. Raw uploads and the database live under `data/` and are excluded from Git.
+Open **Session** and enter the value of `INGEST_API_KEYS`.
+The development default is `dev-teammate-key-change-me`; it is a public local development value, not a production credential.
+Connecting imports the bundled Mission library from `sdth-demo/fixtures/` into this laptop's SQLite store.
+The key does not sync flights between machines.
+Raw uploads and the database live under `data/` and are excluded from Git.
 
 ## Optional local model
 
@@ -29,16 +33,20 @@ The replay currently loads Cesium and map resources externally. Local model infe
 1. Select **Import log** (or **Logs & uploads**). Use **Try the included synthetic GPS-warning log**, or upload `sdth-demo/fixtures/dji_csv_gps_jamming.csv` (an unchanged copy from the intended original corpus). The filename describes the generator scenario; the supported observation is a GPS-weak warning, not proof of jamming.
 2. Wait for **Record normalized**. The processed flight opens automatically in the large replay view. **Flight library** switches between stored missions. Use **Play / Pause**, **Restart**, speed buttons and the timeline to review the recorded path. **Replay this observation** pauses at the incident timestamp. The tabs below the replay switch review panels while keeping the same replay open. A detector observation may also expose a parser or simulator artifact; inspect its evidence before drawing a conclusion.
 3. In **Mission analysis**, ask **What happened?**, **Where is the evidence?**, then **Similar warnings**. An empty match result is valid until another record with the same warning is ingested.
-4. Upload `output/evidence/corpus-validation/supplemental/gps-weak-recurrence/DJI/dji_csv/dji_csv_supplemental_gps_weak_recurrence.csv`. This is a separate generated mission for recurrence testing, outside the original 90-file corpus. Repeat the warning query.
+4. Open **Supplemental GPS-weak mission** from the library. This is a separate generated mission for recurrence testing, outside the original 90-file corpus. Repeat the warning query.
 5. Open **Recurring patterns**, review a stored signature and create a bulletin. These are review records, with no automatic vehicle commands or maintenance actions.
 6. Run optional local analysis. Inspect cited observations and limitations.
-7. Demonstrate the normal control from `output/evidence/corpus-validation/supplemental/normal-control/DJI/dji_csv/dji_csv_supplemental_normal_control.csv` and the original logger-dropout log. Label all synthetic material. Consult the validation report for expected results and false alerts.
+7. Open **Supplemental normal-control mission** and the original logger-dropout log. Label all synthetic material. Consult the validation report for expected results and false alerts.
 
 Duplicate bytes are detected by checksum and reuse the existing upload. Use a genuinely different fixture to demonstrate a new ingestion; do not edit bytes just to simulate a fresh mission. The launcher recovers interrupted jobs on restart. Processing multiple large exports is serialized and may take time.
 
 ## Additional failure walkthroughs
 
-Run `.venv/bin/python sdth-telemetry/scripts/load_demo_failures.py` while the console is running, then refresh **Flight library**. This imports one DJI CSV per separately audited V2 synthetic mission, checks byte hashes and verifies the actual stored detector observations. The normal control must have no incidents. The new entries have a `synthetic` filename prefix. Other vendor exports remain available under `output/evidence/corpus-validation-v2/failure-fixtures/` for individual uploads.
+Session connect already imports the audited V2 exercise CSVs and the two supplemental missions.
+`.venv/bin/python sdth-telemetry/scripts/load_demo_failures.py` remains the checksum gate: it re-uploads the exercise set, checks byte hashes and verifies stored detector observations.
+Duplicate content reuses the existing record.
+The normal control must have no incidents.
+Other vendor exports remain available under `output/evidence/corpus-validation-v2/failure-fixtures/` for individual uploads.
 
 ## Reproducible evidence
 

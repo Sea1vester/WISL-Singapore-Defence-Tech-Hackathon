@@ -22,5 +22,93 @@
     "provenance": "synthetic kinematic simulator export; not an operational drone flight",
     "parser": "orbiter4",
     "region": "stonehenge"
+  },
+  {
+    "file": "dji_csv_battery_critical_021.csv",
+    "sha256": "c2bda5073fc74832cf7b9e7106ed2581d5e0ab19a2f0bbf4b33e27604a8a1bee",
+    "source": "V2 audited synthetic failure fixture; battery_critical_021",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "stonehenge"
+  },
+  {
+    "file": "dji_csv_battery_critical_logger_dropout_027.csv",
+    "sha256": "9519b2e861d5f338a8ae6c383c484e317bb7c52543d57b165324caf5a3ed5a29",
+    "source": "V2 audited synthetic failure fixture; battery_critical_logger_dropout_027",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "stonehenge"
+  },
+  {
+    "file": "dji_csv_gps_denied_frozen_023.csv",
+    "sha256": "a288a4491e65097ab76386a7c262c98b46afb51f4222ba13fedb5497a131d591",
+    "source": "V2 audited synthetic failure fixture; gps_denied_frozen_023",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "stonehenge"
+  },
+  {
+    "file": "dji_csv_gps_jamming_022.csv",
+    "sha256": "e6139f8d710e387b95f58a5d2b6ea3743352c6752ae65cb0039ef027376967b1",
+    "source": "V2 audited synthetic failure fixture; gps_jamming_022",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "stonehenge"
+  },
+  {
+    "file": "dji_csv_gps_weak_midair_end_028.csv",
+    "sha256": "72f4078455c5b0bd0695540944c114d8ec65dd0cf5c97e14104373b8d05c9e3f",
+    "source": "V2 audited synthetic failure fixture; gps_weak_midair_end_028",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "stonehenge"
+  },
+  {
+    "file": "dji_csv_logger_dropout_025.csv",
+    "sha256": "e5efb0640a7198bc53f65edaf848179d6ea43cfd7b8ba7568ffd9bb0da28c811",
+    "source": "V2 audited synthetic failure fixture; logger_dropout_025",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "stonehenge"
+  },
+  {
+    "file": "dji_csv_lost_airborne_026.csv",
+    "sha256": "5dd02737823c45b3fa8621d289aadcd14f09ff0a3b79902a00f5af52dba02d4f",
+    "source": "V2 audited synthetic failure fixture; lost_airborne_026",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "stonehenge"
+  },
+  {
+    "file": "dji_csv_motor_fail_recover_024.csv",
+    "sha256": "8263737449e0891942da96e70aac1067d45428e4f92ee9158819cac0d8ec1e0a",
+    "source": "V2 audited synthetic failure fixture; motor_fail_recover_024",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "stonehenge"
+  },
+  {
+    "file": "dji_csv_v2_normal_control.csv",
+    "sha256": "6f4f4d288ac96d556f6dda61be44f69dfd8e53472efe2ccabd2c63c2f414cbc0",
+    "source": "V2 audited synthetic normal-control fixture",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "stonehenge"
+  },
+  {
+    "file": "dji_csv_supplemental_normal_control.csv",
+    "sha256": "eea7a01de29aec8aed1e7e7a5324f74bea4e5fb9a969a586a26f97daadacea3b",
+    "source": "Independent supplemental normal-control CSV; excluded from original 90-file denominator",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "stonehenge"
+  },
+  {
+    "file": "dji_csv_supplemental_gps_weak_recurrence.csv",
+    "sha256": "4fb673922655692b61ac84f2c244afd70043177b7594021d7884e2d3d7662220",
+    "source": "Independent supplemental GPS-weak CSV; excluded from original 90-file denominator",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "stonehenge"
   }
 ]

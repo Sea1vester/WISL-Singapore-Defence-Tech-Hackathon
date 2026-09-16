@@ -16,7 +16,7 @@ Use a screen capture of the actual local system behind or immediately after the 
 
 ## Recording prerequisites
 
-1. Start `./sdth-telemetry/scripts/demo-console.sh`, open `http://127.0.0.1:8010/demo/`, and connect through **Session**. Load the audited failure examples with `.venv/bin/python sdth-telemetry/scripts/load_demo_failures.py`. Select records through **Flight library**; **Import log** opens **Logs & uploads**. Keep the large replay visible above the **Mission analysis** bar.
+1. Start `./sdth-telemetry/scripts/demo-console.sh`, open `http://127.0.0.1:8010/demo/`, and connect through **Session**. The Mission library fills from the bundled fixtures, including the audited exercise set and both supplemental missions. Select records through **Flight library**; **Import log** opens **Logs & uploads**. Keep the large replay visible above the **Mission analysis** bar.
 2. Keep the browser address bar, terminal or a small system-status inset visible briefly enough to establish that the application is running locally.
 3. Use exact on-screen labels listed below. Every accelerated segment needs the label **"SPEED-UP: recorded UI wait shortened"** for its full duration.
 4. Do not show secrets, API keys, personal locations, real personnel data or external network credentials.

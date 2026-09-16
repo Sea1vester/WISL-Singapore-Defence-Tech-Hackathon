@@ -33,17 +33,20 @@ Run it again to recover interrupted ingestion jobs.
 5. Click **Replay this observation** to pause at its recorded timestamp. Ask **What happened?**, **Where is the evidence?** or **Similar warnings** for deterministic evidence-backed answers.
 6. Expand **Local AI analysis** inside Mission analysis for optional fleet interpretation. Its explanations are unverified hypotheses, even when the referenced evidence IDs are valid.
 
-The bundled GPS-warning and dropout logs in `sdth-demo/fixtures/` are synthetic copies from the original corpus. Additional independent normal and GPS-warning fixtures are in `output/evidence/corpus-validation/supplemental/`. The term “jamming” in a simulator filename is not a causal diagnosis.
+The bundled GPS-warning, dropout, Orbiter, exercise and supplemental logs in `sdth-demo/fixtures/` are synthetic copies.
+They are imported into the Mission library when you connect a Session.
+The term “jamming” in a simulator filename is not a causal diagnosis.
 
-### Load the additional failure scenarios
+### Optional audit of the exercise fixtures
 
-With the demo running, load one CSV per audited synthetic mission:
+The same exercise CSVs can still be loaded through the checksum-gated script:
 
 ```sh
 .venv/bin/python sdth-telemetry/scripts/load_demo_failures.py
 ```
 
-Then open **Flight library** and refresh. Entries beginning with **synthetic** include low battery, recording gaps, frozen reported positions, warning events and recordings that end airborne, plus a normal control. The loader checks each fixture against its audit checksum and verifies the real API's detector results. Set `INGEST_API_KEY` for a custom session key; use `--base-url http://127.0.0.1:8011` for another port. See the [validation report](docs/submission/corpus-validation.md) for supported conclusions and simulation limitations.
+Duplicate content reuses the existing record.
+See the [validation report](docs/submission/corpus-validation.md) for supported conclusions and simulation limitations.
 
 ### Optional local model
 

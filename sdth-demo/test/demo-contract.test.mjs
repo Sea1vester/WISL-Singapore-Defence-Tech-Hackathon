@@ -25,5 +25,8 @@ test("only recognizes explicitly known simulation corpus sources", () => {
 test("uses upload provenance for a human-readable flight title", () => {
   assert.equal(flightDisplayName({ original_filename: "dji_csv_gps_jamming.csv", source: "dji-csv" }), "GPS-weak warning · DJI CSV");
   assert.equal(flightDisplayName({ original_filename: "orbiter4_gps_denied_frozen.json", source: "orbiter4" }), "Frozen position · Orbiter JSON");
+  assert.equal(flightDisplayName({ original_filename: "dji_csv_supplemental_normal_control.csv" }), "Supplemental normal-control mission");
+  assert.equal(flightDisplayName({ original_filename: "dji_csv_supplemental_gps_weak_recurrence.csv" }), "Supplemental GPS-weak mission");
+  assert.equal(simulationProvenance({ original_filename: "dji_csv_supplemental_gps_weak_recurrence.csv" }), "Supplemental simulation corpus");
   assert.equal(flightDisplayName({ id: "flight-eea7a01de29aec8aed1e" }), "Supplemental normal-control mission");
 });

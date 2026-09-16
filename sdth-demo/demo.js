@@ -1,9 +1,20 @@
-import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=stream-11";
+import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=stream-12";
 
 const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false };
 const DEMO_LIBRARY_LOGS = [
   { url: "/demo/fixtures/dji_csv_gps_jamming.csv", name: "dji_csv_gps_jamming.csv", type: "text/csv" },
   { url: "/demo/fixtures/orbiter4_gps_denied_frozen.json", name: "orbiter4_gps_denied_frozen.json", type: "application/json" },
+  { url: "/demo/fixtures/dji_csv_v2_normal_control.csv", name: "dji_csv_v2_normal_control.csv", type: "text/csv" },
+  { url: "/demo/fixtures/dji_csv_logger_dropout_025.csv", name: "dji_csv_logger_dropout_025.csv", type: "text/csv" },
+  { url: "/demo/fixtures/dji_csv_lost_airborne_026.csv", name: "dji_csv_lost_airborne_026.csv", type: "text/csv" },
+  { url: "/demo/fixtures/dji_csv_motor_fail_recover_024.csv", name: "dji_csv_motor_fail_recover_024.csv", type: "text/csv" },
+  { url: "/demo/fixtures/dji_csv_gps_denied_frozen_023.csv", name: "dji_csv_gps_denied_frozen_023.csv", type: "text/csv" },
+  { url: "/demo/fixtures/dji_csv_gps_jamming_022.csv", name: "dji_csv_gps_jamming_022.csv", type: "text/csv" },
+  { url: "/demo/fixtures/dji_csv_gps_weak_midair_end_028.csv", name: "dji_csv_gps_weak_midair_end_028.csv", type: "text/csv" },
+  { url: "/demo/fixtures/dji_csv_battery_critical_021.csv", name: "dji_csv_battery_critical_021.csv", type: "text/csv" },
+  { url: "/demo/fixtures/dji_csv_battery_critical_logger_dropout_027.csv", name: "dji_csv_battery_critical_logger_dropout_027.csv", type: "text/csv" },
+  { url: "/demo/fixtures/dji_csv_supplemental_normal_control.csv", name: "dji_csv_supplemental_normal_control.csv", type: "text/csv" },
+  { url: "/demo/fixtures/dji_csv_supplemental_gps_weak_recurrence.csv", name: "dji_csv_supplemental_gps_weak_recurrence.csv", type: "text/csv" },
 ];
 const $ = (id) => document.getElementById(id);
 const wideLayout = window.matchMedia("(min-width: 760px)");
@@ -99,7 +110,7 @@ function renderFlights() {
 async function refreshFlights() {
   if (!state.token) { renderFlights(); return; }
   const button = $("refreshFlights"); button.disabled = true;
-  try { const result = await api("/v1/flights?limit=20"); state.flights = result.items || []; setApi("online", "Session connected"); if (!state.upload) setMessage("Session connected. Choose a recorded log to process.", "success"); renderFlights(); $("emptyHint").textContent = "Choose a flight from the library or import a log.";
+  try { const result = await api("/v1/flights?limit=50"); state.flights = result.items || []; setApi("online", "Session connected"); if (!state.upload) setMessage("Session connected. Choose a recorded log to process.", "success"); renderFlights(); $("emptyHint").textContent = "Choose a flight from the library or import a log.";
     if (!state.selectedFlight && state.flights.length) { const saved = sessionStorage.getItem("wislSelectedFlight"); const initial = state.flights.find(f => f.id === saved) || state.flights.find(f => f.id === "flight-1a1b914dc70e6d0c1b45") || state.flights[0]; await selectFlight(initial.id); } }
   catch (error) { setApi("error", "Connection failed"); els.flightMeta.textContent = friendlyError(error.message); }
   finally { button.disabled = false; }

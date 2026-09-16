@@ -19,8 +19,9 @@ export function isSimulationCorpus(flight) {
 export function simulationProvenance(flight) {
   const original = new Set(["flight-1a1b914dc70e6d0c1b45", "flight-b7ee5f98110be03e6576"]);
   const supplemental = new Set(["flight-4fb673922655692b61ac", "flight-eea7a01de29aec8aed1e"]);
-  if (original.has(flight?.id)) return "Original simulation corpus";
-  if (supplemental.has(flight?.id)) return "Supplemental simulation corpus";
+  const filename = flight?.original_filename || flight?.filename || flight?.upload_filename || "";
+  if (original.has(flight?.id) || filename === "dji_csv_gps_jamming.csv" || filename === "dji_csv_logger_dropout.csv") return "Original simulation corpus";
+  if (supplemental.has(flight?.id) || filename.startsWith("dji_csv_supplemental_")) return "Supplemental simulation corpus";
   return "";
 }
 
@@ -52,6 +53,8 @@ export function flightDisplayName(flight) {
   const knownNames = {
     "dji_csv_gps_jamming.csv": "GPS-weak warning · DJI CSV",
     "orbiter4_gps_denied_frozen.json": "Frozen position · Orbiter JSON",
+    "dji_csv_supplemental_gps_weak_recurrence.csv": "Supplemental GPS-weak mission",
+    "dji_csv_supplemental_normal_control.csv": "Supplemental normal-control mission",
     "flight-1a1b914dc70e6d0c1b45": "GPS-weak mission",
     "flight-b7ee5f98110be03e6576": "Telemetry-dropout mission",
     "flight-4fb673922655692b61ac": "Supplemental GPS-weak mission",
