@@ -26,18 +26,29 @@ export function simulationProvenance(flight) {
 
 export function flightDisplayName(flight) {
   const filename = flight?.original_filename || flight?.filename || flight?.upload_filename;
-  const syntheticNames = {
-    "synthetic_dji_csv_battery_critical_021.csv": "Synthetic · Critical battery",
-    "synthetic_dji_csv_battery_critical_logger_dropout_027.csv": "Synthetic · Low battery + recording gap",
-    "synthetic_dji_csv_gps_denied_frozen_023.csv": "Synthetic · Frozen reported position",
-    "synthetic_dji_csv_gps_jamming_022.csv": "Synthetic · GPS-weak warning",
-    "synthetic_dji_csv_gps_weak_midair_end_028.csv": "Synthetic · GPS warning + airborne ending",
-    "synthetic_dji_csv_logger_dropout_025.csv": "Synthetic · Recording gap",
-    "synthetic_dji_csv_lost_airborne_026.csv": "Synthetic · Recording ends airborne",
-    "synthetic_dji_csv_motor_fail_recover_024.csv": "Synthetic · Attitude excursion + warning",
-    "synthetic_dji_csv_v2_normal_control.csv": "Synthetic · Normal control",
+  // "Exercise" rather than "Synthetic" -- reads naturally to a military
+  // audience and still states plainly that these are not live operational
+  // sorties, which the provenance label and the fixtures' own manifest
+  // continue to record.
+  // Keyed on the fixtures' real on-disk filenames. Older uploads carried a
+  // "synthetic_" prefix added at upload time; both spellings are mapped so a
+  // library loaded before that change still resolves to a friendly name.
+  const exerciseNames = {
+    "dji_csv_battery_critical_021.csv": "Exercise · Critical battery",
+    "dji_csv_battery_critical_logger_dropout_027.csv": "Exercise · Low battery + recording gap",
+    "dji_csv_gps_denied_frozen_023.csv": "Exercise · Frozen reported position",
+    "dji_csv_gps_jamming_022.csv": "Exercise · GPS-weak warning",
+    "dji_csv_gps_weak_midair_end_028.csv": "Exercise · GPS warning + airborne ending",
+    "dji_csv_logger_dropout_025.csv": "Exercise · Recording gap",
+    "dji_csv_lost_airborne_026.csv": "Exercise · Recording ends airborne",
+    "dji_csv_motor_fail_recover_024.csv": "Exercise · Attitude excursion + warning",
+    "dji_csv_v2_normal_control.csv": "Exercise · Normal control",
   };
-  if (syntheticNames[filename]) return syntheticNames[filename];
+  if (typeof filename === "string" && filename.startsWith("synthetic_")) {
+    const legacy = exerciseNames[filename.slice("synthetic_".length)];
+    if (legacy) return legacy;
+  }
+  if (exerciseNames[filename]) return exerciseNames[filename];
   const knownNames = {
     "dji_csv_gps_jamming.csv": "GPS-weak warning · DJI CSV",
     "orbiter4_gps_denied_frozen.json": "Frozen position · Orbiter JSON",

@@ -5,7 +5,7 @@
     {
       "path": "battery_critical_021/DJI/dji_csv/dji_csv_battery_critical_021.csv",
       "sha256": "c2bda5073fc74832cf7b9e7106ed2581d5e0ab19a2f0bbf4b33e27604a8a1bee",
-      "upload_id": "c7dd3003-8723-4d9e-aaea-49cd3df59e27",
+      "upload_id": "21c3e809-7ce2-4ee7-a7f0-038f3cb8db9e",
       "duplicate_reused": false,
       "flight_id": "flight-c2bda5073fc74832cf7b",
       "expected": [
@@ -16,12 +16,12 @@
         "battery_low"
       ],
       "passed": true,
-      "elapsed_ms": 435
+      "elapsed_ms": 453
     },
     {
       "path": "battery_critical_logger_dropout_027/DJI/dji_csv/dji_csv_battery_critical_logger_dropout_027.csv",
       "sha256": "9519b2e861d5f338a8ae6c383c484e317bb7c52543d57b165324caf5a3ed5a29",
-      "upload_id": "51e36f0b-c9fb-406b-ab4c-831bf55bb879",
+      "upload_id": "625403d6-1777-4559-8091-a5e0b8ab82f8",
       "duplicate_reused": false,
       "flight_id": "flight-9519b2e861d5f338a8ae",
       "expected": [
@@ -34,12 +34,12 @@
         "telemetry_gap"
       ],
       "passed": true,
-      "elapsed_ms": 4219
+      "elapsed_ms": 5036
     },
     {
       "path": "gps_denied_frozen_023/DJI/dji_csv/dji_csv_gps_denied_frozen_023.csv",
       "sha256": "a288a4491e65097ab76386a7c262c98b46afb51f4222ba13fedb5497a131d591",
-      "upload_id": "3b8580d8-bb7c-40d2-a88b-88e97e417451",
+      "upload_id": "88d40c43-5c72-4337-87e1-101dfab02cd5",
       "duplicate_reused": false,
       "flight_id": "flight-a288a4491e65097ab763",
       "expected": [
@@ -49,12 +49,12 @@
         "last_known_position"
       ],
       "passed": true,
-      "elapsed_ms": 1108
+      "elapsed_ms": 1110
     },
     {
       "path": "gps_jamming_022/DJI/dji_csv/dji_csv_gps_jamming_022.csv",
       "sha256": "e6139f8d710e387b95f58a5d2b6ea3743352c6752ae65cb0039ef027376967b1",
-      "upload_id": "679097c9-d681-432b-b8c0-8927f2f5b1c3",
+      "upload_id": "52425c80-b3b2-49b5-a2ac-796e7c3c193b",
       "duplicate_reused": false,
       "flight_id": "flight-e6139f8d710e387b95f5",
       "expected": [
@@ -64,12 +64,12 @@
         "operator_warning"
       ],
       "passed": true,
-      "elapsed_ms": 1083
+      "elapsed_ms": 1183
     },
     {
       "path": "gps_weak_midair_end_028/DJI/dji_csv/dji_csv_gps_weak_midair_end_028.csv",
       "sha256": "72f4078455c5b0bd0695540944c114d8ec65dd0cf5c97e14104373b8d05c9e3f",
-      "upload_id": "83def1ad-362b-4596-8d3b-5741f7251700",
+      "upload_id": "c7fd1744-b976-4a28-ac24-16a9b804bc80",
       "duplicate_reused": false,
       "flight_id": "flight-72f4078455c5b0bd0695",
       "expected": [
@@ -81,12 +81,12 @@
         "operator_warning"
       ],
       "passed": true,
-      "elapsed_ms": 1054
+      "elapsed_ms": 1266
     },
     {
       "path": "logger_dropout_025/DJI/dji_csv/dji_csv_logger_dropout_025.csv",
       "sha256": "e5efb0640a7198bc53f65edaf848179d6ea43cfd7b8ba7568ffd9bb0da28c811",
-      "upload_id": "223ff1e0-f1c0-4a33-bc98-f1ee3f0f0df0",
+      "upload_id": "79f05eb2-003d-4f1b-8f92-4e283dc50d16",
       "duplicate_reused": false,
       "flight_id": "flight-e5efb0640a7198bc53f6",
       "expected": [
@@ -96,12 +96,12 @@
         "telemetry_gap"
       ],
       "passed": true,
-      "elapsed_ms": 1085
+      "elapsed_ms": 1148
     },
     {
       "path": "lost_airborne_026/DJI/dji_csv/dji_csv_lost_airborne_026.csv",
       "sha256": "5dd02737823c45b3fa8621d289aadcd14f09ff0a3b79902a00f5af52dba02d4f",
-      "upload_id": "8727bc2c-24ac-4722-9edb-0ee81cfc0d53",
+      "upload_id": "f2a4ec63-82ef-476f-b54a-575b64369880",
       "duplicate_reused": false,
       "flight_id": "flight-5dd02737823c45b3fa86",
       "expected": [
@@ -111,12 +111,12 @@
         "mission_incomplete"
       ],
       "passed": true,
-      "elapsed_ms": 1079
+      "elapsed_ms": 1149
     },
     {
       "path": "motor_fail_recover_024/DJI/dji_csv/dji_csv_motor_fail_recover_024.csv",
       "sha256": "8263737449e0891942da96e70aac1067d45428e4f92ee9158819cac0d8ec1e0a",
-      "upload_id": "30ffa1e3-fbdb-4b62-9014-78bccd03928a",
+      "upload_id": "5386f38d-d7e4-4c9b-a0c6-3834719bd10c",
       "duplicate_reused": false,
       "flight_id": "flight-8263737449e0891942da",
       "expected": [
@@ -128,18 +128,18 @@
         "operator_warning"
       ],
       "passed": true,
-      "elapsed_ms": 1116
+      "elapsed_ms": 1167
     },
     {
       "path": "v2_normal_control/DJI/dji_csv/dji_csv_v2_normal_control.csv",
       "sha256": "6f4f4d288ac96d556f6dda61be44f69dfd8e53472efe2ccabd2c63c2f414cbc0",
-      "upload_id": "2e39a281-42e5-4ee9-9a5b-9dc88154a213",
+      "upload_id": "268e2568-cab0-4dab-8db8-b6c480d5ee06",
       "duplicate_reused": false,
       "flight_id": "flight-6f4f4d288ac96d556f6d",
       "expected": [],
       "actual": [],
       "passed": true,
-      "elapsed_ms": 1103
+      "elapsed_ms": 1528
     }
   ]
 }

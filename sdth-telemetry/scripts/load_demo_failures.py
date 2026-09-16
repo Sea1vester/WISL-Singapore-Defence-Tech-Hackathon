@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Load the separately audited synthetic failures into a running local demo."""
+"""Load the separately audited exercise failure fixtures into a running local demo.
+
+These are simulated sorties generated from kinematic scenario cards, not live
+operational flights -- the fixtures' own manifest records that provenance, and
+the console labels them "Exercise" in the mission library.
+"""
 import argparse
 import hashlib
 import json
@@ -29,7 +34,11 @@ def main():
             if hashlib.sha256(data).hexdigest() != item["sha256"]:
                 raise SystemExit(f"Fixture changed since audit: {path}")
             started = time.monotonic()
-            response = client.post("/v1/logs/upload", files={"file": (f"synthetic_{path.name}", data, "text/csv")})
+            # Upload under the fixture's real on-disk name. The integrity check
+            # above hashes file *content*, so the upload name is free to match
+            # the file itself -- which also keeps the name shown in patterns,
+            # bulletins and the PDF traceable straight back to the fixture.
+            response = client.post("/v1/logs/upload", files={"file": (path.name, data, "text/csv")})
             response.raise_for_status()
             upload = response.json()
             deadline = time.monotonic() + 60
