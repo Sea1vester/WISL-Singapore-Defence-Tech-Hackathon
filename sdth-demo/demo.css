@@ -2,7 +2,11 @@
 
 *{box-sizing:border-box}
 body{margin:0;min-width:340px}
-button,input{font:inherit}
+/* Form controls carry a border from the browser's own default stylesheet, so
+   dropping a `border:` declaration isn't enough to remove an outline -- it
+   just falls back to the UA default. Zero it explicitly, once, for all of
+   them; differentiation comes from background tint instead. */
+button,input,select,textarea{font:inherit;border:0}
 button,a,input,summary{touch-action:manipulation}
 button{cursor:pointer}
 button:disabled{opacity:.48;cursor:wait}

@@ -70,11 +70,27 @@ const state = {
     incidents: true,
     hazard: true,
   },
-  // Entity groups for layer toggling
+  // Entity groups for layer toggling. `uav` isn't a real toggleable layer
+  // (there's no "Aircraft" button, and it should stay visible even when the
+  // "Paths" line is hidden) -- it's tracked here purely so clearEntities()'s
+  // generic sweep also removes it before a redraw. Without this, re-drawing
+  // the same flight (switching away and back, or toggling "All Missions"
+  // more than once in one page session) tried to add a second entity with
+  // the same `uav-<flight_id>` id, which Cesium rejects -- an uncaught
+  // DeveloperError that surfaced as an unrelated-looking exception wherever
+  // the enclosing async function's next await happened to be.
   layerEntities: {
     paths: [],
     incidents: [],
     hazard: [],
+    uav: [],
+    // Same issue as uav: OSM tree entities use plain numeric ids
+    // (tree-trunk-0, tree-canopy-0, ...) with no per-flight/per-draw
+    // namespacing, and were never removed on redraw either -- so this was
+    // actually the *more* reproducible half of the bug, since it fires on
+    // almost any flight switch where both the old and new flight have trees
+    // near their bounds, not just re-selecting the exact same flight.
+    trees: [],
   },
   // Camera follow
   followEntity: null,
@@ -93,7 +109,13 @@ const state = {
   pipVisualId: null,
   pipRequestId: null,
   pipObjectUrl: null,
-  mapVisible: params.get("embed") !== "1",
+  // Both modes open on the 3D tabletop terrain. The standalone viewer used to
+  // default to the flat satellite map (mapVisible: embed !== "1") while also
+  // hiding the Tabletop/Map toggle outside embed mode -- so anyone opening
+  // /replay/ directly got the flat globe with no visible way to reach the 3D
+  // view at all. Where a region has no cached terrain, setPresentationMode
+  // still falls back to the globe on its own.
+  mapVisible: false,
   routeOverview: null,
   atlas: [],
   tabletop: null,
@@ -865,7 +887,13 @@ function uavVisual(color) {
     label: {
       text: "RECORDED AIRCRAFT",
       font: "600 11px monospace",
-      fillColor: Cesium.Color.fromCssColorString("#d8fff6"),
+      // Color-matched to this flight's own path/marker/legend swatch. Every
+      // aircraft used to show the exact same white label text regardless of
+      // which flight it belonged to -- in "All Missions" mode, with several
+      // drones on screen at once, that left no way to tell them apart short
+      // of spatial guessing. Now the label reads the same color as the
+      // flight's row in the sidebar legend.
+      fillColor: cesiumColor,
       outlineColor: Cesium.Color.BLACK,
       outlineWidth: 3,
       style: Cesium.LabelStyle.FILL_AND_OUTLINE,
@@ -1273,6 +1301,7 @@ async function addFlightToGlobe(flight, color, track) {
     },
   });
   attachModelFallback(uav, visualColor);
+  state.layerEntities.uav.push(uav);
 
   // ---- Incident markers ----
   const markers = [];
@@ -1282,6 +1311,12 @@ async function addFlightToGlobe(flight, color, track) {
   const incidentHeights = await sampleTerrainHeights(
     locatedIncidents.map((incident) => [incident.lon, incident.lat]),
   );
+  // Incidents that fire from the same telemetry sample (e.g. a hovering
+  // drone triggering two detectors at once) share the same lat/lon, so their
+  // labels used to render stacked exactly on top of each other -- an
+  // unreadable smear of overlapping text. Group by (rounded) position and
+  // stagger each subsequent label in the group further up the screen.
+  const labelStackCounts = new Map();
   locatedIncidents.forEach((incident, index) => {
     // Severity color, in one place, used for both embed (ring-only) and
     // standalone (filled dot) rendering -- previously the embed ring only
@@ -1297,6 +1332,9 @@ async function addFlightToGlobe(flight, color, track) {
     const basePixelSize = params.get("embed") === "1" ? 18 : 12;
     const pixelSize = incident.severity === "critical" ? Math.round(basePixelSize * 1.3) : basePixelSize;
     const outlineWidth = incident.severity === "critical" ? 2.5 : 1.5;
+    const positionKey = `${incident.lat.toFixed(4)},${incident.lon.toFixed(4)}`;
+    const stackIndex = labelStackCounts.get(positionKey) || 0;
+    labelStackCounts.set(positionKey, stackIndex + 1);
     const marker = state.viewer.entities.add({
       id: `incident-${incident.id || incident.type}-${flight.flight_id}-${index}`,
       position: Cesium.Cartesian3.fromDegrees(
@@ -1314,15 +1352,16 @@ async function addFlightToGlobe(flight, color, track) {
       },
       label: {
         text: `${incident.severity} ${incident.type}`,
-        // The embedded review lists each incident below the map. Avoid piling
-        // labels on top of each other when several observations share a location.
+        // The embedded review lists each incident below the map, so labels
+        // stay off there; in standalone mode, incidents sharing a position
+        // stack upward (see stackIndex) instead of overlapping illegibly.
         show: params.get("embed") !== "1",
         font: "10px monospace",
         fillColor: Cesium.Color.fromCssColorString("#e8e0d0"),
         outlineColor: Cesium.Color.BLACK,
         outlineWidth: 2,
         style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-        pixelOffset: new Cesium.Cartesian2(0, -22),
+        pixelOffset: new Cesium.Cartesian2(0, -22 - stackIndex * 15),
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
     });
@@ -1336,7 +1375,9 @@ async function addFlightToGlobe(flight, color, track) {
     try {
       const osmTrees = await loadOsmTrees(flightBounds(flight));
       osmTrees.forEach((tree, index) => {
-        trees.push(...addTreeToGlobe(tree, index));
+        const treeEntities = addTreeToGlobe(tree, index);
+        trees.push(...treeEntities);
+        state.layerEntities.trees.push(...treeEntities);
       });
     } catch {
       // OSM trees are decorative; a blocked Overpass query should not break replay.
