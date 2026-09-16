@@ -347,6 +347,54 @@ def _recommendations(
     return recs
 
 
+def build_comprehensive_report(conn, flight_id: str, *, allow_llm: bool = True) -> dict[str, Any]:
+    """Combine the evidence-backed incident report, the pre-emptive planning
+    findings, and any fleet-wide recurring-pattern matches for one flight into
+    a single document. Reuses the three functions already built for mission
+    planning (generate_structured_report, build_preemptive_report, list_patterns)
+    rather than recomputing anything -- this is a synthesis layer, not a new
+    source of findings.
+    """
+    from app.analytics import generate_structured_report
+    from app.incidents import list_patterns
+
+    flight = conn.execute("SELECT id FROM flights WHERE id = ?", (flight_id,)).fetchone()
+    if not flight:
+        raise KeyError(flight_id)
+
+    incident_report = generate_structured_report(flight_id, allow_llm=allow_llm)
+    preemptive = build_preemptive_report(conn, flight_id)
+
+    own_signatures = {
+        row["signature"]
+        for row in conn.execute(
+            """
+            SELECT DISTINCT signature FROM incidents
+            WHERE flight_id = ? AND detector = 'rule' AND signature IS NOT NULL
+            """,
+            (flight_id,),
+        ).fetchall()
+    }
+    recurring_pattern_matches = [p for p in list_patterns(min_flights=2) if p["signature"] in own_signatures]
+
+    return {
+        "flight_id": flight_id,
+        "brand": preemptive["brand"],
+        "brand_name": preemptive["brand_name"],
+        "generated_at": _iso_now(),
+        "incident_report": incident_report,
+        "preemptive_findings": preemptive,
+        "recurring_pattern_matches": recurring_pattern_matches,
+        "limitations": (
+            "This document combines the evidence-backed incident report, pre-emptive planning "
+            "findings, and any fleet-wide recurring-pattern matches for this flight. Each section "
+            "carries its own scope and limitations -- read them individually before acting. A shared "
+            "pattern signature is a reason to compare evidence across flights, not proof of a shared "
+            "cause."
+        ),
+    }
+
+
 def build_preemptive_report(conn, flight_id: str) -> dict[str, Any]:
     """Assemble the full pre-emptive report as a structured dict. No side effects."""
     flight = conn.execute("SELECT id, source FROM flights WHERE id = ?", (flight_id,)).fetchone()

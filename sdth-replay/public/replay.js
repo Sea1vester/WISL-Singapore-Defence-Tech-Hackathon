@@ -60,6 +60,10 @@ const state = {
     pitch: -0.55,
     range: 80,
   },
+  // True while a manual camera-glide animation (see flyOrbitCameraFrom) owns
+  // the camera -- the per-tick orbit-follow in applyOrbitCamera() must not
+  // fight it by snapping straight to the destination on the very next frame.
+  cameraJumpAnimating: false,
   globeDraw: 0,
   layers: {
     paths: true,
@@ -113,6 +117,7 @@ const els = {
   cameraPipCap: document.getElementById("cameraPipCap"),
   flightList: document.getElementById("flightList"),
   flightLegend: document.getElementById("flightLegend"),
+  severityLegend: document.getElementById("severityLegend"),
   datasetList: document.getElementById("datasetList"),
   datasetFilter: document.getElementById("datasetFilter"),
   datasetHint: document.getElementById("datasetHint"),
@@ -146,6 +151,9 @@ const els = {
   routeOverviewStart: document.getElementById("routeOverviewStart"),
   routeOverviewCurrent: document.getElementById("routeOverviewCurrent"),
   routeOverviewProgress: document.getElementById("routeOverviewProgress"),
+  routeOverviewAltPath: document.getElementById("routeOverviewAltPath"),
+  routeOverviewAltCurrent: document.getElementById("routeOverviewAltCurrent"),
+  routeOverviewAltRange: document.getElementById("routeOverviewAltRange"),
   studioViewButton: document.getElementById("studioViewButton"),
   mapViewButton: document.getElementById("mapViewButton"),
 };
@@ -162,34 +170,78 @@ function headers() {
   return result;
 }
 
+async function apiError(path, response) {
+  const raw = await response.text().catch(() => "");
+  let detail = raw;
+  try {
+    const parsed = JSON.parse(raw);
+    detail = parsed.detail || parsed.message || raw;
+  } catch {
+    // Not JSON -- keep the raw text.
+  }
+  const error = new Error(`${path} failed (${response.status}): ${raw}`);
+  error.status = response.status;
+  error.detail = detail;
+  return error;
+}
+
 async function apiGet(path, optional = false) {
   const response = await fetch(`${apiBase()}${path}`, { headers: headers() });
   if (optional && (response.status === 404 || response.status === 401)) {
     return null;
   }
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`${path} failed (${response.status}): ${detail}`);
+    throw await apiError(path, response);
   }
   return response.json();
 }
 
 async function apiPost(path, body) {
-  const response = fetch(`${apiBase()}${path}`, {
+  const response = await fetch(`${apiBase()}${path}`, {
     method: "POST",
     headers: { ...headers(), "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`${path} failed (${response.status}): ${detail}`);
+    throw await apiError(path, response);
   }
   return response.json();
 }
 
-function setStatus(text) {
+// Turns a raw thrown error (often "/v1/path failed (500): {\"detail\":\"...\"}")
+// into a calm, plain-language sentence a first-time operator can read, while
+// still surfacing the real detail when the backend supplied one.
+function friendlyError(error) {
+  if (!error) {
+    return "Something didn't work. Please try again.";
+  }
+  const status = error.status;
+  const detail = String(error.detail ?? error.message ?? "").trim();
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    return "You appear to be offline. Check your connection and try again.";
+  }
+  if (/failed to fetch|networkerror|load failed/i.test(detail) || /failed to fetch|networkerror/i.test(error.message || "")) {
+    return "Could not reach the platform. Check that the local service is running.";
+  }
+  if (status === 401 || status === 403) {
+    return "Your session key wasn't accepted. Reconnect with a valid key.";
+  }
+  if (status === 404) {
+    return detail && !/^\/v1\//.test(detail) ? detail : "That record could not be found.";
+  }
+  if (typeof status === "number" && status >= 500) {
+    return detail ? `The platform ran into a problem: ${detail}` : "The platform ran into a problem processing that. Try again in a moment.";
+  }
+  if (!detail) {
+    return "Something didn't work. Please try again.";
+  }
+  return /^https?:\/\/|^\/v1\//.test(detail) ? "Something didn't work. Please try again." : detail;
+}
+
+function setStatus(text, isError = false) {
   els.statusLine.textContent = text;
   els.transportStatus.textContent = text;
+  els.statusLine.classList.toggle("error", isError);
 }
 
 function saveToken(token) {
@@ -209,6 +261,10 @@ function sleep(ms) {
 
 function ingestPercent(status) {
   return INGEST_PROGRESS[status] ?? 10;
+}
+
+function escapeAttr(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
 }
 
 function capitalizeStatus(status) {
@@ -365,7 +421,7 @@ function getUavWorldPosition() {
 }
 
 function applyOrbitCamera() {
-  if (!state.orbit.enabled || !state.viewer) {
+  if (!state.orbit.enabled || !state.viewer || state.cameraJumpAnimating) {
     return;
   }
   const target = getUavWorldPosition();
@@ -379,6 +435,56 @@ function applyOrbitCamera() {
   if (state.viewer.requestRender) {
     state.viewer.requestRender();
   }
+}
+
+function easeInOutQuad(t) {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
+// Glide the orbit camera from where it was looking to where the aircraft now
+// is, instead of snapping there in a single frame. Used when jumping straight
+// to an incident's timestamp (seekIncidentAndLoadCamera) -- the underlying
+// clock/telemetry/HUD update instantly (that data must be correct right away),
+// but a visible camera teleport across a possibly-distant point in the flight
+// reads as disorienting. The glide is purely visual and never delays anything
+// else from updating.
+function flyOrbitCameraFrom(previousTarget, durationMs = 450) {
+  const viewer = state.viewer;
+  if (!viewer || !state.orbit.enabled || !previousTarget) {
+    applyOrbitCamera();
+    return;
+  }
+  const newTarget = getUavWorldPosition();
+  if (!newTarget) {
+    applyOrbitCamera();
+    return;
+  }
+  // A short hop (e.g. re-triggering the same incident) isn't worth animating.
+  if (Cesium.Cartesian3.distance(previousTarget, newTarget) < 5) {
+    applyOrbitCamera();
+    return;
+  }
+  const heading = state.orbit.heading;
+  const pitch = state.orbit.pitch;
+  const range = state.orbit.range;
+  const startedAt = performance.now();
+  state.cameraJumpAnimating = true;
+  const token = (state.cameraJumpToken = (state.cameraJumpToken || 0) + 1);
+  const scratch = new Cesium.Cartesian3();
+  const step = (now) => {
+    if (token !== state.cameraJumpToken) return; // superseded by a newer jump
+    const t = Math.min(1, (now - startedAt) / durationMs);
+    const eased = easeInOutQuad(t);
+    Cesium.Cartesian3.lerp(previousTarget, newTarget, eased, scratch);
+    viewer.camera.lookAt(scratch, new Cesium.HeadingPitchRange(heading, pitch, range));
+    viewer.scene.requestRender();
+    if (t < 1) {
+      requestAnimationFrame(step);
+    } else {
+      state.cameraJumpAnimating = false;
+    }
+  };
+  requestAnimationFrame(step);
 }
 
 function setGlobeCollision(controller, enabled) {
@@ -638,21 +744,25 @@ function getOrCreateTooltip() {
     _tooltipEl.style.cssText = `
       position: fixed;
       pointer-events: none;
-      background: rgba(10, 14, 22, 0.95);
+      background: rgba(10, 14, 22, 0.96);
       border: 1px solid var(--line);
       color: var(--ink);
-      padding: 6px 10px;
-      border-radius: 2px;
-      font-size: 10px;
-      font-family: "IBM Plex Mono", "SF Mono", "Cascadia Code", "Consolas", monospace;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm, 9px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+      font-size: 11px;
+      line-height: 1.45;
+      font-family: var(--font-body, ui-sans-serif, sans-serif);
       z-index: 1000;
       display: none;
-      max-width: 220px;
+      max-width: 240px;
     `;
     document.body.appendChild(_tooltipEl);
   }
   return _tooltipEl;
 }
+
+const SEVERITY_TOOLTIP_COLOR = { critical: "var(--danger)", warning: "var(--warn)" };
 
 function setupIncidentTooltip(viewer) {
   const tooltip = getOrCreateTooltip();
@@ -672,7 +782,16 @@ function setupIncidentTooltip(viewer) {
           return key === id || id.includes(flight.flight_id);
         });
         if (incident) {
-          tooltip.textContent = `[${incident.severity}] ${incident.type}${incident.summary ? " · " + incident.summary : ""}`;
+          tooltip.replaceChildren();
+          const severity = String(incident.severity || "notice");
+          const label = document.createElement("strong");
+          label.textContent = severity.charAt(0).toUpperCase() + severity.slice(1);
+          label.style.color = SEVERITY_TOOLTIP_COLOR[severity] || "var(--signal)";
+          tooltip.append(label, document.createTextNode(` · ${String(incident.type || "").replaceAll("_", " ")}`));
+          if (incident.summary) {
+            tooltip.append(document.createElement("br"));
+            tooltip.append(document.createTextNode(incident.summary));
+          }
           tooltip.style.display = "block";
           tooltip.style.left = movement.position.x + 16 + "px";
           tooltip.style.top = movement.position.y - 10 + "px";
@@ -990,9 +1109,16 @@ function animateTrailGlow(flightId, viewer) {
         ? "#ff9d4d"
         : COLORS[state.flights.indexOf(state.flights.find((f) => f.flight_id === flightId))] || COLORS[0],
     );
-    pathEntity.polyline.material = new Cesium.ColorMaterialProperty(
-      pathColor.withAlpha(Math.max(0.1, pathAlpha)),
-    );
+    // A dark casing keeps the line identifiable against any terrain tint it
+    // crosses (measured contrast against the tabletop's water tile was only
+    // ~2.9:1 for the bare fill color -- below the 3:1 floor for a graphical
+    // element -- since the casing is darker than every terrain tone in the
+    // palette, it restores a safe margin everywhere, not just over water).
+    pathEntity.polyline.material = new Cesium.PolylineOutlineMaterialProperty({
+      color: pathColor.withAlpha(Math.max(0.1, pathAlpha)),
+      outlineColor: Cesium.Color.fromCssColorString("#0a141c").withAlpha(Math.max(0.35, pathAlpha)),
+      outlineWidth: 1,
+    });
 
     // Brighten trail entity (shown behind drone)
     const trailAlpha = 0.8 + 0.2 * (1 - progress);
@@ -1001,9 +1127,11 @@ function animateTrailGlow(flightId, viewer) {
         ? "#ff9d4d"
         : COLORS[state.flights.indexOf(state.flights.find((f) => f.flight_id === flightId))] || COLORS[0],
     );
-    trailEntity.polyline.material = new Cesium.ColorMaterialProperty(
-      trailColor.withAlpha(trailAlpha),
-    );
+    trailEntity.polyline.material = new Cesium.PolylineOutlineMaterialProperty({
+      color: trailColor.withAlpha(trailAlpha),
+      outlineColor: Cesium.Color.fromCssColorString("#0a141c").withAlpha(0.6),
+      outlineWidth: 1,
+    });
 
     if (viewer.requestRender) viewer.requestRender();
     requestAnimationFrame(tick);
@@ -1077,14 +1205,20 @@ async function addFlightToGlobe(flight, color, track) {
   }
 
   // ---- Full path (complete flight trace, dim) ----
+  // A dark casing (PolylineOutlineMaterialProperty, not the plain-color fill
+  // alone) keeps the line legible over any terrain tint it crosses -- the
+  // tabletop's water tile in particular brings the bare fill color's contrast
+  // below the 3:1 floor for a graphical element.
   const pathEntity = state.viewer.entities.add({
     id: `path-${flight.flight_id}`,
     polyline: {
       positions,
       width: 3,
-      material: new Cesium.ColorMaterialProperty(
-        Cesium.Color.fromCssColorString(visualColor).withAlpha(0.5),
-      ),
+      material: new Cesium.PolylineOutlineMaterialProperty({
+        color: Cesium.Color.fromCssColorString(visualColor).withAlpha(0.5),
+        outlineColor: Cesium.Color.fromCssColorString("#0a141c").withAlpha(0.35),
+        outlineWidth: 1,
+      }),
     },
   });
   state.layerEntities.paths.push(pathEntity);
@@ -1107,11 +1241,14 @@ async function addFlightToGlobe(flight, color, track) {
     position: trailSampled,
     polyline: {
       width: 4,
-      material: new Cesium.ColorMaterialProperty(
-        Cesium.Color.fromCssColorString(visualColor).withAlpha(0.95),
-      ),
-      outlineColor: Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.4),
-      outlineWidth: 1,
+      // PolylineGraphics has no outlineColor/outlineWidth of its own -- the
+      // outline has to be part of the material (PolylineOutlineMaterialProperty),
+      // otherwise Cesium silently ignores it and the line never gets a casing.
+      material: new Cesium.PolylineOutlineMaterialProperty({
+        color: Cesium.Color.fromCssColorString(visualColor).withAlpha(0.95),
+        outlineColor: Cesium.Color.fromCssColorString("#0a141c").withAlpha(0.6),
+        outlineWidth: 1,
+      }),
     },
   });
   state.layerEntities.paths.push(trailEntity);
@@ -1146,6 +1283,20 @@ async function addFlightToGlobe(flight, color, track) {
     locatedIncidents.map((incident) => [incident.lon, incident.lat]),
   );
   locatedIncidents.forEach((incident, index) => {
+    // Severity color, in one place, used for both embed (ring-only) and
+    // standalone (filled dot) rendering -- previously the embed ring only
+    // branched on "critical" vs everything else, so "info"-severity incidents
+    // silently rendered with the "warning" color, contradicting the three-way
+    // Critical/Warning/Notice legend shown elsewhere in this same viewer.
+    const severityHex =
+      incident.severity === "critical" ? "#e8564f" :
+      incident.severity === "warning" ? "#f2a93b" : "#4fd8c4";
+    // Color alone isn't a safe signal for colorblind viewers (WCAG 1.4.1) --
+    // critical incidents also get a visibly larger marker and thicker ring,
+    // so severity reads even if the color difference doesn't.
+    const basePixelSize = params.get("embed") === "1" ? 18 : 12;
+    const pixelSize = incident.severity === "critical" ? Math.round(basePixelSize * 1.3) : basePixelSize;
+    const outlineWidth = incident.severity === "critical" ? 2.5 : 1.5;
     const marker = state.viewer.entities.add({
       id: `incident-${incident.id || incident.type}-${flight.flight_id}-${index}`,
       position: Cesium.Cartesian3.fromDegrees(
@@ -1154,15 +1305,10 @@ async function addFlightToGlobe(flight, color, track) {
         globeAltM(flight, incident.alt_m, incidentHeights[index] || 0),
       ),
       point: {
-        pixelSize: params.get("embed") === "1" ? 18 : 12,
-        color: params.get("embed") === "1" ? Cesium.Color.TRANSPARENT :
-          incident.severity === "critical"
-            ? Cesium.Color.fromCssColorString("#e8564f")
-            : incident.severity === "warning"
-              ? Cesium.Color.fromCssColorString("#f2a93b")
-              : Cesium.Color.fromCssColorString("#4fd8c4"),
-        outlineColor: params.get("embed") === "1" ? Cesium.Color.fromCssColorString(incident.severity === "critical" ? "#e8564f" : "#ffad5f") : Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.8),
-        outlineWidth: 1.5,
+        pixelSize,
+        color: params.get("embed") === "1" ? Cesium.Color.TRANSPARENT : Cesium.Color.fromCssColorString(severityHex),
+        outlineColor: params.get("embed") === "1" ? Cesium.Color.fromCssColorString(severityHex) : Cesium.Color.fromCssColorString("#e9edf5").withAlpha(0.8),
+        outlineWidth,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
         scaleByDistance: new Cesium.NearFarScalar(100, 1.0, 10000, 0.5),
       },
@@ -1244,10 +1390,19 @@ function updateLayerVisibility() {
       }
     }
   }
+  updateSeverityLegend();
   if (state.viewer?.requestRender) state.viewer.requestRender();
 }
 
 // ---- Flight legend (color-coded mission list) ----
+
+function updateSeverityLegend() {
+  // The side panel (with its incident list) is hidden in embed mode, so the
+  // colored marker dots on the globe would otherwise have no on-screen key.
+  // Only show the legend when there's a located incident marker actually on
+  // screen -- nothing if there are none, or if the Incidents layer is off.
+  els.severityLegend.hidden = state.layerEntities.incidents.length === 0 || !state.layers.incidents;
+}
 
 function renderFlightLegend() {
   els.flightLegend.innerHTML = "";
@@ -1283,6 +1438,7 @@ function renderFlightList() {
 }
 
 function renderDatasets() {
+  els.datasetHint.classList.remove("error");
   const query = els.datasetFilter.value.trim().toLowerCase();
   els.datasetList.innerHTML = "";
   const visible = state.datasets.filter((item) => {
@@ -1291,8 +1447,8 @@ function renderDatasets() {
   });
   if (!visible.length) {
     els.datasetHint.textContent = state.token
-      ? "No matching files in raw_telemetry-datasets."
-      : "Enter the API token to list local datasets.";
+      ? "No matching recorded logs found."
+      : "Enter your session key to list local recorded logs.";
     return;
   }
   els.datasetHint.textContent = `${visible.length} file(s) available to parse and replay.`;
@@ -1342,8 +1498,14 @@ function renderTimelineTicks(flight) {
     const pct = ((incTime - startTime) / duration) * 100;
     if (pct < 0 || pct > 100) continue;
 
+    // Same three-way severity mapping as the incident markers -- "info"
+    // incidents get their own tick color instead of silently reading as a
+    // "warning" tick, which used to contradict the severity legend.
+    const severityClass =
+      inc.severity === "critical" ? "critical" :
+      inc.severity === "warning" ? "warning" : "info";
     const tick = document.createElement("div");
-    tick.className = `timeline-tick ${inc.severity === "critical" ? "critical" : "warning"}`;
+    tick.className = `timeline-tick ${severityClass}`;
     tick.style.left = `${pct}%`;
     tick.title = `[${inc.severity}] ${inc.type}`;
     els.scrubberIncidents.appendChild(tick);
@@ -1454,12 +1616,37 @@ function updateRouteOverview(flight, pose) {
     ];
     const points = flight.samples.map((sample) => project(sample.lat, sample.lon));
     els.routeOverviewPath.setAttribute("d", points.map(([x, y], index) => `${index ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" "));
+
+    // ---- Altitude sparkline (time on X, altitude on Y) ----
+    const altWidth = 240;
+    const altHeight = 40;
+    const altPadX = 4;
+    const altPadTop = 5;
+    const altPadBottom = 3;
+    const startedAt = flight.samples[0].time_s;
+    const duration = flight.samples.at(-1).time_s - startedAt;
+    const alts = flight.samples.map((sample) => sample.alt_m);
+    const minAlt = Math.min(...alts, 0); // include 0 so a short hop near the ground doesn't look mid-air
+    const maxAlt = Math.max(...alts);
+    const altSpan = maxAlt - minAlt || 1;
+    const projectAlt = (timeS, altM) => [
+      altPadX + (duration > 0 ? ((timeS - startedAt) / duration) * (altWidth - 2 * altPadX) : 0),
+      altHeight - altPadBottom - ((altM - minAlt) / altSpan) * (altHeight - altPadTop - altPadBottom),
+    ];
+    const altPoints = flight.samples.map((sample) => projectAlt(sample.time_s, sample.alt_m));
+    els.routeOverviewAltPath.setAttribute(
+      "d",
+      altPoints.map(([x, y], index) => `${index ? "L" : "M"}${x.toFixed(1)},${y.toFixed(1)}`).join(" "),
+    );
+    els.routeOverviewAltRange.textContent = `${minAlt.toFixed(0)}–${maxAlt.toFixed(0)} m`;
+
     state.routeOverview = {
       flightId: flight.flight_id,
       project,
       start: points[0],
-      duration: flight.samples.at(-1).time_s - flight.samples[0].time_s,
-      startedAt: flight.samples[0].time_s,
+      duration,
+      startedAt,
+      projectAlt,
     };
   }
   const [startX, startY] = state.routeOverview.start;
@@ -1468,6 +1655,9 @@ function updateRouteOverview(flight, pose) {
   els.routeOverviewStart.setAttribute("cy", startY.toFixed(1));
   els.routeOverviewCurrent.setAttribute("cx", currentX.toFixed(1));
   els.routeOverviewCurrent.setAttribute("cy", currentY.toFixed(1));
+  const [altCurrentX, altCurrentY] = state.routeOverview.projectAlt(pose.time_s, pose.alt_m);
+  els.routeOverviewAltCurrent.setAttribute("cx", altCurrentX.toFixed(1));
+  els.routeOverviewAltCurrent.setAttribute("cy", altCurrentY.toFixed(1));
   const progress = state.routeOverview.duration > 0
     ? (pose.time_s - state.routeOverview.startedAt) / state.routeOverview.duration
     : 0;
@@ -1518,7 +1708,9 @@ function renderHud(flight, pose) {
       const row = document.createElement("button");
       row.type = "button";
       row.className = "incident-jump";
-      row.innerHTML = `[${item.severity}] ${item.type}<br />${item.summary || ""}`;
+      const severity = String(item.severity || "notice");
+      const kind = String(item.type || "").replaceAll("_", " ");
+      row.innerHTML = `<strong>${escapeAttr(severity.charAt(0).toUpperCase() + severity.slice(1))}</strong> &middot; ${escapeAttr(kind)}<br />${escapeAttr(item.summary || "")}`;
       row.addEventListener("click", () => seekIncidentAndLoadCamera(flight, item));
       els.incidentList.append(row);
     }
@@ -1771,6 +1963,9 @@ function seekIncidentAndLoadCamera(flight, incident) {
   if (!targetIso) {
     return;
   }
+  // Captured before the clock jumps, so it reflects where the camera was
+  // actually looking a moment ago -- the glide's starting point.
+  const previousTarget = state.orbit.enabled ? getUavWorldPosition() : undefined;
   const targetTime = Cesium.JulianDate.fromIso8601(targetIso);
   state.viewer.clock.currentTime = targetTime;
   const timeS = Date.parse(targetIso.endsWith("Z") ? targetIso : `${targetIso}Z`) / 1000;
@@ -1780,6 +1975,9 @@ function seekIncidentAndLoadCamera(flight, incident) {
     cameraFrameAt(flight.cameraFrames || [], pose.time_s);
   updateCameraPip(frame);
   renderHud(flight, pose);
+  if (previousTarget) {
+    flyOrbitCameraFrom(previousTarget);
+  }
 }
 
 function attachClock() {
@@ -1896,24 +2094,28 @@ async function refreshDatasets() {
     state.datasets = body.items || [];
     renderDatasets();
   } catch (error) {
-    els.datasetHint.textContent = error.message;
+    els.datasetHint.textContent = friendlyError(error);
+    els.datasetHint.classList.add("error");
   }
 }
 
 function renderPatterns() {
   els.patternList.innerHTML = "";
+  els.patternHint.classList.remove("error");
   if (!state.patterns.length) {
     els.patternHint.textContent = state.token
-      ? "No signature yet recurs across 2+ flights."
-      : "Enter the API token to see fleet-wide patterns.";
+      ? "No warning has repeated across 2 or more flights yet."
+      : "Enter your session key to see patterns shared across flights.";
     return;
   }
-  els.patternHint.textContent = "Signatures recurring across 2+ flights — the fleet-wide payoff.";
+  els.patternHint.textContent = "Seen on 2 or more flights — worth comparing before treating any one as a one-off.";
   for (const pattern of state.patterns) {
     const row = document.createElement("div");
     row.className = "dataset-row";
     const label = document.createElement("p");
-    label.innerHTML = `<strong>[${pattern.max_severity}] ${pattern.incident_type}</strong><br />${pattern.summary || ""}`;
+    const severity = String(pattern.max_severity || "notice").replace(/^./, (c) => c.toUpperCase());
+    const kind = String(pattern.incident_type || "").replaceAll("_", " ");
+    label.innerHTML = `<strong>${escapeAttr(severity)} &middot; ${escapeAttr(kind)}</strong><br />${escapeAttr(pattern.summary || "")}`;
     row.append(label);
     const button = document.createElement("button");
     button.type = "button";
@@ -1949,7 +2151,7 @@ async function createBulletin(signature, button) {
     await apiPost("/v1/mitigation-bulletins", { signature });
     await refreshBulletins();
   } catch (error) {
-    setStatus(error.message);
+    setStatus(friendlyError(error), true);
   } finally {
     button.disabled = false;
     button.textContent = "Generate mitigation bulletin";
@@ -1967,7 +2169,8 @@ async function refreshPatterns() {
     state.patterns = body.items || [];
     renderPatterns();
   } catch (error) {
-    els.patternHint.textContent = error.message;
+    els.patternHint.textContent = friendlyError(error);
+    els.patternHint.classList.add("error");
   }
 }
 
@@ -2056,13 +2259,14 @@ async function loadDataset(path) {
     }
     await pollUpload(path, result.upload_id);
   } catch (error) {
+    const message = friendlyError(error);
     setIngest(path, {
       busy: false,
       status: "failed",
       percent: ingestPercent("failed"),
-      error: error.message,
+      error: message,
     });
-    setStatus(error.message);
+    setStatus(message, true);
   }
 }
 
@@ -2089,15 +2293,17 @@ function setPlaying(playing) {
   viewer.scene.requestRender();
 }
 
+// Plain-language terrain/map status for a first-time viewer -- the engineering
+// detail (tile counts) stays available but de-emphasized, not the headline.
 function updateTerrainContext() {
   const note=document.getElementById('terrainContext');
   if(!note)return;
   const p=state.terrainProgress;
-  note.textContent=!state.mapContext ? 'TERRAIN UNCACHED · FLAT GLOBE'
-    : state.mapVisible ? 'OSM MAP · CACHED ELEVATION'
-    : p && !p.complete ? `LOADING SURROUNDINGS · TERRAIN ${p.terrain}/${p.terrainTotal} · MAP ${p.map}/${p.mapTotal}`
-    : p?.failed ? 'TERRAIN READY · SOME MAP DETAILS UNAVAILABLE'
-    : '9× TERRAIN · OSM FOOTPRINTS · STYLIZED HEIGHTS';
+  note.textContent=!state.mapContext ? 'Showing a simplified globe — detailed terrain is not available for this area.'
+    : state.mapVisible ? 'Satellite map view · terrain preloaded'
+    : p && !p.complete ? `Loading terrain… (${p.terrain}/${p.terrainTotal})`
+    : p?.failed ? 'Terrain ready — a few map details could not be loaded.'
+    : 'Offline terrain model · approximate elevation and building outlines';
 }
 
 function setPresentationMode(mapVisible) {
@@ -2316,7 +2522,7 @@ async function bootstrap(create = true) {
     await refreshPatterns();
     await refreshBulletins();
   } catch (error) {
-    setStatus(error.message);
+    setStatus(friendlyError(error), true);
     if (!state.flights.length) {
       state.flights = await loadOfflineDemo();
       await showActiveFlight();

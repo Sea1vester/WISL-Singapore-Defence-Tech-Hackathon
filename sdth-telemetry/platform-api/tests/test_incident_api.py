@@ -27,6 +27,32 @@ def test_index_detects_failure_on_each_hardware_log(client, brand_id, builder, e
     assert expected_type in types
 
 
+def test_reindexing_does_not_fail_when_a_visual_is_linked_to_an_incident(client):
+    """Re-running detection replaces every rule-detector incident row for a flight.
+    If a visual_records row was linked to one of the old incident ids, deleting that
+    row must not violate visual_records.incident_id's foreign key -- the stale link
+    should be cleared, not left to block the delete."""
+    import io
+
+    flight_id = "dji-reindex-with-linked-visual"
+    payload = dji_l1(flight_id, inject="warning")
+    assert client.post("/v1/telemetry/ingest", json=payload, headers=AUTH).status_code == 202
+    first = client.post(f"/v1/flights/{flight_id}/index-incidents", json={"include_llm": False}, headers=AUTH)
+    assert first.status_code == 200, first.text
+
+    incident_id = client.get(f"/v1/flights/{flight_id}/incidents", headers=AUTH).json()["items"][0]["id"]
+    upload = client.post(
+        f"/v1/flights/{flight_id}/visuals",
+        params={"kind": "camera_frame", "recorded_at": payload["timestamp_utc"], "incident_id": incident_id},
+        files={"file": ("frame.jpg", io.BytesIO(b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff\xd9"), "image/jpeg")},
+        headers=AUTH,
+    )
+    assert upload.status_code == 201, upload.text
+
+    second = client.post(f"/v1/flights/{flight_id}/index-incidents", json={"include_llm": False}, headers=AUTH)
+    assert second.status_code == 200, second.text
+
+
 def test_recurring_pattern_across_two_dji_missions(client):
     for flight_id in ("dji-msn-1", "dji-msn-2"):
         payload = dji_l1(flight_id, inject="warning")

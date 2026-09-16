@@ -8,7 +8,16 @@
   --danger: #e8564f;
   --line: #1e2635;
   --line-soft: rgba(30, 38, 53, 0.7);
-  font-family: "IBM Plex Mono", "SF Mono", "Cascadia Code", "Consolas", monospace;
+  /* League Spartan for titles/labels; Garet for body copy where a viewer has it
+     installed/licensed (it's a paid font with no legitimate free CDN source) --
+     Poppins/Nunito Sans stand in as an open, similarly friendly fallback. */
+  --font-heading: "League Spartan", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Garet", "Poppins", "Nunito Sans", ui-sans-serif, sans-serif;
+  --font-mono: "IBM Plex Mono", "SF Mono", "Cascadia Code", "Consolas", monospace;
+  /* Gentler, more minimalist corners than the original 2px HUD look. */
+  --radius: 14px;
+  --radius-sm: 9px;
+  font-family: var(--font-body);
   font-size: 12px;
 }
 
@@ -71,22 +80,21 @@ body {
 .cesium-navigation-help-view-button,
 .cesium-navigation-help-quit-button {
   background: rgba(10, 14, 22, 0.95) !important;
-  border-color: var(--line) !important;
+  border: 0 !important;
   color: var(--ink) !important;
 }
 
 .cesium-button {
-  background: rgba(16, 20, 30, 0.8) !important;
-  border: 1px solid var(--line) !important;
+  background: rgba(16, 20, 30, 0.85) !important;
+  border: 0 !important;
   color: var(--muted) !important;
   font-family: inherit !important;
   font-size: 11px !important;
-  border-radius: 2px !important;
+  border-radius: var(--radius-sm) !important;
 }
 
 .cesium-button:hover {
-  background: rgba(79, 216, 196, 0.1) !important;
-  border-color: var(--signal) !important;
+  background: rgba(79, 216, 196, 0.18) !important;
   color: var(--ink) !important;
 }
 
@@ -168,28 +176,28 @@ body {
   padding: 20px 18px 110px;
   box-sizing: border-box;
   background: var(--panel);
-  border-left: 1px solid var(--line);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 
 #panel h1 {
   margin: 0 0 18px;
-  font-size: 12px;
+  font-family: var(--font-heading);
+  font-size: 13px;
   font-weight: 600;
   color: var(--ink);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 #panel h2 {
   margin: 22px 0 8px;
-  font-size: 9.5px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
+  font-family: var(--font-heading);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--dim);
-  border-bottom: 1px solid var(--line-soft);
   padding-bottom: 6px;
 }
 
@@ -201,9 +209,8 @@ body {
   right: 336px;
   min-height: 52px;
   padding: 12px 40px 12px 16px;
-  border-radius: 2px;
-  border: 1px solid var(--line);
-  border-left: 2px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: inset 2px 0 var(--line);
   background: rgba(10, 14, 22, 0.88);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -222,23 +229,22 @@ body {
   top: 10px;
   right: 10px;
   padding: 3px 9px;
-  border: 1px solid var(--line);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--dim);
   cursor: pointer;
   font-size: 10px;
   font-family: inherit;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   line-height: 1.4;
 }
 
 .banner-close:hover {
   color: var(--ink);
-  border-color: var(--muted);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .banner.fail {
-  border-left-color: var(--danger);
+  box-shadow: inset 2px 0 var(--danger);
 }
 
 .banner.fail #bannerTitle {
@@ -250,9 +256,10 @@ body {
 }
 
 #bannerTitle {
-  font-size: 13px;
+  font-family: var(--font-heading);
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.01em;
 }
 
 #bannerMeta {
@@ -276,31 +283,29 @@ body {
 
 .banner .jump-btn {
   padding: 3px 9px;
-  border: 1px solid var(--line);
-  background: transparent;
+  background: rgba(232, 86, 79, 0.12);
   color: var(--danger);
   cursor: pointer;
   font-size: 10px;
   font-family: inherit;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   white-space: nowrap;
 }
 
 .banner .jump-btn:hover {
-  border-color: var(--danger);
-  background: rgba(232, 86, 79, 0.1);
+  background: rgba(232, 86, 79, 0.22);
 }
 
 #incidentList .incident-jump {
   display: block;
   width: 100%;
   text-align: left;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--line-soft);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-sm);
   color: var(--muted);
   font: inherit;
-  padding: 7px 0;
+  padding: 7px 9px;
+  margin-bottom: 4px;
   cursor: pointer;
 }
 
@@ -321,20 +326,18 @@ body {
   align-items: center;
   gap: 7px;
   padding: 4px 6px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 10.5px;
   transition: background 0.15s ease;
-  border: 1px solid transparent;
 }
 
 .flight-legend-row:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .flight-legend-row.active {
-  border-color: var(--line);
-  background: rgba(79, 216, 196, 0.06);
+  background: rgba(79, 216, 196, 0.12);
 }
 
 .flight-legend-dot {
@@ -356,15 +359,14 @@ body {
   display: inline-block;
   margin-bottom: 14px;
   padding: 5px 11px;
-  border: 1px solid var(--danger);
-  background: rgba(232, 86, 79, 0.1);
+  background: rgba(232, 86, 79, 0.16);
   color: var(--danger);
   font-size: 10px;
   font-weight: 600;
   cursor: pointer;
-  border-radius: 2px;
-  font-family: inherit;
-  letter-spacing: 0.05em;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-heading);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -378,34 +380,34 @@ body {
 
 .layer-toggle {
   padding: 4px 9px;
-  border: 1px solid var(--line);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
   color: var(--dim);
   cursor: pointer;
   font-size: 9.5px;
-  font-family: inherit;
-  border-radius: 2px;
+  font-family: var(--font-heading);
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  letter-spacing: 0.04em;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .layer-toggle:hover {
   color: var(--muted);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .layer-toggle.active {
-  border-color: var(--muted);
+  background: rgba(255, 255, 255, 0.14);
   color: var(--ink);
 }
 
 .layer-toggle.hazard-toggle.active {
-  border-color: var(--danger);
+  background: rgba(232, 86, 79, 0.18);
   color: var(--danger);
 }
 
 .layer-toggle.multi-toggle.active {
-  border-color: var(--signal);
+  background: rgba(79, 216, 196, 0.18);
   color: var(--signal);
 }
 
@@ -414,9 +416,8 @@ body {
   display: grid;
   gap: 4px;
   padding: 7px 8px;
-  border: 1px solid var(--line-soft);
-  background: transparent;
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-sm);
 }
 
 .dataset-row button {
@@ -479,19 +480,18 @@ body {
   width: 100%;
   box-sizing: border-box;
   padding: 7px 9px;
-  border: 1px solid var(--line);
-  background: transparent;
+  background: rgba(0, 0, 0, 0.28);
   color: var(--ink);
   font-family: inherit;
   font-size: 11px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   text-transform: none;
   letter-spacing: normal;
 }
 
 .field input:focus {
-  outline: none;
-  border-color: var(--muted);
+  outline: 2px solid var(--signal);
+  outline-offset: 1px;
 }
 
 .field input::placeholder {
@@ -502,6 +502,12 @@ body {
   color: var(--signal);
   font-size: 11px;
   margin: 4px 0;
+  transition: color 0.15s ease;
+}
+
+.status.error,
+.hint.error {
+  color: #ff9a92;
 }
 
 #playState {
@@ -521,6 +527,11 @@ body {
   font-size: 11px;
   margin: 3px 0;
   color: var(--muted);
+}
+
+#timeLine,
+#poseLine {
+  font-family: var(--font-mono);
 }
 
 #timeLine {
@@ -547,15 +558,14 @@ body {
 #playButton,
 #resetButton {
   padding: 6px 9px;
-  border: 1px solid var(--line);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.06);
   color: var(--muted);
   text-align: left;
   cursor: pointer;
   font-family: inherit;
   font-size: 11px;
-  border-radius: 2px;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  border-radius: var(--radius-sm);
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
 .list button:hover,
@@ -563,7 +573,7 @@ body {
 #playButton:hover,
 #resetButton:hover {
   color: var(--ink);
-  border-color: var(--muted);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .list button.active,
@@ -571,8 +581,7 @@ body {
 #playButton.active,
 #resetButton.active {
   color: var(--signal);
-  border-color: var(--signal);
-  background: rgba(79, 216, 196, 0.06);
+  background: rgba(79, 216, 196, 0.16);
 }
 
 .list .dataset-row button {
@@ -593,7 +602,6 @@ body {
   align-items: center;
   padding: 12px 0;
   z-index: 20;
-  border-top: 1px solid var(--line);
   background: rgba(10, 14, 22, 0.75);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -649,20 +657,19 @@ body.replay-embed #viewMode {
   align-items: center;
   gap: 3px;
   padding: 4px;
-  border: 1px solid rgba(122, 226, 218, 0.3);
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   background: rgba(5, 19, 29, 0.82);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
 }
 
 #viewMode button {
   border: 0;
-  border-radius: 4px;
-  padding: 5px 7px;
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
   background: transparent;
   color: #8ea5ae;
-  font: 700 9px/1 "SF Mono", monospace;
-  letter-spacing: 0.07em;
+  font: 700 10px/1 var(--font-heading);
+  letter-spacing: 0.04em;
   cursor: pointer;
 }
 
@@ -691,8 +698,7 @@ body.replay-embed #orbitalTelemetry {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
   overflow: hidden;
-  border: 1px solid rgba(123, 226, 218, 0.2);
-  border-radius: 9px;
+  border-radius: var(--radius);
   background: rgba(5, 19, 29, 0.72);
   box-shadow: 0 16px 35px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(12px);
@@ -710,15 +716,16 @@ body.replay-embed #orbitalTelemetry span {
   display: block;
   margin-bottom: 3px;
   color: #91a9b2;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.13em;
+  font-family: var(--font-heading);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
 }
 
 html.replay-embed #orbitalTelemetry strong,
 body.replay-embed #orbitalTelemetry strong {
   color: #e0fff9;
-  font-family: "SF Mono", "Cascadia Code", monospace;
+  font-family: var(--font-mono);
   font-size: clamp(19px, 2.1vw, 31px);
   font-weight: 500;
   letter-spacing: -0.07em;
@@ -740,9 +747,8 @@ body.replay-embed #routeOverview {
   display: block;
   width: 218px;
   padding: 10px;
-  border: 1px solid rgba(255, 164, 90, 0.38);
-  border-radius: 10px;
-  background: rgba(5, 20, 30, 0.84);
+  border-radius: var(--radius);
+  background: rgba(9, 27, 39, 0.9);
   box-shadow: 0 16px 35px rgba(0, 0, 0, 0.32);
   backdrop-filter: blur(12px);
 }
@@ -752,9 +758,10 @@ body.replay-embed #routeOverview {
   justify-content: space-between;
   margin-bottom: 5px;
   color: #b8d1d5;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.13em;
+  font-family: var(--font-heading);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
 }
 
 .overview-title span { color: #ffad63; }
@@ -763,7 +770,7 @@ body.replay-embed #routeOverview {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background:
     linear-gradient(rgba(104, 225, 195, 0.045) 1px, transparent 1px),
     linear-gradient(90deg, rgba(104, 225, 195, 0.045) 1px, transparent 1px),
@@ -782,6 +789,34 @@ body.replay-embed #routeOverview {
 #routeOverviewStart { fill: #68e1c3; stroke: #06202b; stroke-width: 2; }
 #routeOverviewCurrent { fill: #fff4db; stroke: #ff9d4d; stroke-width: 3; }
 
+/* A short altitude-over-time sparkline beneath the plan view. The plan view
+   shows where the flight went; this shows how high -- together they give a
+   non-specialist reader the shape of the whole flight at a glance, without
+   needing to scrub the full 3D scene. */
+.altitude-profile-title {
+  margin-top: 8px;
+}
+
+#routeOverviewAltSvg {
+  height: 40px;
+}
+
+#routeOverviewAltGroundLine {
+  stroke: rgba(104, 225, 195, 0.16);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+#routeOverviewAltPath {
+  fill: none;
+  stroke: #ff9d4d;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#routeOverviewAltCurrent { fill: #fff4db; stroke: #ff9d4d; stroke-width: 2.5; }
+
 #modelScaleNote {
   margin: 6px 0 0;
   color: #78919a;
@@ -789,6 +824,52 @@ body.replay-embed #routeOverview {
   letter-spacing: 0.08em;
   text-align: center;
 }
+
+/* ---- Severity legend (in-scene, above the transport bar) ----
+   Explains the marker dot colors directly in the 3D view. This matters most
+   in embed mode, where the side panel (and its incident list) is hidden --
+   without this, the colored dots on the globe have no on-screen key at all. */
+#severityLegend {
+  position: absolute;
+  left: 16px;
+  bottom: 64px;
+  z-index: 21;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(10, 14, 22, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.severity-legend-title {
+  margin: 0 0 5px;
+  color: #b8d1d5;
+  font-family: var(--font-heading);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.severity-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+  color: var(--ink);
+  font-size: 10px;
+}
+
+.severity-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.severity-legend-dot.severity-critical { background: #e8564f; box-shadow: 0 0 6px rgba(232, 86, 79, 0.6); }
+.severity-legend-dot.severity-warning { background: #f2a93b; box-shadow: 0 0 6px rgba(242, 169, 59, 0.5); }
+.severity-legend-dot.severity-notice { background: #4fd8c4; box-shadow: 0 0 6px rgba(79, 216, 196, 0.5); }
 
 html.replay-embed #transport,
 body.replay-embed #transport {
@@ -808,9 +889,8 @@ body.replay-embed #transport {
   gap: 7px;
   overflow: hidden;
   box-sizing: border-box;
-  border: 1px solid rgba(104, 225, 195, 0.27);
-  border-radius: 7px;
-  background: rgba(9, 14, 20, 0.82);
+  border-radius: var(--radius);
+  background: rgba(9, 14, 20, 0.88);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3);
 }
 
@@ -840,8 +920,7 @@ html.replay-embed #transport #resetButton,
 body.replay-embed #transport #playButton,
 body.replay-embed #transport #resetButton {
   color: #dffcf4;
-  border-color: rgba(104, 225, 195, 0.45);
-  background: rgba(104, 225, 195, 0.08);
+  background: rgba(104, 225, 195, 0.14);
 }
 
 html.replay-embed #transport #playButton.active,
@@ -878,6 +957,14 @@ body.replay-embed .cesium-viewer-toolbar,
 body.replay-embed .cesium-navigation-help,
 body.replay-embed .cesium-viewer-fullscreenContainer {
   display: none !important;
+}
+
+/* The embedded transport bar is taller (scrubber + controls stacked), so the
+   legend needs to sit further up to clear it. */
+html.replay-embed #severityLegend,
+body.replay-embed #severityLegend {
+  left: 14px;
+  bottom: 100px;
 }
 
 html.replay-embed .cesium-viewer-bottom,
@@ -936,8 +1023,7 @@ body.replay-embed .cesium-viewer-bottom {
   bottom: 60px;
   width: 200px;
   background: rgba(10, 14, 22, 0.9);
-  border: 1px solid var(--line);
-  border-radius: 2px;
+  border-radius: var(--radius);
   overflow: hidden;
   z-index: 15;
 }
@@ -966,9 +1052,8 @@ body.replay-embed .cesium-viewer-bottom {
   flex: 1;
   height: 28px;
   position: relative;
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   overflow: hidden;
   margin: 0 4px;
@@ -1000,31 +1085,42 @@ body.replay-embed .cesium-viewer-bottom {
   pointer-events: none;
 }
 
+/* Wider than the 1.5px original + a soft glow, so hazard ticks read clearly
+   against the scrubber at a glance instead of disappearing into the bar. */
 .timeline-tick {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 1.5px;
+  width: 2.5px;
+  border-radius: 1px;
 }
 
 .timeline-tick.warning {
   background: var(--warn);
+  box-shadow: 0 0 4px rgba(242, 169, 59, 0.6);
 }
 
 .timeline-tick.critical {
+  width: 3px;
   background: var(--danger);
+  box-shadow: 0 0 5px rgba(232, 86, 79, 0.7);
+}
+
+.timeline-tick.info {
+  background: var(--signal);
+  box-shadow: 0 0 4px rgba(79, 216, 196, 0.6);
 }
 
 .timeline-tick.gps-warning {
   background: var(--signal);
-  opacity: 0.6;
-  width: 1px;
+  opacity: 0.75;
+  width: 2px;
 }
 
 #timeline-time {
   font-size: 10px;
   color: var(--dim);
-  font-family: inherit;
+  font-family: var(--font-mono);
   min-width: 76px;
   text-align: right;
 }
@@ -1054,8 +1150,8 @@ body.replay-embed .cesium-viewer-bottom {
 /* Tabletop map: keep source context readable without crowding the controls. */
 #terrainContext { display:none; }
 html.replay-embed #terrainContext {
-  display:block; position:absolute; top:163px; left:22px; z-index:20;
-  font:8px/1.5 ui-monospace,monospace; letter-spacing:.09em;
+  display:block; position:absolute; top:163px; left:22px; right:18px; z-index:20;
+  font:9px/1.5 var(--font-body); letter-spacing:.02em;
   color:#abc4c7; text-shadow:0 1px 3px #061520; pointer-events:none;
 }
 html.replay-embed .cesium-widget-credits { font-size:9px; }

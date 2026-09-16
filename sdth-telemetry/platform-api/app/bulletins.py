@@ -10,6 +10,7 @@ import json
 from typing import Any
 
 from app.db import db_session
+from app.incidents import affected_flight_details
 from app.schemas import new_id
 
 BULLETIN_KIND = "operator_mitigation_bulletin"
@@ -38,23 +39,40 @@ def build_mitigation_bulletin(signature: str) -> dict[str, Any]:
     if not pattern or not rows:
         raise KeyError(signature)
 
-    flights = [row["flight_id"] for row in rows]
+    affected = affected_flight_details(signature)
+    identified = [f for f in affected if f["source_file"] or f["aircraft_serial"]]
+    if identified:
+        review_lines = [
+            (
+                f"{f['flight_id']} "
+                + (f"({f['source_file']}) " if f["source_file"] else "")
+                + (f"-- {f['drone_model']} " if f["drone_model"] else "")
+                + (f"S/N {f['aircraft_serial']}" if f["aircraft_serial"] else "")
+            ).strip()
+            for f in affected
+        ]
+    else:
+        review_lines = [f["flight_id"] for f in affected]
     bulletin = {
         "kind": BULLETIN_KIND,
         "not_a_fleet_deployment": True,
         "signature": signature,
         "incident_type": pattern["incident_type"],
         "severity": pattern["max_severity"],
-        "affected_flights": flights,
+        "affected_flights": affected,
         "flight_count": pattern["flight_count"],
         "incident_count": pattern["incident_count"],
         "first_seen_at": pattern["first_seen_at"],
         "last_seen_at": pattern["last_seen_at"],
         "evidence_summary": pattern["summary"],
         "recommended_review": [
-            "Compare the marked timestamps on the affected missions in replay.",
-            "Confirm whether the same firmware, batch, or operating area is shared.",
-            "Brief operators on the observed signature before the next sortie.",
+            "Affected logs and airframes:",
+            *[f"  - {line}" for line in review_lines],
+            "Compare the marked timestamps on these specific missions in replay.",
+            "Confirm whether the same firmware, batch, serial run, or operating area is shared "
+            "across the airframes listed above.",
+            "Brief operators on the observed signature before the next sortie, naming the "
+            "affected tail numbers/serials where known.",
         ],
         "explicitly_not_included": [
             "firmware push to airframes",

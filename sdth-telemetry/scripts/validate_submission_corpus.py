@@ -256,9 +256,17 @@ def audit_one(path: Path, root: Path) -> dict[str, Any]:
         )
         detected: list[str] = []
         detector_started = time.perf_counter()
-        previous_handler = signal.signal(signal.SIGALRM, _timeout_handler)
+        # SIGALRM/setitimer are POSIX-only; this whole per-file audit already runs
+        # inside its own mp.Process with a hard --timeout-s boundary (see main()),
+        # which is cross-platform and covers the same "one pathological file can't
+        # hang the audit" concern. On platforms with SIGALRM, keep the tighter
+        # 15-second inner bound as defense in depth; elsewhere, rely on the outer
+        # process boundary alone rather than fabricate a new timeout mechanism.
+        has_sigalrm = hasattr(signal, "SIGALRM")
+        previous_handler = signal.signal(signal.SIGALRM, _timeout_handler) if has_sigalrm else None
         try:
-            signal.setitimer(signal.ITIMER_REAL, 15.0)
+            if has_sigalrm:
+                signal.setitimer(signal.ITIMER_REAL, 15.0)
             incidents = detect_incidents(series)
             detected = sorted({incident.incident_type for incident in incidents})
             labels = sorted(
@@ -277,8 +285,9 @@ def audit_one(path: Path, root: Path) -> dict[str, Any]:
             item["detected_incident_types"] = []
             item["derived_hazard_labels"] = []
         finally:
-            signal.setitimer(signal.ITIMER_REAL, 0)
-            signal.signal(signal.SIGALRM, previous_handler)
+            if has_sigalrm:
+                signal.setitimer(signal.ITIMER_REAL, 0)
+                signal.signal(signal.SIGALRM, previous_handler)
         item["detector_elapsed_ms"] = round((time.perf_counter() - detector_started) * 1000, 1)
         item["missing_expected_incident_types"] = sorted(expected - set(detected))
         item["detection_expectation_met"] = not item["missing_expected_incident_types"]

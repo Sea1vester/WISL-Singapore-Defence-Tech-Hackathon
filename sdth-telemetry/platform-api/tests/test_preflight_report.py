@@ -258,3 +258,150 @@ class TestPreemptiveReportApi:
     def test_file_endpoint_404s_for_unknown_report(self, client):
         resp = client.get("/v1/preemptive-reports/does-not-exist/file", headers=AUTH)
         assert resp.status_code == 404
+
+
+class TestComprehensiveReportMigration:
+    def test_table_and_index_exist(self, client):
+        from app.db import db_session
+
+        with db_session() as conn:
+            tables = {r["name"] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+            indexes = {
+                r["name"]
+                for r in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='comprehensive_reports'"
+                ).fetchall()
+            }
+        assert "comprehensive_reports" in tables
+        assert "idx_comprehensive_reports_flight" in indexes
+
+
+class TestBuildComprehensiveReport:
+    def test_unknown_flight_raises(self, client):
+        from app.db import db_session
+        from app.preflight_report import build_comprehensive_report
+
+        with db_session() as conn, pytest.raises(KeyError):
+            build_comprehensive_report(conn, "does-not-exist")
+
+    def test_combines_all_three_sections(self, client, monkeypatch):
+        from app.db import db_session
+        from app.preflight_report import build_comprehensive_report
+
+        # Skip the real Ollama call -- exercise the deterministic fallback path,
+        # same posture as the rest of this offline-friendly test suite.
+        monkeypatch.setattr("app.analytics._try_model_report", lambda *a, **k: None)
+
+        flight_id = "flight-comprehensive"
+        _ingest_flight_with_incidents(client, flight_id)
+
+        with db_session() as conn:
+            report = build_comprehensive_report(conn, flight_id, allow_llm=False)
+
+        assert report["flight_id"] == flight_id
+        assert report["brand"] == "dji"
+        assert report["incident_report"]["kind"] == "evidence_backed_incident_summary"
+        assert report["incident_report"]["model_enrichment"] == "degraded"
+        assert report["preemptive_findings"]["incident_count"] > 0
+        assert isinstance(report["recurring_pattern_matches"], list)
+        assert "each section" in report["limitations"].lower()
+
+    def test_recurring_pattern_matches_only_own_signatures(self, client, monkeypatch):
+        """A flight with no signature shared by another flight should report no matches,
+        even once fleet-wide patterns exist for unrelated signatures."""
+        from app.db import db_session
+        from app.incidents import index_flight
+        from app.preflight_report import build_comprehensive_report
+
+        monkeypatch.setattr("app.analytics._try_model_report", lambda *a, **k: None)
+
+        _ingest_flight_with_incidents(client, "flight-shared-a")
+        _ingest_flight_with_incidents(client, "flight-shared-b")
+        index_flight("flight-shared-a")
+        index_flight("flight-shared-b")
+
+        with db_session() as conn:
+            report = build_comprehensive_report(conn, "flight-shared-a", allow_llm=False)
+
+        assert len(report["recurring_pattern_matches"]) > 0
+        assert all(p["flight_count"] >= 2 for p in report["recurring_pattern_matches"])
+
+
+class TestComprehensiveReportPdf:
+    def test_render_produces_nonempty_pdf(self, client, tmp_path, monkeypatch):
+        from app.db import db_session
+        from app.pdf_report import render_comprehensive_report_pdf
+        from app.preflight_report import build_comprehensive_report
+
+        monkeypatch.setattr("app.analytics._try_model_report", lambda *a, **k: None)
+
+        flight_id = "flight-comprehensive-pdf"
+        _ingest_flight_with_incidents(client, flight_id)
+
+        with db_session() as conn:
+            report = build_comprehensive_report(conn, flight_id, allow_llm=False)
+
+        out_path = tmp_path / "out.pdf"
+        result = render_comprehensive_report_pdf(report, out_path=out_path)
+        assert result == out_path
+        assert out_path.exists()
+        assert out_path.stat().st_size > 500
+        assert out_path.read_bytes().startswith(b"%PDF")
+
+
+class TestComprehensiveReportApi:
+    def test_post_creates_and_stores_report(self, client, monkeypatch):
+        monkeypatch.setattr("app.analytics._try_model_report", lambda *a, **k: None)
+        flight_id = "flight-comprehensive-api-post"
+        _ingest_flight_with_incidents(client, flight_id)
+
+        resp = client.post(f"/v1/flights/{flight_id}/comprehensive-report", headers=AUTH)
+        assert resp.status_code == 201, resp.text
+        body = resp.json()
+        assert body["flight_id"] == flight_id
+        assert body["report"]["incident_report"]["flight_id"] == flight_id
+        assert body["report"]["preemptive_findings"]["incident_count"] > 0
+
+    def test_post_unknown_flight_404s(self, client):
+        resp = client.post("/v1/flights/does-not-exist/comprehensive-report", headers=AUTH)
+        assert resp.status_code == 404
+
+    def test_post_requires_auth(self, client):
+        flight_id = "flight-comprehensive-api-noauth"
+        _ingest_flight_with_incidents(client, flight_id)
+        resp = client.post(f"/v1/flights/{flight_id}/comprehensive-report")
+        assert resp.status_code == 401
+
+    def test_get_returns_most_recent(self, client, monkeypatch):
+        monkeypatch.setattr("app.analytics._try_model_report", lambda *a, **k: None)
+        flight_id = "flight-comprehensive-api-get"
+        _ingest_flight_with_incidents(client, flight_id)
+
+        first = client.post(f"/v1/flights/{flight_id}/comprehensive-report", headers=AUTH).json()
+        second = client.post(f"/v1/flights/{flight_id}/comprehensive-report", headers=AUTH).json()
+        assert first["id"] != second["id"]
+
+        resp = client.get(f"/v1/flights/{flight_id}/comprehensive-report", headers=AUTH)
+        assert resp.status_code == 200
+        assert resp.json()["id"] == second["id"]
+
+    def test_get_404s_when_no_report_yet(self, client):
+        flight_id = "flight-comprehensive-api-no-report"
+        _ingest_flight_with_incidents(client, flight_id)
+        resp = client.get(f"/v1/flights/{flight_id}/comprehensive-report", headers=AUTH)
+        assert resp.status_code == 404
+
+    def test_file_endpoint_streams_pdf(self, client, monkeypatch):
+        monkeypatch.setattr("app.analytics._try_model_report", lambda *a, **k: None)
+        flight_id = "flight-comprehensive-api-file"
+        _ingest_flight_with_incidents(client, flight_id)
+        created = client.post(f"/v1/flights/{flight_id}/comprehensive-report", headers=AUTH).json()
+
+        resp = client.get(f"/v1/comprehensive-reports/{created['id']}/file", headers=AUTH)
+        assert resp.status_code == 200
+        assert resp.headers["content-type"] == "application/pdf"
+        assert resp.content.startswith(b"%PDF")
+
+    def test_file_endpoint_404s_for_unknown_report(self, client):
+        resp = client.get("/v1/comprehensive-reports/does-not-exist/file", headers=AUTH)
+        assert resp.status_code == 404

@@ -123,6 +123,10 @@ def row_to_record(row: dict[str, str]) -> dict[str, Any] | None:
     if drone:
         record["drone_model"] = drone
 
+    serial = _s(row, "RECOVER.aircraftSerial") or _s(row, "DETAILS.aircraftSerial") or _s(row, "SERIAL.flightController")
+    if serial:
+        record["aircraft_serial"] = serial
+
     flyc = _s(row, "OSD.flycState")
     if flyc:
         record["flight_mode"] = flyc

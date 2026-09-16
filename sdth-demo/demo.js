@@ -7,10 +7,18 @@ const DEMO_LIBRARY_LOGS = [
 ];
 const $ = (id) => document.getElementById(id);
 const wideLayout = window.matchMedia("(min-width: 760px)");
-const els = { apiDot: $("apiDot"), apiState: $("apiState"), authPanel: $("authPanel"), token: $("tokenInput"), uploadMessage: $("uploadMessage"), uploadStatus: $("uploadStatus"), traceDetail: $("traceDetail"), file: $("logFile"), flightList: $("flightList"), flightMeta: $("flightMeta"), selectedFlightTitle: $("selectedFlightTitle"), incidentTitle: $("incidentTitle"), incidentCount: $("incidentCount"), incidentList: $("incidentList"), modelState: $("modelState"), replayEmpty: $("replayEmpty"), replayFrame: $("replayFrame"), openReplay: $("openReplay"), patternList: $("patternList"), bulletinList: $("bulletinList"), analysisAnswer: $("analysisAnswer"), question: $("questionInput"), localAnalysis: $("localAnalysis"), localAnalysisBody: $("localAnalysisBody") };
+const els = { apiDot: $("apiDot"), apiState: $("apiState"), authPanel: $("authPanel"), token: $("tokenInput"), uploadMessage: $("uploadMessage"), uploadStatus: $("uploadStatus"), traceDetail: $("traceDetail"), file: $("logFile"), flightList: $("flightList"), flightMeta: $("flightMeta"), selectedFlightTitle: $("selectedFlightTitle"), incidentTitle: $("incidentTitle"), incidentCount: $("incidentCount"), incidentList: $("incidentList"), modelState: $("modelState"), replayEmpty: $("replayEmpty"), replayFrame: $("replayFrame"), openReplay: $("openReplay"), patternList: $("patternList"), bulletinList: $("bulletinList"), analysisAnswer: $("analysisAnswer"), question: $("questionInput"), localAnalysis: $("localAnalysis"), localAnalysisBody: $("localAnalysisBody"), downloadReportButton: $("downloadReportButton") };
 
 function authHeaders(json = false) { const headers = state.token ? { Authorization: `Bearer ${state.token}` } : {}; return json ? { ...headers, "Content-Type": "application/json" } : headers; }
 function detail(error) { return error?.detail || error?.message || "The request could not be completed."; }
+const VAGUE_ERRORS = new Set(["", "internal server error", "not found", "unprocessable entity", "bad request", "forbidden", "unauthorized"]);
+function friendlyError(message) {
+  const text = String(message || "").trim();
+  const lower = text.toLowerCase();
+  if (!text || VAGUE_ERRORS.has(lower)) return "Something went wrong on the platform side. Please try again in a moment.";
+  if (lower.includes("failed to fetch") || lower.includes("networkerror") || lower.includes("connection is unavailable")) return "Could not reach the platform. Check that the local service is running, then try again.";
+  return /[.!?]$/.test(text) ? text : `This didn't work: ${text}.`;
+}
 async function api(path, options = {}) {
   let response;
   try { response = await fetch(path, { ...options, headers: { ...authHeaders(options.json), ...(options.headers || {}) } }); }
@@ -30,10 +38,10 @@ function pipeline(status, detailText) {
   const current = status === "detecting" ? 3 : stages.indexOf(status);
   document.querySelectorAll("#pipelineStages li").forEach((el, index) => el.className = current < 0 ? "" : index < current ? "done" : index === current ? "active" : "");
   const failed = status === "failed";
-  els.uploadStatus.textContent = failed ? "Failed" : status === "ready" ? "Record normalized" : status || "Waiting";
+  els.uploadStatus.textContent = failed ? "Failed" : status === "ready" ? "Ready to review" : status || "Waiting";
   $("uploadTabDot").hidden = !status || status === "ready" || failed;
   els.uploadStatus.className = `status-label ${failed ? "failed" : current < 0 ? "waiting" : ""}`;
-  els.traceDetail.textContent = detailText || (failed ? "Processing ended with an error." : `Current record state: ${status || "waiting"}.`);
+  els.traceDetail.textContent = detailText || (failed ? "Something went wrong while processing this log." : `Current step: ${status || "waiting"}.`);
 }
 function uploadComplete(status) { return status === "ready" || status === "failed"; }
 async function pollUpload(uploadId) {
@@ -43,31 +51,31 @@ async function pollUpload(uploadId) {
     try { upload = await api(`/v1/uploads/${encodeURIComponent(uploadId)}`); }
     catch (firstError) { upload = await api(`/v1/logs/${encodeURIComponent(uploadId)}/status`).catch(() => { throw firstError; }); }
     state.upload = upload;
-    pipeline(upload.status, upload.error || (upload.duplicate ? "Duplicate record: using the original processing result." : `${upload.filename || "Log"} · ${upload.status}`));
-    if (upload.status === "failed") { setMessage(upload.error || "The log could not be processed.", "error"); return; }
+    pipeline(upload.status, upload.error || (upload.duplicate ? "Duplicate found: using the earlier result." : `${upload.filename || "Log"} · ${upload.status}`));
+    if (upload.status === "failed") { setMessage(friendlyError(upload.error) || "The log could not be processed.", "error"); return; }
     if (upload.status === "ready") {
-      setMessage(upload.duplicate ? "Duplicate found. The original normalized record is ready." : "Normalized record is ready for review.", "success");
+      setMessage(upload.duplicate ? "Duplicate found. The earlier processed log is ready." : "The log has been processed and is ready for review.", "success");
       await refreshFlights();
       if (upload.flight_id) { await selectFlight(upload.flight_id); showView("overview"); }
       return;
     }
     state.pollTimer = setTimeout(() => pollUpload(uploadId), 1400);
-  } catch (error) { setMessage(error.message, "error"); pipeline("failed", error.message); }
+  } catch (error) { const msg = friendlyError(error.message); setMessage(msg, "error"); pipeline("failed", msg); }
 }
 async function uploadFile(file) {
   if (!state.token) { setMessage("Add a session key before uploading.", "error"); setAuthPanel(true); return; }
   if (!file) return;
   if (file.size > 100 * 1024 * 1024) { setMessage("Choose a file smaller than 100 MB.", "error"); return; }
   const data = new FormData(); data.append("file", file);
-  setMessage(`Uploading ${file.name}…`); pipeline("received", "Sending recorded bytes to the processing service.");
+  setMessage(`Uploading ${file.name}…`); pipeline("received", "Uploading your log…");
   try {
     const response = await fetch("/v1/logs/upload", { method: "POST", headers: authHeaders(), body: data });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(detail(body));
     state.upload = body;
-    setMessage(body.duplicate ? "A matching recorded log already exists; checking its status…" : "Log accepted. Tracking its actual processing state.");
+    setMessage(body.duplicate ? "A matching log already exists; checking its status…" : "Log accepted. Tracking its progress below.");
     pollUpload(body.upload_id);
-  } catch (error) { setMessage(error.message, "error"); pipeline("failed", error.message); }
+  } catch (error) { const msg = friendlyError(error.message); setMessage(msg, "error"); pipeline("failed", msg); }
 }
 function renderFlights() {
   els.flightList.replaceChildren();
@@ -93,7 +101,7 @@ async function refreshFlights() {
   const button = $("refreshFlights"); button.disabled = true;
   try { const result = await api("/v1/flights?limit=20"); state.flights = result.items || []; setApi("online", "Session connected"); if (!state.upload) setMessage("Session connected. Choose a recorded log to process.", "success"); renderFlights(); $("emptyHint").textContent = "Choose a flight from the library or import a log.";
     if (!state.selectedFlight && state.flights.length) { const saved = sessionStorage.getItem("wislSelectedFlight"); const initial = state.flights.find(f => f.id === saved) || state.flights.find(f => f.id === "flight-1a1b914dc70e6d0c1b45") || state.flights[0]; await selectFlight(initial.id); } }
-  catch (error) { setApi("error", "Connection failed"); els.flightMeta.textContent = error.message; }
+  catch (error) { setApi("error", "Connection failed"); els.flightMeta.textContent = friendlyError(error.message); }
   finally { button.disabled = false; }
 }
 function evidenceText(incident) {
@@ -105,16 +113,16 @@ function evidenceText(incident) {
     const scalarFacts = Object.entries(evidence).filter(([key, value]) => key !== "hazard" && value !== null && typeof value !== "object").slice(0, 2).map(([key, value]) => `${label(key)}: ${value}`);
     return [recordedAt ? `recorded ${fmtTime(recordedAt)}` : null, warning ? `warning: ${warning}` : null, ...scalarFacts].filter(Boolean).join(" · ");
   }
-  return incident.started_at ? `Recorded at ${fmtTime(incident.started_at)}` : "Indexed detector evidence";
+  return incident.started_at ? `Recorded at ${fmtTime(incident.started_at)}` : "Recorded detector evidence";
 }
 function renderIncidents(items) {
   els.incidentList.replaceChildren(); els.incidentCount.textContent = String(items.length);
-  if (!items.length) { els.incidentList.textContent = "No indexed incidents were found for this recorded flight."; els.incidentList.className = "incident-list empty-state"; return; }
+  if (!items.length) { els.incidentList.textContent = "No incidents were recorded for this flight."; els.incidentList.className = "incident-list empty-state"; return; }
   els.incidentList.className = "incident-list";
   items.forEach((incident) => {
     const article = document.createElement("article"); article.className = "incident";
     const severity = String(incident.severity || "notice").toLowerCase();
-    article.innerHTML = `<div class="incident-top"><span class="severity ${escapeHtml(severity)}">${escapeHtml(severity)}</span><h3>${escapeHtml(label(incident.incident_type || incident.type))}</h3></div><p>${escapeHtml(incident.summary || "Detector event indexed from the recorded log.")}</p><div class="evidence">${escapeHtml(evidenceText(incident))}</div>`;
+    article.innerHTML = `<div class="incident-top"><span class="severity ${escapeHtml(severity)}">${escapeHtml(severity)}</span><h3>${escapeHtml(label(incident.incident_type || incident.type))}</h3></div><p>${escapeHtml(incident.summary || "Detector event recorded in this log.")}</p><div class="evidence">${escapeHtml(evidenceText(incident))}</div>`;
     if (incident.started_at && (incident.flight_id || state.selectedFlight?.id)) {
       const replay = document.createElement("button");
       replay.type = "button";
@@ -136,26 +144,39 @@ async function selectFlight(flightId, timestamp = null) {
   const version = ++state.selectionVersion;
   state.selectedFlight = flight; sessionStorage.setItem("wislSelectedFlight", flightId); renderFlights(); setLibrary(false);
   els.analysisAnswer.textContent = "Ask about this mission or open an observation in replay."; renderLocalAnalysis(null);
-  const provenance = simulationProvenance(flight); els.selectedFlightTitle.textContent = flightDisplayName(flight); els.selectedFlightTitle.title = flightDisplayName(flight); els.flightMeta.textContent = `${fmtTime(flight.started_at)}${flight.source ? ` · ${label(flight.source)}` : ""}${provenance ? ` · ${provenance}` : ""}`; els.incidentTitle.textContent = "Loading indexed evidence…"; els.incidentCount.textContent = "…";
+  const provenance = simulationProvenance(flight); els.selectedFlightTitle.textContent = flightDisplayName(flight); els.selectedFlightTitle.title = flightDisplayName(flight); els.flightMeta.textContent = `${fmtTime(flight.started_at)}${flight.source ? ` · ${label(flight.source)}` : ""}${provenance ? ` · ${provenance}` : ""}`; els.incidentTitle.textContent = "Loading recorded evidence…"; els.incidentCount.textContent = "…";
+  els.downloadReportButton.disabled = false;
   setReplay(flightId, timestamp);
   try {
     const [incidents, report] = await Promise.all([api(`/v1/flights/${encodeURIComponent(flightId)}/incidents`), api(`/v1/flights/${encodeURIComponent(flightId)}/incident-report`).catch(() => null)]);
     if (version !== state.selectionVersion) return;
-    renderIncidents(incidents.items || []); els.incidentTitle.textContent = incidents.count === 1 ? "1 indexed incident" : `${incidents.count || 0} indexed incidents`;
+    renderIncidents(incidents.items || []); els.incidentTitle.textContent = incidents.count === 1 ? "1 recorded incident" : `${incidents.count || 0} recorded incidents`;
     const status = modelStatus(state.demoStatus || report); els.modelState.textContent = modelDisplay(status);
-  } catch (error) { if (version !== state.selectionVersion) return; els.incidentTitle.textContent = "Evidence unavailable"; els.incidentList.textContent = error.message; els.incidentList.className = "incident-list empty-state"; }
+  } catch (error) { if (version !== state.selectionVersion) return; els.incidentTitle.textContent = "Evidence unavailable"; els.incidentList.textContent = friendlyError(error.message); els.incidentList.className = "incident-list empty-state error"; }
 }
 async function refreshPatterns() {
   if (!state.token) return;
   try {
     const body = await api("/v1/incidents/patterns?min_flights=2"); const items = body.items || []; els.patternList.replaceChildren();
-    if (!items.length) { els.patternList.textContent = "No signature currently recurs across two or more recorded flights."; els.patternList.className = "pattern-grid empty-state"; return; }
+    if (!items.length) { els.patternList.textContent = "No warning pattern currently repeats across two or more recorded flights."; els.patternList.className = "pattern-grid empty-state"; return; }
     els.patternList.className = "pattern-grid";
-    for (const pattern of items) { const card = document.createElement("article"); card.className = "pattern"; card.innerHTML = `<span class="severity ${escapeHtml(String(pattern.max_severity || "notice").toLowerCase())}">${escapeHtml(pattern.max_severity || "notice")}</span><h3>${escapeHtml(label(pattern.incident_type))}</h3><p>${escapeHtml(pattern.summary || "Recurring detector signature in stored flights.")}</p><div class="pattern-meta"><span>${pattern.flight_count} flights</span><span>${pattern.incident_count} incidents</span></div><button class="button" type="button">Create review bulletin</button>`; card.querySelector("button").addEventListener("click", () => createBulletin(pattern.signature, card.querySelector("button"))); els.patternList.append(card); }
-  } catch (error) { els.patternList.textContent = error.message; els.patternList.className = "pattern-grid empty-state"; }
+    for (const pattern of items) {
+      const card = document.createElement("article"); card.className = "pattern";
+      const affected = pattern.affected_flights || [];
+      const shown = affected.slice(0, 4).map((f) => {
+        const bits = [f.source_file, f.drone_model && f.aircraft_serial ? `${f.drone_model} S/N ${f.aircraft_serial}` : f.drone_model].filter(Boolean);
+        return `<li>${escapeHtml(f.flight_id)}${bits.length ? ` &mdash; ${escapeHtml(bits.join(", "))}` : ""}</li>`;
+      }).join("");
+      const more = affected.length > 4 ? `<li class="fine-print">+${affected.length - 4} more</li>` : "";
+      const flightsBlock = affected.length ? `<ul class="pattern-flights">${shown}${more}</ul>` : "";
+      card.innerHTML = `<span class="severity ${escapeHtml(String(pattern.max_severity || "notice").toLowerCase())}">${escapeHtml(pattern.max_severity || "notice")}</span><h3>${escapeHtml(label(pattern.incident_type))}</h3><p>${escapeHtml(pattern.summary || "Recurring warning pattern across stored flights.")}</p><div class="pattern-meta"><span>${pattern.flight_count} flights</span><span>${pattern.incident_count} incidents</span></div>${flightsBlock}<button class="button" type="button">Create review bulletin</button>`;
+      card.querySelector("button").addEventListener("click", () => createBulletin(pattern.signature, card.querySelector("button")));
+      els.patternList.append(card);
+    }
+  } catch (error) { els.patternList.textContent = friendlyError(error.message); els.patternList.className = "pattern-grid empty-state error"; }
 }
-async function createBulletin(signature, button) { if (!signature) return; button.disabled = true; button.textContent = "Creating…"; try { await api("/v1/mitigation-bulletins", { method:"POST", json:true, body:JSON.stringify({ signature }) }); await refreshBulletins(); showView("bulletins"); } catch (error) { button.textContent = error.message; } finally { button.disabled = false; } }
-async function refreshBulletins() { if (!state.token) return; try { const body = await api("/v1/mitigation-bulletins"); const items = body.items || []; els.bulletinList.replaceChildren(); if (!items.length) { els.bulletinList.textContent = "No reviewable bulletins have been created from recorded patterns."; els.bulletinList.className = "bulletin-list empty-state"; return; } els.bulletinList.className = "bulletin-list"; for (const bulletin of items) { const card = document.createElement("article"); card.className="bulletin"; const review = (bulletin.recommended_review || []).map((item) => `<li>${escapeHtml(item)}</li>`).join(""); card.innerHTML = `<div class="bulletin-header"><div><p class="eyebrow">${escapeHtml(bulletin.signature || "recorded pattern")}</p><h2>${escapeHtml(label(bulletin.incident_type))}</h2></div><span class="count-pill">${bulletin.flight_count || 0} flights</span></div><p>${escapeHtml(bulletin.evidence_summary || "Evidence from the recorded incident signature.")}</p><ul>${review}</ul><p class="fine-print">${escapeHtml(bulletin.limitations || "For operator review only. This document does not modify aircraft.")}</p>`; els.bulletinList.append(card); } } catch (error) { els.bulletinList.textContent = error.message; els.bulletinList.className = "bulletin-list empty-state"; } }
+async function createBulletin(signature, button) { if (!signature) return; button.disabled = true; button.textContent = "Creating…"; try { await api("/v1/mitigation-bulletins", { method:"POST", json:true, body:JSON.stringify({ signature }) }); await refreshBulletins(); showView("bulletins"); } catch (error) { button.textContent = friendlyError(error.message); } finally { button.disabled = false; } }
+async function refreshBulletins() { if (!state.token) return; try { const body = await api("/v1/mitigation-bulletins"); const items = body.items || []; els.bulletinList.replaceChildren(); if (!items.length) { els.bulletinList.textContent = "No reviewable bulletins have been created from recorded patterns."; els.bulletinList.className = "bulletin-list empty-state"; return; } els.bulletinList.className = "bulletin-list"; for (const bulletin of items) { const card = document.createElement("article"); card.className="bulletin"; const review = (bulletin.recommended_review || []).map((item) => `<li>${escapeHtml(item)}</li>`).join(""); card.innerHTML = `<div class="bulletin-header"><div><p class="eyebrow">${escapeHtml(bulletin.signature || "recorded pattern")}</p><h2>${escapeHtml(label(bulletin.incident_type))}</h2></div><span class="count-pill">${bulletin.flight_count || 0} flights</span></div><p>${escapeHtml(bulletin.evidence_summary || "Evidence from the recorded incident pattern.")}</p><ul>${review}</ul><p class="fine-print">${escapeHtml(bulletin.limitations || "For operator review only. This document does not modify aircraft.")}</p>`; els.bulletinList.append(card); } } catch (error) { els.bulletinList.textContent = friendlyError(error.message); els.bulletinList.className = "bulletin-list empty-state error"; } }
 async function loadDemoStatus() { if (!state.token) return; try { state.demoStatus = await api("/v1/demo/status"); els.modelState.textContent = modelDisplay(modelStatus(state.demoStatus)); } catch { /* Demo status is optional while the platform endpoint is being added. */ } }
 function renderLocalAnalysis(result) {
   const view = localAnalysisView(result);
@@ -175,8 +196,31 @@ function appendEvidenceLinks(container, records = []) {
   container.append(links);
 }
 async function askQuestion(event) { event.preventDefault(); if (!state.token) { els.analysisAnswer.textContent = "Connect a session key to query recorded evidence."; return; } if (!state.selectedFlight?.id) { els.analysisAnswer.textContent = "Select a recorded flight before asking about what happened or where the evidence is."; return; } const question = els.question.value.trim(); if (!question) return; els.analysisAnswer.textContent = "Checking recorded evidence…"; const body = { question, flight_id: state.selectedFlight.id };
-  try { const answer = await api("/v1/demo/query", { method:"POST", json:true, body:JSON.stringify(body) }); els.analysisAnswer.textContent = queryText(answer); appendEvidenceLinks(els.analysisAnswer, answer.evidence); } catch (error) { els.analysisAnswer.textContent = `Evidence query unavailable: ${error.message}`; } }
-async function analyzeFleetRecords() { if (!state.token) { els.localAnalysis.hidden = true; els.analysisAnswer.textContent = "Connect a session key to analyze stored fleet records."; return; } const button = $("fleetAnalysisButton"); const question = els.question.value.trim() || "Summarize recurring patterns and evidence across stored flights."; button.disabled = true; button.textContent = "Analyzing…"; els.localAnalysis.hidden = true; try { const result = await api("/v1/demo/analysis", { method:"POST", json:true, body:JSON.stringify({ question }) }); renderLocalAnalysis(result); } catch (error) { els.analysisAnswer.textContent = `Local analysis unavailable: ${error.message}`; } finally { button.disabled = false; button.textContent = "Analyze fleet records"; } }
+  try { const answer = await api("/v1/demo/query", { method:"POST", json:true, body:JSON.stringify(body) }); els.analysisAnswer.textContent = queryText(answer); appendEvidenceLinks(els.analysisAnswer, answer.evidence); } catch (error) { els.analysisAnswer.textContent = friendlyError(error.message); } }
+async function downloadComprehensiveReport() {
+  if (!state.token) { setAuthPanel(true); return; }
+  const flightId = state.selectedFlight?.id;
+  if (!flightId) return;
+  const button = els.downloadReportButton;
+  const originalText = button.textContent;
+  button.disabled = true; button.textContent = "Building PDF…";
+  try {
+    const created = await api(`/v1/flights/${encodeURIComponent(flightId)}/comprehensive-report`, { method: "POST" });
+    const response = await fetch(`/v1/comprehensive-reports/${encodeURIComponent(created.id)}/file`, { headers: authHeaders() });
+    if (!response.ok) throw new Error("The comprehensive PDF could not be downloaded.");
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url; link.download = `${flightId}-comprehensive-report.pdf`;
+    document.body.append(link); link.click(); link.remove();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    setMessage(friendlyError(error.message), "error");
+  } finally {
+    button.disabled = false; button.textContent = originalText;
+  }
+}
+async function analyzeFleetRecords() { if (!state.token) { els.localAnalysis.hidden = true; els.analysisAnswer.textContent = "Connect a session key to analyze stored fleet records."; return; } const button = $("fleetAnalysisButton"); const question = els.question.value.trim() || "Summarize recurring patterns and evidence across stored flights."; button.disabled = true; button.textContent = "Analyzing…"; els.localAnalysis.hidden = true; try { const result = await api("/v1/demo/analysis", { method:"POST", json:true, body:JSON.stringify({ question }) }); renderLocalAnalysis(result); } catch (error) { els.analysisAnswer.textContent = friendlyError(error.message); } finally { button.disabled = false; button.textContent = "Analyze fleet records"; } }
 function showView(view) {
   document.querySelectorAll(".view").forEach(el => { const active = el.id === `${view}View`; el.classList.toggle("active", active); el.hidden = !active; });
   document.querySelectorAll(".nav-link").forEach(el => { const active = el.dataset.view === view; el.classList.toggle("active", active); el.setAttribute("aria-selected", String(active)); el.tabIndex = active ? 0 : -1; });
@@ -224,7 +268,7 @@ async function seedDemoLibrary() {
     if (firstId && !state.selectedFlight) await selectFlight(firstId);
     setApi("online", "Demo missions ready");
   } catch (error) {
-    setApi("error", error.message);
+    setApi("error", friendlyError(error.message));
   } finally {
     state.seedingLibrary = false;
   }
@@ -252,7 +296,7 @@ $("sampleButton").addEventListener("click", async () => {
   if (!state.token) { setAuthPanel(true); return; }
   const button = $("sampleButton"); button.disabled = true;
   try { const response = await fetch("/demo/fixtures/dji_csv_gps_jamming.csv"); if (!response.ok) throw new Error("The included sample could not be loaded."); await uploadFile(new File([await response.blob()], "dji_csv_gps_jamming.csv", {type:"text/csv"})); }
-  catch (error) { setMessage(error.message, "error"); }
+  catch (error) { setMessage(friendlyError(error.message), "error"); }
   finally { button.disabled = false; }
 });
 document.addEventListener("keydown", event => { if (event.key === "Escape") { setLibrary(false); setAuthPanel(false); } });
@@ -264,6 +308,7 @@ $("dropzone").addEventListener("drop", event => uploadFile(event.dataTransfer.fi
 $("refreshFlights").addEventListener("click", refreshFlights);
 $("questionForm").addEventListener("submit", askQuestion);
 $("fleetAnalysisButton").addEventListener("click", analyzeFleetRecords);
+els.downloadReportButton.addEventListener("click", downloadComprehensiveReport);
 document.querySelectorAll(".query-presets button").forEach(button => button.addEventListener("click", () => { els.question.value = button.dataset.query; $("questionForm").requestSubmit(); }));
 const tabs = [...document.querySelectorAll(".nav-link")];
 tabs.forEach((button,index) => {

@@ -69,6 +69,18 @@ def _latest_enrichment(flight_id: str) -> dict[str, Any] | None:
     return json.loads(row["enrichment_json"])
 
 
+_SEVERITY_RANK = {"critical": 2, "warning": 1, "info": 0}
+
+
+def _airframe_label(metadata: dict[str, Any], source: str) -> str:
+    model = metadata.get("drone_model")
+    serial = metadata.get("aircraft_serial")
+    label = model or source
+    if serial:
+        label = f"{label} (S/N {serial})"
+    return label
+
+
 def build_deterministic_report(
     flight_id: str,
     series: list[dict[str, Any]],
@@ -78,37 +90,81 @@ def build_deterministic_report(
 ) -> dict[str, Any]:
     first = series[0] if series else {}
     last = series[-1] if series else {}
-    source = ((first.get("metadata") or {}).get("source")) or "unknown"
+    metadata = first.get("metadata") or {}
+    source = metadata.get("source") or "unknown"
     start = first.get("timestamp_utc") or ""
     end = last.get("timestamp_utc") or start
+    airframe = _airframe_label(metadata, source)
+
     if incidents:
+        type_counts: dict[str, int] = {}
+        severity_counts = {"critical": 0, "warning": 0, "info": 0}
+        for item in incidents:
+            itype = item.get("incident_type", "unknown")
+            type_counts[itype] = type_counts.get(itype, 0) + 1
+            sev = item.get("severity", "info")
+            severity_counts[sev] = severity_counts.get(sev, 0) + 1
+        breakdown = ", ".join(
+            f"{count}x {itype}" for itype, count in sorted(type_counts.items(), key=lambda kv: -kv[1])
+        )
+        most_severe = max(incidents, key=lambda i: _SEVERITY_RANK.get(i.get("severity"), 0))
+        evidence = most_severe.get("evidence") or {}
+        pos = evidence.get("position") or {}
+        pos_str = (
+            f" at {pos['lat']:.5f}, {pos['lon']:.5f}"
+            if pos.get("lat") is not None and pos.get("lon") is not None
+            else ""
+        )
+        hazard = evidence.get("hazard")
+        hazard_str = f" (triage label: {hazard})" if hazard else ""
+        if severity_counts["critical"]:
+            disposition = (
+                "Disposition: hold this airframe from further sorties pending maintenance review "
+                "of the flagged interval(s) before next flight."
+            )
+        elif severity_counts["warning"]:
+            disposition = "Disposition: no immediate grounding indicated; review at next scheduled servicing."
+        else:
+            disposition = "Disposition: no maintenance action indicated from this log."
         mission_summary = (
-            f"Recorded {source} mission {flight_id} from {start} to {end} with "
-            f"{len(series)} samples and {len(incidents)} rule-detected incident(s). "
-            "This is an evidence-backed summary, not a causal root-cause analysis."
+            f"Flight safety occurrence review -- {airframe}, mission {flight_id}, {start} to {end} "
+            f"({len(series)} telemetry samples, {source} log). "
+            f"{len(incidents)} rule-detected occurrence(s): {breakdown}. "
+            f"Most severe: [{most_severe.get('severity')}] {most_severe.get('incident_type')}{hazard_str} at "
+            f"{most_severe.get('started_at')}{pos_str} -- {most_severe.get('summary')} "
+            f"{disposition} This is an evidence-backed summary, not a causal root-cause analysis."
         )
     else:
         mission_summary = (
-            f"Recorded {source} mission {flight_id} from {start} to {end} with "
-            f"{len(series)} samples. No rule-detected incidents were found. "
+            f"Flight safety occurrence review -- {airframe}, mission {flight_id}, {start} to {end} "
+            f"({len(series)} telemetry samples, {source} log). No rule-detected occurrences. "
+            "Disposition: no maintenance action indicated from this log. "
             "This is an evidence-backed summary, not a causal root-cause analysis."
         )
 
     timeline = []
     for item in incidents:
-        position = item.get("evidence", {}).get("position") or {}
+        evidence = item.get("evidence") or {}
+        position = evidence.get("position") or {}
+        hazard = evidence.get("hazard")
+        label = f"{item.get('incident_type')}" + (f" (triage label: {hazard})" if hazard else "")
         timeline.append(
             {
                 "timestamp_utc": item.get("started_at") or "",
-                "event": f"{item.get('incident_type')}: {item.get('summary')}",
-                "evidence": json.dumps(item.get("evidence") or {}, sort_keys=True),
+                "event": f"{label}: {item.get('summary')}",
+                "evidence": json.dumps(evidence, sort_keys=True),
                 "lat": item.get("lat", position.get("lat")),
                 "lon": item.get("lon", position.get("lon")),
                 "alt_m": item.get("alt_m", position.get("alt_m")),
             }
         )
 
-    factors = [item.get("summary") for item in incidents if item.get("summary")]
+    factors = []
+    for item in incidents:
+        hazard = (item.get("evidence") or {}).get("hazard")
+        suffix = f" [triage label: {hazard}]" if hazard else ""
+        if item.get("summary"):
+            factors.append(f"{item['summary']}{suffix}")
     if enrichment and enrichment.get("errors"):
         factors.extend(
             f"Model-normalized {error.get('category')}: {error.get('summary')}"
@@ -119,20 +175,36 @@ def build_deterministic_report(
         factors = ["No detector or model evidence indicated a failure."]
 
     limitations = (
-        "Confidence is limited to recorded telemetry and deterministic detectors. "
-        "No live airframe, camera, RF, or vendor diagnostic session was available. "
+        f"Confidence is limited to recorded telemetry ({source} log, {len(series)} samples) and "
+        "deterministic detectors. Triage labels (jamming/mechanical_failure/kinetic_loss) name a "
+        "detector pattern, not a confirmed root-cause or causal finding. No live airframe, "
+        "camera, RF, or vendor diagnostic session was available for this mission. "
         "Do not treat this output as a confirmed causal chain."
     )
     if enrichment and enrichment.get("limitations"):
         limitations = f"{limitations} Model note: {enrichment['limitations']}"
 
     follow_up = [
-        "Review the marked timestamps and coordinates on the 3D replay.",
-        "Compare this signature against other missions before changing procedure.",
+        f"Cross-check {airframe} against the fleet patterns endpoint for this flight's incident "
+        "signature(s) before treating this as an isolated occurrence.",
         "Do not deploy firmware or configuration changes from this summary alone.",
     ]
-    if incidents:
-        follow_up.insert(0, f"Inspect the first {incidents[0]['incident_type']} interval in the flight path.")
+    first_of_type: dict[str, dict[str, Any]] = {}
+    for item in incidents:
+        first_of_type.setdefault(item.get("incident_type", "unknown"), item)
+    for itype, item in first_of_type.items():
+        pos = (item.get("evidence") or {}).get("position") or {}
+        where = (
+            f" ({pos['lat']:.5f}, {pos['lon']:.5f})"
+            if pos.get("lat") is not None and pos.get("lon") is not None
+            else ""
+        )
+        follow_up.insert(
+            0,
+            f"Inspect the {itype} interval starting {item.get('started_at')}{where} on the 3D replay"
+            + (f" ({type_counts[itype]}x this flight)" if type_counts.get(itype, 1) > 1 else "")
+            + ".",
+        )
 
     report = {
         "kind": "evidence_backed_incident_summary",

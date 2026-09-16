@@ -96,6 +96,7 @@ def l1_record_to_canonical(
         "timestamp_utc",
         "t",
         "drone_model",
+        "aircraft_serial",
         "warning",
         "tip",
         "flight_mode",
@@ -144,6 +145,7 @@ def l1_record_to_canonical(
         "metadata": {
             "source": source,
             "drone_model": record.get("drone_model"),
+            "aircraft_serial": record.get("aircraft_serial"),
             "frame": frame,
         },
     }

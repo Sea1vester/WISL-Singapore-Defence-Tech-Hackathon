@@ -158,6 +158,17 @@ def index_flight(flight_id: str, *, include_llm_report: str | None = None) -> di
         user_markers = _get_operator_markers(flight_id)
         detected = detect_incidents(series, user_markers=user_markers)
 
+        # visual_records.incident_id has no ON DELETE clause, so re-running detection
+        # (which replaces every rule incident row for this flight) would otherwise fail
+        # a foreign-key check for any visual already linked to one of the old rows.
+        # Those links point at rows about to disappear, so clear them first.
+        conn.execute(
+            """
+            UPDATE visual_records SET incident_id = NULL
+            WHERE incident_id IN (SELECT id FROM incidents WHERE flight_id = ? AND detector = 'rule')
+            """,
+            (flight_id,),
+        )
         conn.execute(
             "DELETE FROM incidents WHERE flight_id = ? AND detector = 'rule'",
             (flight_id,),
@@ -243,6 +254,54 @@ def index_flight(flight_id: str, *, include_llm_report: str | None = None) -> di
     }
 
 
+def _flight_identity(conn, flight_id: str) -> dict[str, Any]:
+    """Best-effort identifying info for one flight: source log filename (if it
+    came from a raw file upload) and aircraft model/serial (if the parser
+    captured one -- currently only DJI FlightRecord CSV/Excel carry a real
+    serial; other brands fall back to model/brand only)."""
+    upload = conn.execute(
+        "SELECT original_name FROM raw_uploads WHERE flight_id = ? ORDER BY received_at ASC LIMIT 1",
+        (flight_id,),
+    ).fetchone()
+    record = conn.execute(
+        "SELECT canonical_json FROM canonical_records WHERE flight_id = ? ORDER BY recorded_at ASC LIMIT 1",
+        (flight_id,),
+    ).fetchone()
+    metadata: dict[str, Any] = {}
+    if record:
+        metadata = (json.loads(record["canonical_json"]) or {}).get("metadata") or {}
+    return {
+        "flight_id": flight_id,
+        "source_file": upload["original_name"] if upload else None,
+        "drone_model": metadata.get("drone_model"),
+        "aircraft_serial": metadata.get("aircraft_serial"),
+    }
+
+
+def affected_flight_details(signature: str) -> list[dict[str, Any]]:
+    """Per-flight identity for every flight carrying a given incident signature --
+    the exact logs and aircraft behind a recurring pattern or bulletin, not just
+    a count."""
+    with db_session() as conn:
+        rows = conn.execute(
+            """
+            SELECT flight_id, brand, MIN(started_at) AS first_started_at
+            FROM incidents
+            WHERE signature = ? AND detector = 'rule'
+            GROUP BY flight_id
+            ORDER BY first_started_at ASC
+            """,
+            (signature,),
+        ).fetchall()
+        details = []
+        for row in rows:
+            identity = _flight_identity(conn, row["flight_id"])
+            identity["brand"] = row["brand"]
+            identity["first_incident_at"] = row["first_started_at"]
+            details.append(identity)
+    return details
+
+
 def list_flight_incidents(flight_id: str) -> list[dict[str, Any]]:
     with db_session() as conn:
         rows = conn.execute(
@@ -270,7 +329,10 @@ def list_patterns(*, min_flights: int = 2) -> list[dict[str, Any]]:
             """,
             (min_flights,),
         ).fetchall()
-    return [dict(row) for row in rows]
+    patterns = [dict(row) for row in rows]
+    for pattern in patterns:
+        pattern["affected_flights"] = affected_flight_details(pattern["signature"])
+    return patterns
 
 
 def reliability_report() -> dict[str, Any]:

@@ -14,7 +14,13 @@
       rel="stylesheet"
       href="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Widgets/widgets.css"
     />
-    <link rel="stylesheet" href="./replay.css?v=stream-5" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&display=swap"
+    />
+    <link rel="stylesheet" href="./replay.css?v=stream-6" />
   </head>
   <body>
     <div id="cesiumContainer"></div>
@@ -51,8 +57,8 @@
           <button class="layer-toggle multi-toggle" id="multiFlightToggle" type="button">All Missions</button>
         </div>
         <label class="field">
-          API token
-          <input id="tokenInput" type="password" autocomplete="off" placeholder="INGEST_API_KEYS" />
+          Session key
+          <input id="tokenInput" type="password" autocomplete="off" placeholder="Paste your session key" />
         </label>
         <p class="status" id="statusLine">Connecting...</p>
         <p id="playState">PAUSED</p>
@@ -68,7 +74,7 @@
         <input id="datasetFilter" type="search" placeholder="Filter raw telemetry files" />
         <div id="datasetList" class="list"></div>
         <p class="hint" id="datasetHint">
-          Files come from the raw_telemetry-datasets directory on Laptop B.
+          Recorded logs from the connected flight-log library.
         </p>
         <h2>Incidents</h2>
         <div id="incidentList"></div>
@@ -112,10 +118,22 @@
           <circle id="routeOverviewStart" r="3" />
           <circle id="routeOverviewCurrent" r="5" />
         </svg>
+        <div class="overview-title altitude-profile-title">ALTITUDE <span id="routeOverviewAltRange">&mdash;</span></div>
+        <svg id="routeOverviewAltSvg" viewBox="0 0 240 44" role="img" aria-label="Altitude over the course of the recorded flight">
+          <line id="routeOverviewAltGroundLine" x1="0" y1="40" x2="240" y2="40" />
+          <path id="routeOverviewAltPath" d="" />
+          <circle id="routeOverviewAltCurrent" r="3.5" />
+        </svg>
         <p id="modelScaleNote">REPRESENTATIVE MODEL · NOT TO SCALE</p>
+      </aside>
+      <aside id="severityLegend" class="severity-legend" aria-label="Incident marker severity legend" hidden>
+        <p class="severity-legend-title">Marker severity</p>
+        <div class="severity-legend-row"><span class="severity-legend-dot severity-critical"></span>Critical</div>
+        <div class="severity-legend-row"><span class="severity-legend-dot severity-warning"></span>Warning</div>
+        <div class="severity-legend-row"><span class="severity-legend-dot severity-notice"></span>Notice</div>
       </aside>
     </div>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Cesium.js"></script>
-    <script type="module" src="./replay.js?v=stream-4"></script>
+    <script type="module" src="./replay.js?v=stream-5"></script>
   </body>
 </html>

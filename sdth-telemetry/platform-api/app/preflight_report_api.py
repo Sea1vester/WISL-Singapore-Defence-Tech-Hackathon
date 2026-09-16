@@ -2,9 +2,13 @@
 FastAPI router for pre-emptive mission-planning PDF reports.
 
 Endpoints:
-  POST /v1/flights/{flight_id}/preemptive-report        - build + render + store a new report
-  GET  /v1/flights/{flight_id}/preemptive-report         - most recent report's metadata + findings
-  GET  /v1/preemptive-reports/{report_id}/file           - stream the PDF
+  POST /v1/flights/{flight_id}/preemptive-report         - build + render + store a new report
+  GET  /v1/flights/{flight_id}/preemptive-report          - most recent report's metadata + findings
+  GET  /v1/preemptive-reports/{report_id}/file            - stream the PDF
+
+  POST /v1/flights/{flight_id}/comprehensive-report       - build + render + store a combined report
+  GET  /v1/flights/{flight_id}/comprehensive-report        - most recent combined report's metadata + findings
+  GET  /v1/comprehensive-reports/{report_id}/file          - stream the combined PDF
 """
 from __future__ import annotations
 
@@ -20,8 +24,8 @@ from pydantic import BaseModel
 from app.auth import require_api_key
 from app.config import settings
 from app.db import db_session
-from app.pdf_report import render_preemptive_report_pdf
-from app.preflight_report import build_preemptive_report
+from app.pdf_report import render_comprehensive_report_pdf, render_preemptive_report_pdf
+from app.preflight_report import build_comprehensive_report, build_preemptive_report
 from app.schemas import new_id
 
 logger = logging.getLogger("preflight_report_api")
@@ -30,6 +34,14 @@ router = APIRouter(tags=["preemptive-reports"])
 
 
 class PreemptiveReportResponse(BaseModel):
+    id: str
+    flight_id: str
+    incident_count: int
+    created_at: str | None = None
+    report: dict[str, Any]
+
+
+class ComprehensiveReportResponse(BaseModel):
     id: str
     flight_id: str
     incident_count: int
@@ -58,6 +70,27 @@ def _persist(flight_id: str, report: dict[str, Any]) -> dict[str, Any]:
         )
         row = conn.execute(
             "SELECT id, flight_id, incident_count, created_at FROM preemptive_reports WHERE id = ?",
+            (report_id,),
+        ).fetchone()
+    return {**dict(row), "report": report}
+
+
+def _persist_comprehensive(flight_id: str, report: dict[str, Any]) -> dict[str, Any]:
+    report_id = new_id()
+    pdf_path = _reports_dir() / f"{report_id}-comprehensive.pdf"
+    render_comprehensive_report_pdf(report, out_path=pdf_path)
+    incident_count = len(report["incident_report"].get("timeline") or [])
+
+    with db_session() as conn:
+        conn.execute(
+            """
+            INSERT INTO comprehensive_reports (id, flight_id, stored_path, report_json, incident_count)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (report_id, flight_id, str(pdf_path), json.dumps(report), incident_count),
+        )
+        row = conn.execute(
+            "SELECT id, flight_id, incident_count, created_at FROM comprehensive_reports WHERE id = ?",
             (report_id,),
         ).fetchone()
     return {**dict(row), "report": report}
@@ -121,6 +154,74 @@ def get_preemptive_report_file(
     with db_session() as conn:
         row = conn.execute(
             "SELECT stored_path FROM preemptive_reports WHERE id = ?",
+            (report_id,),
+        ).fetchone()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found")
+    path = Path(row["stored_path"])
+    if not path.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report PDF not found on disk")
+    return FileResponse(path=str(path), media_type="application/pdf", filename=path.name)
+
+
+@router.post(
+    "/v1/flights/{flight_id}/comprehensive-report",
+    response_model=ComprehensiveReportResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Build and store a comprehensive mission-planning PDF for a flight",
+)
+def create_comprehensive_report(
+    flight_id: str,
+    _: str = Depends(require_api_key),
+) -> ComprehensiveReportResponse:
+    try:
+        with db_session() as conn:
+            report = build_comprehensive_report(conn, flight_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Flight not found: {exc}") from exc
+
+    row = _persist_comprehensive(flight_id, report)
+    return ComprehensiveReportResponse(**row)
+
+
+@router.get(
+    "/v1/flights/{flight_id}/comprehensive-report",
+    response_model=ComprehensiveReportResponse,
+    summary="Get the most recently generated comprehensive report for a flight",
+)
+def get_latest_comprehensive_report(
+    flight_id: str,
+    _: str = Depends(require_api_key),
+) -> ComprehensiveReportResponse:
+    with db_session() as conn:
+        row = conn.execute(
+            """
+            SELECT id, flight_id, incident_count, created_at, report_json
+            FROM comprehensive_reports
+            WHERE flight_id = ?
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (flight_id,),
+        ).fetchone()
+    if row is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No comprehensive report generated for this flight yet")
+    data = dict(row)
+    report = json.loads(data.pop("report_json"))
+    return ComprehensiveReportResponse(**data, report=report)
+
+
+@router.get(
+    "/v1/comprehensive-reports/{report_id}/file",
+    summary="Stream the generated comprehensive PDF",
+)
+def get_comprehensive_report_file(
+    report_id: str,
+    _: str = Depends(require_api_key),
+) -> FileResponse:
+    with db_session() as conn:
+        row = conn.execute(
+            "SELECT stored_path FROM comprehensive_reports WHERE id = ?",
             (report_id,),
         ).fetchone()
     if row is None:
