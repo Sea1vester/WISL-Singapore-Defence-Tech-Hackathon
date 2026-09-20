@@ -224,6 +224,25 @@ function terrainTriangles(C, elevation, getGround, renderBounds, resolution = 32
 }
 
 /** Create a removable Cesium primitive collection for an OSM tabletop. */
+// Trunk/primary roads carry the region, so they get a slightly larger label
+// and stay legible from further out than a residential side street.
+const MAJOR_ROADS = new Set(["motorway", "trunk", "primary", "secondary"]);
+
+// Anchor a street label on the midpoint of its longest drawn segment -- the
+// stretch most likely to actually be on screen and wide enough to read.
+export function longestSegmentMidpoint(lines) {
+  let best = null, bestLength = -1;
+  for (const line of lines || []) {
+    for (let i = 0; i < (line?.length || 0) - 1; i += 1) {
+      const a = line[i], b = line[i + 1];
+      if (!Number.isFinite(a?.lon) || !Number.isFinite(b?.lon)) continue;
+      const length = (b.lon - a.lon) ** 2 + (b.lat - a.lat) ** 2;
+      if (length > bestLength) { bestLength = length; best = { lon: (a.lon + b.lon) / 2, lat: (a.lat + b.lat) / 2 }; }
+    }
+  }
+  return best;
+}
+
 export function createTabletop(viewer, data, options = {}) {
   const C = options.Cesium || globalThis.Cesium;
   const bounds = normalizeBounds(options.bounds) || normalizeBounds(data?.bounds);
@@ -267,6 +286,7 @@ export function createTabletop(viewer, data, options = {}) {
   else if (options.terrain !== false) add([instance(C, polygon(C, slab, ground((bounds.west + bounds.east) / 2, (bounds.south + bounds.north) / 2) - 1, baseHeight), PALETTE.slab)]);
 
   const buildings = [], walls = [], roofs = [], trims = [], roads = [], strokes = [], surfaces = [], seams = [], siteLines = [];
+  const streetLabels = [], streetNames = new Set();
   const centerLon=(bounds.west+bounds.east)/2, centerLat=(bounds.south+bounds.north)/2;
   const distance=element=>Math.min(...(element.geometry||[]).map(p=>(p.lon-centerLon)**2+(p.lat-centerLat)**2));
   const elements = options.features !== false && Array.isArray(data?.elements) ? data.elements.filter(element =>
@@ -284,6 +304,15 @@ export function createTabletop(viewer, data, options = {}) {
       for (const line of lines) {
         roads.push(...ribbon(C, line, width, ground, -0.90, PALETTE.road));
         strokes.push(...ribbon(C, line, Math.min(1.2, width * 0.16), ground, -0.86, tags.highway === "primary" ? PALETTE.trim : PALETTE.roadStroke));
+      }
+      // Street names: the satellite "Map" view gets them free from the imagery
+      // tiles, but the tabletop draws its own geometry, so without this the
+      // roads are unlabelled and a viewer can't tell where they are on the
+      // ground. Dedupe by name -- OSM splits one street into many ways.
+      const roadName = tags.name || tags.ref;
+      if (roadName && !streetNames.has(roadName)) {
+        const anchor = longestSegmentMidpoint(lines);
+        if (anchor) { streetNames.add(roadName); streetLabels.push({ name: roadName, ...anchor, major: MAJOR_ROADS.has(tags.highway) }); }
       }
       continue;
     }
@@ -325,6 +354,32 @@ export function createTabletop(viewer, data, options = {}) {
     seams.push(...ribbon(C, horizontal, 0.45, ground, -0.82, PALETTE.seam));
   }
   add(surfaces); add(siteLines); add(roads); add(strokes); add(buildings); add(walls); add(roofs); add(trims); add(seams);
+
+  // Street-name labels live in the same collection, so show/hide and destroy
+  // stay in step with the geometry they belong to.
+  if (streetLabels.length && C.LabelCollection) {
+    const labels = collection.add(new C.LabelCollection());
+    for (const street of streetLabels) {
+      labels.add({
+        position: C.Cartesian3.fromDegrees(street.lon, street.lat, ground(street.lon, street.lat) - 0.6),
+        text: street.name,
+        font: `600 ${street.major ? 13 : 11.5}px "League Spartan", ui-sans-serif, system-ui, sans-serif`,
+        // Near-white on a heavy dark outline: the tabletop terrain is a light
+        // green, so a mid-tone label washes straight into it.
+        fillColor: C.Color.fromCssColorString(street.major ? "#f4fffb" : "#e2f2ee"),
+        outlineColor: C.Color.fromCssColorString("#041016"),
+        outlineWidth: 4,
+        style: C.LabelStyle.FILL_AND_OUTLINE,
+        horizontalOrigin: C.HorizontalOrigin.CENTER,
+        verticalOrigin: C.VerticalOrigin.BOTTOM,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        // Fade out when zoomed far enough back that the labels would just be
+        // clutter over the terrain; majors survive a little longer.
+        translucencyByDistance: new C.NearFarScalar(400, 1.0, street.major ? 6000 : 2600, 0.0),
+        scaleByDistance: new C.NearFarScalar(300, 1.0, 4000, 0.55),
+      });
+    }
+  }
 
   return {
     get show() { return collection.show; },

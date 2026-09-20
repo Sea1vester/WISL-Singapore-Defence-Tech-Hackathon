@@ -1,6 +1,6 @@
 window.addEventListener('error', event => console.error('Replay diagnostic', event.error?.stack || event.message));
-import { createStreamingTabletop } from './tabletop-stream.mjs?v=stream-3';
-import { loadTabletopAtlas, routeContext, atlasHeight, tabletopBounds, createCachedTerrain, createTabletopFinish } from './tabletop-context.mjs?v=stream-4';
+import { createStreamingTabletop } from './tabletop-stream.mjs?v=stream-15';
+import { loadTabletopAtlas, routeContext, atlasHeight, tabletopBounds, createCachedTerrain, createTabletopFinish } from './tabletop-context.mjs?v=stream-15';
 import {
   alignIncidents,
   bannerState,

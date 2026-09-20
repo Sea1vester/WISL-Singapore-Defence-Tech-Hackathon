@@ -35,8 +35,13 @@ class Settings(BaseSettings):
     database_path: str = "./data/telemetry.db"
     redis_url: str = "redis://localhost:6379/0"
     ingest_api_keys: str = "dev-teammate-key-change-me"
-    ollama_base_url: str = "http://host.docker.internal:11434"
-    ollama_model: str = "deepseek-r1:7b"
+    # Defaults target a plain local Ollama install. host.docker.internal only
+    # resolves from inside a container, so whenever the API ran directly on the
+    # host the model was unreachable and the AI-analysis panel sat permanently
+    # on its offline fallback. llama3.2:3b answers in ~1-2s on a GPU, which
+    # matters when this is driven live. Override with OLLAMA_BASE_URL/MODEL.
+    ollama_base_url: str = "http://127.0.0.1:11434"
+    ollama_model: str = "llama3.2:3b"
     local_demo_worker: bool = False
     ingest_model_enrichment: bool = True
     demo_analysis_timeout_seconds: float = 120.0
