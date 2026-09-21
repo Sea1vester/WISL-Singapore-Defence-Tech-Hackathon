@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -17,6 +18,7 @@ from app.incident_api import router as incident_router
 from app.ingest import router as ingest_router
 from app.preflight_report_api import router as preflight_report_router
 from app.query import router as query_router
+from app.tiles import router as tiles_router
 from app.visual_api import router as visual_router
 
 logger = logging.getLogger("sdth")
@@ -77,6 +79,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -94,6 +97,7 @@ app.include_router(visual_router)
 app.include_router(census_router)
 app.include_router(preflight_report_router)
 app.include_router(demo_router)
+app.include_router(tiles_router)
 
 
 @app.get("/health")

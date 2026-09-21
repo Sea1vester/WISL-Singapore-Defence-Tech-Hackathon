@@ -306,15 +306,6 @@ function incidentKey(banner) {
 
 async function probeUavModel() {
   try {
-    const response = await fetch(UAV_MODEL_URI, { method: "HEAD" });
-    if (response.ok) {
-      state.uavModelReady = true;
-      return;
-    }
-  } catch {
-    // HEAD is not always available; fall through to GET.
-  }
-  try {
     const response = await fetch(UAV_MODEL_URI);
     state.uavModelReady = response.ok;
   } catch {
@@ -351,8 +342,10 @@ async function createViewer() {
   }
   // OSM is a proven no-key source in this local console. Tone the imagery at
   // the layer level so labels remain readable under the route.
-  const baseMap = new Cesium.OpenStreetMapImageryProvider({
-    url: "https://tile.openstreetmap.org/",
+  const baseMap = new Cesium.UrlTemplateImageryProvider({
+    url: "/tiles/{z}/{x}/{y}.png",
+    maximumLevel: 17,
+    credit: "© OpenStreetMap contributors",
   });
   const terrainProvider = new Cesium.EllipsoidTerrainProvider();
   const viewer = new Cesium.Viewer("cesiumContainer", {

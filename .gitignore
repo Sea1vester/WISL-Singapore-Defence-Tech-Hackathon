@@ -26,3 +26,4 @@ output/evidence/corpus-validation/targeted-input/
 *.pt
 sdth-synth/
 output/evidence/corpus-validation-v2/failure-fixtures-pre-gate-rejected/
+sdth-replay/public/cesium/

@@ -10,9 +10,13 @@
         document.documentElement.classList.add("replay-embed");
       }
     </script>
+    <link rel="preload" as="script" href="./cesium/Cesium.js" />
+    <link rel="preload" as="fetch" href="./assets/drone.glb" crossorigin />
+    <link rel="preload" as="fetch" href="./assets/tabletop-atlas.json" crossorigin />
     <link
       rel="stylesheet"
-      href="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Widgets/widgets.css"
+      href="./cesium/Widgets/widgets.css"
+      onerror="this.onerror=null;this.href='https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Widgets/widgets.css'"
     />
     <link rel="stylesheet" href="./replay.css?v=stream-16" />
   </head>
@@ -126,7 +130,15 @@
         <div class="severity-legend-row"><span class="severity-legend-dot severity-notice"></span>Notice</div>
       </aside>
     </div>
-    <script src="https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Cesium.js"></script>
+    <script>
+      // Prefer the vendored build (node sdth-replay/scripts/fetch-cesium.cjs);
+      // fall back to the CDN when it has not been fetched yet.
+      window.CESIUM_BASE_URL = "./cesium/";
+    </script>
+    <script
+      src="./cesium/Cesium.js"
+      onerror="window.CESIUM_BASE_URL='https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/';document.write('<script src=\x22'+window.CESIUM_BASE_URL+'Cesium.js\x22><\/script>')"
+    ></script>
     <script type="module" src="./replay.js?v=stream-15"></script>
   </body>
 </html>

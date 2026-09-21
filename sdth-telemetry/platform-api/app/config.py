@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     raw_upload_dir: str = "./data/raw-uploads"
     visuals_dir: str = "./data/visuals"
     reports_dir: str = "./data/reports"
+    tile_cache_dir: str = "./data/tiles"
     raw_upload_max_bytes: int = 100 * 1024 * 1024
     raw_datasets_dir: str = Field(default_factory=_default_datasets_dir)
     replay_static_dir: str = Field(default_factory=_default_replay_dir)

@@ -10,11 +10,17 @@ export DATABASE_PATH="${DATABASE_PATH:-$TASK_ROOT/data/demo-console.db}"
 export RAW_UPLOAD_DIR="${RAW_UPLOAD_DIR:-$TASK_ROOT/data/demo-uploads}"
 export REPORTS_DIR="${REPORTS_DIR:-$TASK_ROOT/data/demo-reports}"
 export VISUALS_DIR="${VISUALS_DIR:-$TASK_ROOT/data/demo-visuals}"
+export TILE_CACHE_DIR="${TILE_CACHE_DIR:-$TASK_ROOT/data/tiles}"
 export OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-http://127.0.0.1:11434}"
 export OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5:7b-instruct}"
 export LOCAL_DEMO_WORKER=true
 export INGEST_MODEL_ENRICHMENT=false
 export REPLAY_STATIC_DIR="$TASK_ROOT/sdth-replay/public"
+if [[ ! -f "$TASK_ROOT/sdth-replay/public/cesium/Cesium.js" ]]; then
+  if ! node "$TASK_ROOT/sdth-replay/scripts/fetch-cesium.cjs" >/dev/null 2>&1; then
+    printf 'Cesium fetch failed; the replay will fall back to the cesium.com CDN.\n'
+  fi
+fi
 export DEMO_STATIC_DIR="$TASK_ROOT/sdth-demo"
 export API_HOST=127.0.0.1
 export API_PORT="${API_PORT:-8010}"
