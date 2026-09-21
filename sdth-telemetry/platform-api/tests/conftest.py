@@ -18,6 +18,7 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "database_path", str(db_path))
     monkeypatch.setattr(settings, "raw_upload_dir", str(tmp_path / "uploads"))
     monkeypatch.setattr(settings, "ingest_api_keys", "test-key")
+    monkeypatch.setattr(settings, "warm_local_model", False)
 
     def noop_enqueue(_job_id: str) -> None:
         return None

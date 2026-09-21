@@ -1,0 +1,308 @@
+[
+  {
+    "step": "A-np450-cold",
+    "model": "qwen2.5:7b-instruct",
+    "options": {
+      "num_predict": 450,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 60.588,
+    "cold_start": true,
+    "note": "truncated: done_reason=length at eval_count=450 (direct probe)",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "unavailable",
+    "reason": "ValidationError",
+    "hypotheses": 0,
+    "evidence_references_valid": true,
+    "timing": {}
+  },
+  {
+    "step": "A-np450-warm1",
+    "model": "qwen2.5:7b-instruct",
+    "options": {
+      "num_predict": 450,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 33.187,
+    "cold_start": false,
+    "note": "truncated",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "unavailable",
+    "reason": "ValidationError",
+    "hypotheses": 0,
+    "evidence_references_valid": true,
+    "timing": {}
+  },
+  {
+    "step": "A-np450-warm2",
+    "model": "qwen2.5:7b-instruct",
+    "options": {
+      "num_predict": 450,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 34.417,
+    "cold_start": false,
+    "note": "truncated",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "unavailable",
+    "reason": "ValidationError",
+    "hypotheses": 0,
+    "evidence_references_valid": true,
+    "timing": {}
+  },
+  {
+    "step": "A-np450-warm3",
+    "model": "qwen2.5:7b-instruct",
+    "options": {
+      "num_predict": 450,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 33.65,
+    "cold_start": false,
+    "note": "truncated",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "unavailable",
+    "reason": "ValidationError",
+    "hypotheses": 0,
+    "evidence_references_valid": true,
+    "timing": {}
+  },
+  {
+    "step": "probe-A-full-response",
+    "model": "qwen2.5:7b-instruct",
+    "options": {
+      "num_predict": 1200,
+      "num_ctx": 8192
+    },
+    "elapsed_seconds": 39.0,
+    "status": "generated",
+    "cold_start": false,
+    "timing": {
+      "eval_count": 554,
+      "eval_duration": 39000000000.0,
+      "prompt_eval_count": 4098
+    },
+    "evidence_references_valid": true,
+    "note": "full response needs 554 tokens; 450/300 ceilings must truncate",
+    "machine_state": "otherwise idle"
+  },
+  {
+    "step": "probe-B-compact-prompt",
+    "model": "qwen2.5:7b-instruct",
+    "options": {
+      "num_predict": 1200,
+      "num_ctx": 8192
+    },
+    "elapsed_seconds": 32.0,
+    "status": "generated",
+    "cold_start": false,
+    "timing": {
+      "eval_count": 457,
+      "eval_duration": 32000000000.0,
+      "prompt_eval_count": 4098
+    },
+    "evidence_references_valid": true,
+    "note": "'Return compact JSON' line cuts output 554->457 tokens (~18%)",
+    "machine_state": "otherwise idle"
+  },
+  {
+    "step": "final-qwen-cold",
+    "model": "qwen2.5:7b-instruct",
+    "options": {
+      "num_predict": 800,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 44.704,
+    "cold_start": true,
+    "note": "warm-up now loads model at num_ctx 8192; load_duration ~0",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "generated",
+    "reason": null,
+    "hypotheses": 2,
+    "evidence_references_valid": true,
+    "timing": {
+      "load_duration": 16202416,
+      "prompt_eval_count": 4098,
+      "prompt_eval_duration": 97467000,
+      "eval_count": 554,
+      "eval_duration": 44219198000,
+      "total_duration": 44535611500
+    }
+  },
+  {
+    "step": "final-qwen-warm1",
+    "model": "qwen2.5:7b-instruct",
+    "options": {
+      "num_predict": 800,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 41.034,
+    "cold_start": false,
+    "note": "",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "generated",
+    "reason": null,
+    "hypotheses": 2,
+    "evidence_references_valid": true,
+    "timing": {
+      "load_duration": 2431083,
+      "prompt_eval_count": 4098,
+      "prompt_eval_duration": 90422000,
+      "eval_count": 554,
+      "eval_duration": 40787326000,
+      "total_duration": 40917971375
+    }
+  },
+  {
+    "step": "final-qwen-warm2",
+    "model": "qwen2.5:7b-instruct",
+    "options": {
+      "num_predict": 800,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 39.735,
+    "cold_start": false,
+    "note": "",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "generated",
+    "reason": null,
+    "hypotheses": 2,
+    "evidence_references_valid": true,
+    "timing": {
+      "load_duration": 2334417,
+      "prompt_eval_count": 4098,
+      "prompt_eval_duration": 89386000,
+      "eval_count": 554,
+      "eval_duration": 39488530000,
+      "total_duration": 39623348167
+    }
+  },
+  {
+    "step": "final-qwen-warm3",
+    "model": "qwen2.5:7b-instruct",
+    "options": {
+      "num_predict": 800,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 41.091,
+    "cold_start": false,
+    "note": "",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "generated",
+    "reason": null,
+    "hypotheses": 2,
+    "evidence_references_valid": true,
+    "timing": {
+      "load_duration": 3829959,
+      "prompt_eval_count": 4098,
+      "prompt_eval_duration": 88624000,
+      "eval_count": 554,
+      "eval_duration": 40850524000,
+      "total_duration": 40983929084
+    }
+  },
+  {
+    "step": "deepseek-cold",
+    "model": "deepseek-r1:7b",
+    "options": {
+      "num_predict": 800,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 76.122,
+    "cold_start": true,
+    "note": "schema-valid JSON but cites invented evidence_ids -> subset check fails",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "unavailable",
+    "reason": "ValueError",
+    "hypotheses": 0,
+    "evidence_references_valid": true,
+    "timing": {}
+  },
+  {
+    "step": "deepseek-warm1",
+    "model": "deepseek-r1:7b",
+    "options": {
+      "num_predict": 800,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 49.013,
+    "cold_start": false,
+    "note": "unavailable: evidence_ids hallucination",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "unavailable",
+    "reason": "ValueError",
+    "hypotheses": 0,
+    "evidence_references_valid": true,
+    "timing": {}
+  },
+  {
+    "step": "deepseek-warm2",
+    "model": "deepseek-r1:7b",
+    "options": {
+      "num_predict": 800,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 47.911,
+    "cold_start": false,
+    "note": "unavailable: evidence_ids hallucination",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "unavailable",
+    "reason": "ValueError",
+    "hypotheses": 0,
+    "evidence_references_valid": true,
+    "timing": {}
+  },
+  {
+    "step": "deepseek-warm3",
+    "model": "deepseek-r1:7b",
+    "options": {
+      "num_predict": 800,
+      "num_ctx": 8192,
+      "keep_alive": "30m",
+      "temperature": 0,
+      "seed": 42
+    },
+    "elapsed_seconds": 48.932,
+    "cold_start": false,
+    "note": "unavailable: evidence_ids hallucination",
+    "machine_state": "otherwise idle; single console + ollama",
+    "status": "unavailable",
+    "reason": "ValueError",
+    "hypotheses": 0,
+    "evidence_references_valid": true,
+    "timing": {}
+  }
+]

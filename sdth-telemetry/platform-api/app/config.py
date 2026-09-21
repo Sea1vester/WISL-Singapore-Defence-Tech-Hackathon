@@ -38,10 +38,12 @@ class Settings(BaseSettings):
     # Defaults target a plain local Ollama install. host.docker.internal only
     # resolves from inside a container, so whenever the API ran directly on the
     # host the model was unreachable and the AI-analysis panel sat permanently
-    # on its offline fallback. llama3.2:3b answers in ~1-2s on a GPU, which
-    # matters when this is driven live. Override with OLLAMA_BASE_URL/MODEL.
+    # on its offline fallback. qwen2.5:7b-instruct follows the JSON output
+    # format reliably while staying fast enough for a live demo; deepseek-r1:7b
+    # remains selectable via OLLAMA_MODEL.
     ollama_base_url: str = "http://127.0.0.1:11434"
-    ollama_model: str = "llama3.2:3b"
+    ollama_model: str = "qwen2.5:7b-instruct"
+    warm_local_model: bool = True
     local_demo_worker: bool = False
     ingest_model_enrichment: bool = True
     demo_analysis_timeout_seconds: float = 120.0

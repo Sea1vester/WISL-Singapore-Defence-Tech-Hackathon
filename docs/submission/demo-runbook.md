@@ -22,7 +22,7 @@ Raw uploads and the database live under `data/` and are excluded from Git.
 
 ## Optional local model
 
-The installed demo model is `deepseek-r1:7b` through Ollama. Start `ollama serve` in another terminal if it is not already running. If the model is absent, obtain it with `ollama pull deepseek-r1:7b`. The initial model download needs internet access; inference uses the loopback service. `OLLAMA_MODEL` and `OLLAMA_BASE_URL` select the local installation.
+The default demo model is `qwen2.5:7b-instruct` through Ollama. Start `ollama serve` in another terminal if it is not already running. If the model is absent, obtain it with `ollama pull qwen2.5:7b-instruct`. `deepseek-r1:7b` remains selectable via `OLLAMA_MODEL`. The initial model download needs internet access; inference uses the loopback service. `OLLAMA_MODEL` and `OLLAMA_BASE_URL` select the local installation.
 
 In **Mission analysis**, expand **AI-assisted analysis** and use **Analyze fleet records** once records are ready. The model receives at most 100 flight summaries and 50 indexed incident observations, with visible coverage counts. It does not receive every telemetry sample. Validated output must reference supplied evidence IDs. Offline, timed-out or invalid responses preserve the evidence and record-query workflow. Allow up to 120 seconds; actual measured runtime is recorded in `output/evidence/local-model-analysis.json`.
 

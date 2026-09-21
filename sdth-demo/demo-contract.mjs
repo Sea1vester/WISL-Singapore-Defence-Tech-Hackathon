@@ -75,5 +75,5 @@ export function queryText(response) {
 
 export function localAnalysisView(response) {
   if (!response) return null;
-  return { status: response.status || "unknown", summary: response.summary || "No local analysis summary returned.", hypotheses: Array.isArray(response.hypotheses) ? response.hypotheses : [], limitations: Array.isArray(response.limitations) ? response.limitations : [], evidence: Array.isArray(response.evidence) ? response.evidence : [], coverage: response.coverage || null };
+  return { status: response.status || "unknown", summary: response.summary || "No local analysis summary returned.", hypotheses: Array.isArray(response.hypotheses) ? response.hypotheses : [], limitations: Array.isArray(response.limitations) ? response.limitations : [], evidence: Array.isArray(response.evidence) ? response.evidence : [], coverage: response.coverage || null, cached: response.cached === true, generated_at: response.generated_at || null };
 }

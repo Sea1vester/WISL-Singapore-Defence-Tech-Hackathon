@@ -57,7 +57,7 @@ The recorded demo sequence (narrated in [demo-pitch-vo.md](docs/submission/demo-
 4. In **Mission analysis**, ask **What happened?**, then **Similar warnings** — a second stored flight threw the exact same warning.
 5. Open **Recurring patterns** and click **Create review bulletin** — a human-review bulletin, never an automated vehicle command.
 6. Stay on the mission and click **⬇ Comprehensive PDF**; open the downloaded comprehensive report.
-7. Optionally expand **AI-assisted analysis** and click **Analyze fleet records** (requires Ollama serving `deepseek-r1:7b`).
+7. Optionally expand **AI-assisted analysis** and click **Analyze fleet records** (requires Ollama serving `qwen2.5:7b-instruct`).
 8. Close on **Exercise · Recording ends airborne** — the log ends while the aircraft is still airborne.
 
 ## Optional local model
@@ -65,11 +65,11 @@ The recorded demo sequence (narrated in [demo-pitch-vo.md](docs/submission/demo-
 With Ollama installed, run these in a separate terminal:
 
 ```sh
-ollama pull deepseek-r1:7b
+ollama pull qwen2.5:7b-instruct
 ollama serve
 ```
 
-The download is needed once; skip `ollama serve` if it is already running. The launcher defaults to `http://127.0.0.1:11434` and `deepseek-r1:7b`. Set `OLLAMA_MODEL` or `OLLAMA_BASE_URL` before starting the demo to select another local installation. Parsing, replay, record queries and bulletins work without the model. Local inference does not make replay air-gapped: Cesium and map assets still require network access. The three bundled demo regions have local elevation and OpenStreetMap geometry caches, so terrain loading does not depend on an external request. Map imagery and the Cesium runtime still require network access. An upload outside those regions is labelled **Terrain uncached · flat globe**; no terrain is invented. See [map data and styling notes](sdth-replay/public/assets/TABLETOP-SOURCES.md).
+The download is needed once; skip `ollama serve` if it is already running. The launcher defaults to `http://127.0.0.1:11434` and `qwen2.5:7b-instruct`. Set `OLLAMA_MODEL` (for example `OLLAMA_MODEL=deepseek-r1:7b`) or `OLLAMA_BASE_URL` before starting the demo to select another local installation. Parsing, replay, record queries and bulletins work without the model. Local inference does not make replay air-gapped: Cesium and map assets still require network access. The three bundled demo regions have local elevation and OpenStreetMap geometry caches, so terrain loading does not depend on an external request. Map imagery and the Cesium runtime still require network access. An upload outside those regions is labelled **Terrain uncached · flat globe**; no terrain is invented. See [map data and styling notes](sdth-replay/public/assets/TABLETOP-SOURCES.md).
 
 ## Runtime and evidence
 

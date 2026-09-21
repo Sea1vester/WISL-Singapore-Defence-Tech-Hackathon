@@ -108,3 +108,65 @@ def test_different_warning_texts_are_not_reported_as_same_warning(client, monkey
     result = client.post('/v1/demo/query', headers=AUTH, json={'flight_id': first, 'question': 'Which other flights show the same warning?'}).json()
     assert result['related_flights'] == []
     assert 'exact warning text' in result['answer']
+
+
+def test_analysis_cache_returns_stored_response(client, monkeypatch):
+    flight = ingest(client, monkeypatch)
+    query = client.post('/v1/demo/query', headers=AUTH, json={'flight_id': flight, 'question': 'Where is the evidence?'}).json()
+    evidence_id = query['evidence'][0]['id']
+    monkeypatch.setattr('app.demo_api._model_status', lambda: {'status': 'ready'})
+    calls = []
+    class Response:
+        def raise_for_status(self): pass
+        def json(self):
+            return {'response': json.dumps({'summary': 'Cached summary', 'hypotheses': [{'analysis': 'Possible cause', 'evidence_ids': [evidence_id], 'follow_up': 'Review records'}], 'limitations': []})}
+    class Client:
+        def __init__(self, *args, **kwargs): pass
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def post(self, *args, **kwargs):
+            calls.append(args)
+            return Response()
+    monkeypatch.setattr('app.demo_api.httpx.Client', Client)
+    body = {'question': 'Summarize recurring patterns and evidence across stored flights.'}
+    first = client.post('/v1/demo/analysis', headers=AUTH, json=body).json()
+    assert first['status'] == 'generated'
+    assert first['cached'] is False
+    second = client.post('/v1/demo/analysis', headers=AUTH, json=body).json()
+    assert second['status'] == 'generated'
+    assert second['cached'] is True
+    assert second['generated_at']
+    assert len(calls) == 1
+
+
+def test_analysis_stream_emits_deltas_then_final(client, monkeypatch):
+    flight = ingest(client, monkeypatch)
+    query = client.post('/v1/demo/query', headers=AUTH, json={'flight_id': flight, 'question': 'Where is the evidence?'}).json()
+    evidence_id = query['evidence'][0]['id']
+    monkeypatch.setattr('app.demo_api._model_status', lambda: {'status': 'ready'})
+    full = json.dumps({'summary': 'Streamed summary', 'hypotheses': [{'analysis': 'Possible cause', 'evidence_ids': [evidence_id], 'follow_up': 'Review records'}], 'limitations': []})
+    fragments = [json.dumps({'response': full[:10]}), json.dumps({'response': full[10:20]}), json.dumps({'response': full[20:], 'done': True})]
+    calls = []
+    class StreamResponse:
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def raise_for_status(self): pass
+        def iter_lines(self): return iter(fragments)
+    class Client:
+        def __init__(self, *args, **kwargs): pass
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def stream(self, *args, **kwargs):
+            calls.append(args)
+            return StreamResponse()
+    monkeypatch.setattr('app.demo_api.httpx.Client', Client)
+    response = client.post('/v1/demo/analysis/stream', headers=AUTH, json={'question': 'Summarize stored flights.'})
+    assert response.status_code == 200
+    assert 'text/event-stream' in response.headers['content-type']
+    events = [json.loads(line[5:]) for line in response.text.split('\n\n') if line.startswith('data:')]
+    deltas = [e['delta'] for e in events if 'delta' in e]
+    assert deltas == [full[:10], full[10:20], full[20:]]
+    final = [e['final'] for e in events if 'final' in e][0]
+    assert final['status'] == 'generated'
+    assert final['summary'] == 'Streamed summary'
+    assert len(calls) == 1

@@ -1,4 +1,4 @@
-import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=stream-14";
+import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=stream-16";
 
 const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false };
 const DEMO_LIBRARY_LOGS = [
@@ -41,6 +41,7 @@ async function api(path, options = {}) {
 function setApi(status, text) { els.apiDot.className = `live-dot ${status}`; els.apiState.textContent = text; }
 function setMessage(text, kind = "") { els.uploadMessage.textContent = text; els.uploadMessage.className = `notice ${kind}`; }
 function fmtTime(value) { if (!value) return "Recorded time unavailable"; const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString([], { dateStyle: "medium", timeStyle: "short" }); }
+function relativeTime(value) { const then = new Date(value ? value.replace(" ", "T") + (value.includes("Z") || value.includes("+") ? "" : "Z") : NaN); const seconds = (Date.now() - then.getTime()) / 1000; if (Number.isNaN(seconds)) return value || "recently"; if (seconds < 60) return "just now"; if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`; if (seconds < 86400) return `${Math.floor(seconds / 3600)} h ago`; return `${Math.floor(seconds / 86400)} d ago`; }
 function label(value) { return String(value || "unclassified").replaceAll("_", " "); }
 function escapeHtml(value) { const div = document.createElement("div"); div.textContent = value ?? ""; return div.innerHTML; }
 
@@ -199,7 +200,8 @@ function renderLocalAnalysis(result) {
   const hypotheses = view.hypotheses.map((item) => `<li>${escapeHtml(item.analysis || "Analysis note")}${item.evidence_ids?.length ? ` <span class="evidence">[${escapeHtml(item.evidence_ids.join(", "))}]</span>` : ""}${item.follow_up ? `<br><span class="limitations">Follow up: ${escapeHtml(item.follow_up)}</span>` : ""}</li>`).join("");
   const limits = view.limitations.map((item) => escapeHtml(item)).join(" · ");
   const coverage = view.coverage ? `${view.coverage.included_flights ?? 0}/${view.coverage.total_flights ?? 0} flights · ${view.coverage.included_incidents ?? 0}/${view.coverage.total_incidents ?? 0} incidents` : "";
-  els.localAnalysisBody.innerHTML = `<p>${escapeHtml(view.summary)}</p>${hypotheses ? `<ul>${hypotheses}</ul>` : ""}${limits ? `<p class="limitations">Limits: ${limits}</p>` : ""}${coverage ? `<p class="evidence">Scope: ${escapeHtml(coverage)}</p>` : ""}`;
+  const cached = view.cached ? `<p class="evidence">cached · generated ${escapeHtml(relativeTime(view.generated_at))}</p>` : "";
+  els.localAnalysisBody.innerHTML = `${cached}<p>${escapeHtml(view.summary)}</p>${hypotheses ? `<ul>${hypotheses}</ul>` : ""}${limits ? `<p class="limitations">Limits: ${limits}</p>` : ""}${coverage ? `<p class="evidence">Scope: ${escapeHtml(coverage)}</p>` : ""}`;
   appendEvidenceLinks(els.localAnalysisBody, view.evidence);
   els.localAnalysis.hidden = false;
 }
@@ -235,7 +237,32 @@ async function downloadComprehensiveReport() {
     button.disabled = false; button.textContent = originalText;
   }
 }
-async function analyzeFleetRecords() { if (!state.token) { els.localAnalysis.hidden = true; els.analysisAnswer.textContent = "Connect a session key to analyze stored fleet records."; return; } const button = $("fleetAnalysisButton"); const question = els.question.value.trim() || "Summarize recurring patterns and evidence across stored flights."; button.disabled = true; button.textContent = "Analyzing…"; els.localAnalysis.hidden = true; try { const result = await api("/v1/demo/analysis", { method:"POST", json:true, body:JSON.stringify({ question }) }); renderLocalAnalysis(result); } catch (error) { els.analysisAnswer.textContent = friendlyError(error.message); } finally { button.disabled = false; button.textContent = "Analyze fleet records"; } }
+async function streamFleetAnalysis(question) {
+  const response = await fetch("/v1/demo/analysis/stream", { method: "POST", headers: authHeaders(true), body: JSON.stringify({ question }) });
+  if (!response.ok || !response.body) throw new Error("analysis stream unavailable");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "", raw = "", final = null;
+  els.localAnalysis.hidden = false;
+  els.localAnalysisBody.textContent = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop();
+    for (const part of parts) {
+      const line = part.trim();
+      if (!line.startsWith("data:")) continue;
+      const payload = JSON.parse(line.slice(5));
+      if (payload.delta) { raw += payload.delta; els.localAnalysisBody.textContent = raw; }
+      if (payload.final) final = payload.final;
+    }
+  }
+  if (!final) throw new Error("analysis stream ended without a result");
+  return final;
+}
+async function analyzeFleetRecords() { if (!state.token) { els.localAnalysis.hidden = true; els.analysisAnswer.textContent = "Connect a session key to analyze stored fleet records."; return; } const button = $("fleetAnalysisButton"); const question = els.question.value.trim() || "Summarize recurring patterns and evidence across stored flights."; button.disabled = true; button.textContent = "Analyzing…"; els.localAnalysis.hidden = true; try { let result; try { result = await streamFleetAnalysis(question); } catch { result = await api("/v1/demo/analysis", { method:"POST", json:true, body:JSON.stringify({ question }) }); } renderLocalAnalysis(result); } catch (error) { els.analysisAnswer.textContent = friendlyError(error.message); } finally { button.disabled = false; button.textContent = "Analyze fleet records"; } }
 function showView(view) {
   document.querySelectorAll(".view").forEach(el => { const active = el.id === `${view}View`; el.classList.toggle("active", active); el.hidden = !active; });
   document.querySelectorAll(".nav-link").forEach(el => { const active = el.dataset.view === view; el.classList.toggle("active", active); el.setAttribute("aria-selected", String(active)); el.tabIndex = active ? 0 : -1; });
