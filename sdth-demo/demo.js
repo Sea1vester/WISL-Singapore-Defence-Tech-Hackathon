@@ -1,4 +1,4 @@
-import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=stream-12";
+import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=stream-14";
 
 const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false };
 const DEMO_LIBRARY_LOGS = [
@@ -149,7 +149,7 @@ function setReplay(flightId, timestamp = null) {
   const frameUrl = new URL("/replay/", window.location.origin);
   frameUrl.searchParams.set("flights", flightId);
   frameUrl.searchParams.set("embed", "1");
-  frameUrl.searchParams.set("v", "stream-3");
+  frameUrl.searchParams.set("v", "stream-15");
   if (state.token) frameUrl.searchParams.set("token", state.token);
   if (timestamp) frameUrl.searchParams.set("timestamp", timestamp);
   els.replayFrame.src = frameUrl.toString(); els.replayFrame.hidden = false; els.replayEmpty.hidden = true; els.openReplay.href = frameUrl.toString(); els.openReplay.classList.remove("disabled");
@@ -296,6 +296,64 @@ async function connect() {
   await Promise.all([refreshFlights(), refreshPatterns(), refreshBulletins(), loadDemoStatus()]);
   await seedDemoLibrary();
 }
+// ---- Resizable details dock ----------------------------------------------
+// The dock's height drives a CSS variable on <main>; the replay stage takes
+// whatever is left, so pulling the dock up shrinks the visualisation instead
+// of pushing it off-screen. Height is remembered for the browser session.
+const DOCK_DEFAULT_H = 254, DOCK_MIN_H = 150, STAGE_MIN_H = 200, DOCK_KEY = "wislDockHeight";
+const mainEl = document.querySelector(".workspace > main");
+function maxDockHeight() { return Math.max(DOCK_MIN_H, (mainEl?.clientHeight || 0) - STAGE_MIN_H); }
+function currentDockHeight() { return parseInt(getComputedStyle(mainEl).getPropertyValue("--dock-h"), 10) || DOCK_DEFAULT_H; }
+function setDockHeight(px, persist = true) {
+  if (!mainEl) return;
+  const h = Math.round(Math.min(Math.max(px, DOCK_MIN_H), maxDockHeight()));
+  mainEl.style.setProperty("--dock-h", `${h}px`);
+  $("dockResizer")?.setAttribute("aria-valuenow", String(h));
+  if (persist) { try { sessionStorage.setItem(DOCK_KEY, String(h)); } catch { /* private mode */ } }
+}
+(function initDockResizer() {
+  const handle = $("dockResizer");
+  if (!handle || !mainEl) return;
+  handle.setAttribute("aria-valuemin", String(DOCK_MIN_H));
+  const saved = Number(sessionStorage.getItem(DOCK_KEY));
+  setDockHeight(Number.isFinite(saved) && saved > 0 ? saved : DOCK_DEFAULT_H, false);
+
+  let startY = 0, startH = 0;
+  const onMove = (event) => setDockHeight(startH + (startY - event.clientY));
+  const onUp = (event) => {
+    handle.releasePointerCapture?.(event.pointerId);
+    document.body.classList.remove("dock-resizing");
+    handle.removeEventListener("pointermove", onMove);
+    handle.removeEventListener("pointerup", onUp);
+    handle.removeEventListener("pointercancel", onUp);
+  };
+  handle.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    startY = event.clientY;
+    startH = currentDockHeight();
+    // Pointer capture keeps events coming to the handle even as the cursor
+    // crosses the replay iframe, which would otherwise swallow them.
+    handle.setPointerCapture?.(event.pointerId);
+    document.body.classList.add("dock-resizing");
+    handle.addEventListener("pointermove", onMove);
+    handle.addEventListener("pointerup", onUp);
+    handle.addEventListener("pointercancel", onUp);
+  });
+  handle.addEventListener("dblclick", () => setDockHeight(DOCK_DEFAULT_H));
+  handle.addEventListener("keydown", (event) => {
+    const step = event.shiftKey ? 64 : 16;
+    const actions = {
+      ArrowUp: () => setDockHeight(currentDockHeight() + step),
+      ArrowDown: () => setDockHeight(currentDockHeight() - step),
+      Home: () => setDockHeight(maxDockHeight()),
+      End: () => setDockHeight(DOCK_MIN_H),
+    };
+    if (actions[event.key]) { event.preventDefault(); actions[event.key](); }
+  });
+  // Re-clamp if the window shrinks so the dock can never crowd out the stage.
+  window.addEventListener("resize", () => setDockHeight(currentDockHeight(), false));
+})();
+
 $("authButton").addEventListener("click", () => setAuthPanel($("authPanel").hidden));
 $("saveToken").addEventListener("click", connect);
 els.token.addEventListener("keydown", event => { if (event.key === "Enter") connect(); });

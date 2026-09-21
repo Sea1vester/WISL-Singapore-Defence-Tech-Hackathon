@@ -362,6 +362,27 @@ class TestComprehensiveReportApi:
         assert body["report"]["incident_report"]["flight_id"] == flight_id
         assert body["report"]["preemptive_findings"]["incident_count"] > 0
 
+    def test_comprehensive_post_never_calls_model(self, client, monkeypatch):
+        import time
+
+        def _forbidden(*args, **kwargs):
+            raise AssertionError("model must not be called")
+
+        monkeypatch.setattr("app.analytics._try_model_report", _forbidden)
+        flight_id = "flight-comprehensive-no-llm"
+        _ingest_flight_with_incidents(client, flight_id)
+
+        start = time.monotonic()
+        resp = client.post(f"/v1/flights/{flight_id}/comprehensive-report", headers=AUTH)
+        elapsed = time.monotonic() - start
+
+        assert resp.status_code == 201, resp.text
+        body = resp.json()
+        report = body["report"]
+        assert report["incident_report"]
+        assert report["incident_report"]["flight_id"] == flight_id
+        assert elapsed < 5
+
     def test_post_unknown_flight_404s(self, client):
         resp = client.post("/v1/flights/does-not-exist/comprehensive-report", headers=AUTH)
         assert resp.status_code == 404

@@ -355,14 +355,24 @@ def build_comprehensive_report(conn, flight_id: str, *, allow_llm: bool = True) 
     rather than recomputing anything -- this is a synthesis layer, not a new
     source of findings.
     """
-    from app.analytics import generate_structured_report
+    from app.analytics import _load_latest_report, generate_structured_report
     from app.incidents import list_patterns
 
     flight = conn.execute("SELECT id FROM flights WHERE id = ?", (flight_id,)).fetchone()
     if not flight:
         raise KeyError(flight_id)
 
-    incident_report = generate_structured_report(flight_id, allow_llm=allow_llm)
+    if allow_llm:
+        incident_report = generate_structured_report(flight_id, allow_llm=True)
+    else:
+        stored = _load_latest_report(flight_id)
+        if stored is not None and stored.get("model_enrichment") == "available":
+            incident_report = stored
+        else:
+            incident_report = generate_structured_report(flight_id, allow_llm=False)
+            incident_report["model_narrative"] = (
+                "not requested for PDF; run AI-assisted analysis in the console for a model draft"
+            )
     preemptive = build_preemptive_report(conn, flight_id)
 
     own_signatures = {

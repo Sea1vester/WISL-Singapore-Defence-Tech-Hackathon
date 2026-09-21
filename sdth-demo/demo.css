@@ -215,7 +215,18 @@ body { height:100dvh; overflow:hidden; background:#091b27; }
 .live-dot.online { background:#98cacc; box-shadow:0 0 8px #98cacc55; }
 #libraryButton { display:none; }
 .workspace { display:grid; grid-template-columns:260px minmax(0,1fr); height:calc(100dvh - 68px); min-height:650px; }
-.workspace>main { min-width:0; min-height:0; display:grid; grid-template-rows:minmax(400px,1fr) 254px; background:#102d3a; }
+/* Replay stage / drag handle / details dock. The dock's height lives in
+   --dock-h so the handle can drive it directly; the stage takes whatever is
+   left, so pulling the dock up shrinks the visualisation rather than
+   overflowing the page. */
+.workspace>main { min-width:0; min-height:0; display:grid; grid-template-rows:minmax(0,1fr) 10px var(--dock-h,254px); background:#102d3a; }
+.dock-resizer { position:relative; z-index:6; cursor:row-resize; background:transparent; display:grid; place-items:center; touch-action:none; }
+.dock-resizer span { width:46px; height:3px; border-radius:2px; background:#3c5f70; transition:background .15s, width .15s; }
+.dock-resizer:hover span, .dock-resizer:focus-visible span { background:var(--signal); width:64px; }
+.dock-resizer:focus-visible { outline:2px solid var(--signal); outline-offset:-2px; }
+/* While dragging, stop the replay iframe from swallowing pointer events. */
+body.dock-resizing { cursor:row-resize; user-select:none; }
+body.dock-resizing .replay-stage iframe { pointer-events:none; }
 .flight-library { position:relative; top:auto; right:auto; width:auto; min-width:0; height:100%; border-radius:0; box-shadow:none; z-index:10; padding:24px 18px 18px; background:#081824; display:flex; flex-direction:column; }
 .flight-library h2 { font-size:15px; font-weight:550; }
 .flight-library .eyebrow { font-size:9px; color:#728f9f; }
@@ -298,11 +309,11 @@ body { height:100dvh; overflow:hidden; background:#091b27; }
 .stages li { background:#ffffff05; }
 .upload-layout { gap:24px; }
 .session-bar { position:absolute; z-index:40; top:68px; left:0; right:0; background:#0a2231; box-shadow:0 15px 40px #0007; }
-@media (min-width:1500px) { .workspace{grid-template-columns:290px minmax(0,1fr)} .flight-library{padding:28px 23px 20px} .workspace>main{grid-template-rows:minmax(480px,1fr) 280px} .stage-heading{top:28px;left:32px} .analysis-dock{margin:0} }
+@media (min-width:1500px) { .workspace{grid-template-columns:290px minmax(0,1fr)} .flight-library{padding:28px 23px 20px} .workspace>main{--dock-h:280px} .stage-heading{top:28px;left:32px} .analysis-dock{margin:0} }
 @media (max-width:1250px) { .workspace-label{display:none} .connection{display:none} .workspace{grid-template-columns:240px minmax(0,1fr)} .dock-note{display:none} .tabbar{gap:22px;padding:0 18px} .view{padding:18px} .analysis-columns{gap:18px} .evidence-column{padding-right:18px} }
 @media (min-width:760px) and (max-width:899px) { .workspace{grid-template-columns:218px minmax(0,1fr)} .flight-library{padding:20px 13px 14px} .flight-source{font-size:10px} .flight-row{grid-template-columns:20px minmax(0,1fr) 8px;padding:11px 8px;gap:6px} .flight-symbol svg{width:20px} .stage-heading{left:20px;top:22px;max-width:calc(100% - 110px)} .stage-heading h1{font-size:18px} .stage-heading>p:last-child{font-size:8px} .expand-link{right:15px;font-size:9px;padding:6px 8px} .analysis-dock{margin:0} .tabbar{gap:18px;padding:0 14px} .nav-link{font-size:10px} .view{padding:15px} .analysis-columns{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px} .evidence-column{padding-right:16px} .card-heading h2{font-size:12px} .upload-layout{grid-template-columns:1fr} }
-@media (max-width:759px) { body{height:auto;overflow:auto;min-width:340px} .topbar{height:60px;padding:0 15px} .brand{font-size:17px;gap:8px} .brand-mark{width:26px}.brand-mark svg{width:26px} .topbar-actions{gap:6px} .topbar .button{padding:8px 10px;font-size:10px} .quiet-button{font-size:10px;padding:7px 8px} #libraryButton{display:block} .workspace{display:block;height:auto;min-height:0} .workspace>main{display:block} .flight-library{position:fixed;left:0;top:60px;bottom:0;width:min(310px,88vw);height:calc(100dvh - 60px);z-index:25;box-shadow:30px 0 90px #0009} #closeLibrary{display:block} .replay-stage{height:64vh;min-height:485px} .stage-heading{top:22px;left:20px;max-width:calc(100% - 112px)} .stage-heading h1{font-size:19px} .recorded-label{display:inline;margin-left:0;font-size:7px} .expand-link{top:24px;right:14px;font-size:10px;padding:6px 8px} .analysis-dock{height:340px;margin:0} .tabbar{height:48px;gap:20px;padding:0 15px} .nav-link{font-size:10px} .analysis-columns{grid-template-columns:1fr} .evidence-column{padding:0 0 18px} .view{padding:18px} .upload-layout{grid-template-columns:1fr} .session-bar{top:60px} }
-@media (max-height:760px) and (min-width:760px) { body{overflow:auto}.workspace{height:710px}.workspace>main{grid-template-rows:minmax(420px,1fr) 254px} }
+@media (max-width:759px) { body{height:auto;overflow:auto;min-width:340px} .topbar{height:60px;padding:0 15px} .brand{font-size:17px;gap:8px} .brand-mark{width:26px}.brand-mark svg{width:26px} .topbar-actions{gap:6px} .topbar .button{padding:8px 10px;font-size:10px} .quiet-button{font-size:10px;padding:7px 8px} #libraryButton{display:block} .workspace{display:block;height:auto;min-height:0} .workspace>main{display:block} .dock-resizer{display:none} .flight-library{position:fixed;left:0;top:60px;bottom:0;width:min(310px,88vw);height:calc(100dvh - 60px);z-index:25;box-shadow:30px 0 90px #0009} #closeLibrary{display:block} .replay-stage{height:64vh;min-height:485px} .stage-heading{top:22px;left:20px;max-width:calc(100% - 112px)} .stage-heading h1{font-size:19px} .recorded-label{display:inline;margin-left:0;font-size:7px} .expand-link{top:24px;right:14px;font-size:10px;padding:6px 8px} .analysis-dock{height:340px;margin:0} .tabbar{height:48px;gap:20px;padding:0 15px} .nav-link{font-size:10px} .analysis-columns{grid-template-columns:1fr} .evidence-column{padding:0 0 18px} .view{padding:18px} .upload-layout{grid-template-columns:1fr} .session-bar{top:60px} }
+@media (max-height:760px) and (min-width:760px) { body{overflow:auto}.workspace{height:710px}.workspace>main{--dock-h:254px} }
 .workspace { grid-template-rows:minmax(0,1fr); }
 .flight-library { min-height:0; }
 .stage-heading h1 { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }

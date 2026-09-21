@@ -1,4 +1,4 @@
-import { elevationHeightAt } from './tabletop.mjs?v=stream-3';
+import { elevationHeightAt } from './tabletop.mjs?v=stream-15';
 
 export function containsPoint(bounds, lon, lat) {
   return Number.isFinite(lon) && Number.isFinite(lat) && lon >= bounds.west && lon <= bounds.east && lat >= bounds.south && lat <= bounds.north;
