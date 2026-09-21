@@ -198,6 +198,18 @@ def parse_raw_log(
 
     if parser_key == "dji_csv":
         payload = parse_dji_csv_to_l1(path, flight_id=flight_id, event_id=event_id)
+    elif parser_key == "csv_generic":
+        from .generic_rows import _parse_generic_rows_to_l1
+
+        with path.open(newline="", encoding="utf-8-sig", errors="replace") as handle:
+            rows = list(csv.DictReader(handle))
+        payload = _parse_generic_rows_to_l1(
+            rows,
+            flight_id=flight_id,
+            source="csv-generic",
+            event_id=event_id,
+            stem=path.stem,
+        )
     elif parser_key in {"dji_excel", "excel"}:
         from .excel import parse_excel_to_l1
 

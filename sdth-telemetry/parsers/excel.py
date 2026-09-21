@@ -2,16 +2,25 @@
 
 from __future__ import annotations
 
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from .dji_csv import is_dji_csv, parse_dji_rows_to_l1
+from .generic_rows import (
+    GENERIC_ALT_KEYS,
+    GENERIC_LAT_KEYS,
+    GENERIC_LON_KEYS,
+    _parse_generic_rows_to_l1,
+)
 
-GENERIC_LAT_KEYS = ("lat", "latitude", "gps_lat", "OSD.latitude")
-GENERIC_LON_KEYS = ("lon", "lng", "longitude", "gps_lon", "OSD.longitude")
-GENERIC_ALT_KEYS = ("alt_m", "alt", "altitude", "altitude_m", "OSD.altitude [ft]", "OSD.height [ft]")
+__all__ = [
+    "GENERIC_ALT_KEYS",
+    "GENERIC_LAT_KEYS",
+    "GENERIC_LON_KEYS",
+    "parse_excel_to_l1",
+    "read_excel_table",
+]
 
 
 def _require_openpyxl():
@@ -86,86 +95,6 @@ def read_excel_table(
         return fieldnames, rows
     finally:
         wb.close()
-
-
-def _pick(row: dict[str, str], keys: tuple[str, ...]) -> str | None:
-    lower_map = {k.lower(): k for k in row}
-    for key in keys:
-        if key in row and row[key] != "":
-            return row[key]
-        real = lower_map.get(key.lower())
-        if real and row[real] != "":
-            return row[real]
-    return None
-
-
-def _parse_generic_rows_to_l1(
-    rows: list[dict[str, str]],
-    *,
-    flight_id: str | None = None,
-    source: str = "excel-generic",
-    event_id: str | None = None,
-    skip_zero_gps: bool = True,
-    max_records: int | None = None,
-    stem: str = "excel",
-) -> dict[str, Any]:
-    flight_id = flight_id or str(uuid.uuid4())
-    event_id = event_id or f"xlsx-{stem}-{uuid.uuid4().hex[:8]}"
-    records: list[dict[str, Any]] = []
-
-    for row in rows:
-        lat_s = _pick(row, GENERIC_LAT_KEYS)
-        lon_s = _pick(row, GENERIC_LON_KEYS)
-        if lat_s is None or lon_s is None:
-            continue
-        try:
-            lat = float(lat_s)
-            lon = float(lon_s)
-        except ValueError:
-            continue
-        if skip_zero_gps and abs(lat) < 1e-6 and abs(lon) < 1e-6:
-            continue
-
-        record: dict[str, Any] = {"lat": lat, "lon": lon}
-        alt_s = _pick(row, GENERIC_ALT_KEYS)
-        if alt_s is not None:
-            try:
-                alt = float(alt_s)
-                # Heuristic: OSD height/altitude in ft if column name mentions ft
-                alt_key = next(
-                    (k for k in row if k.lower() in {x.lower() for x in GENERIC_ALT_KEYS} and row[k] == alt_s),
-                    "",
-                )
-                if "ft" in alt_key.lower():
-                    alt *= 0.3048
-                record["alt_m"] = round(alt, 4)
-            except ValueError:
-                pass
-
-        ts = _pick(row, ("timestamp_utc", "timestamp", "timestamps", "time", "datetime"))
-        if ts:
-            record["timestamp_utc"] = ts
-
-        records.append(record)
-        if max_records is not None and len(records) >= max_records:
-            break
-
-    if not records:
-        raise ValueError(
-            "Excel rows are not DJI FlightRecord and lack generic lat/lon columns "
-            f"(tried {GENERIC_LAT_KEYS} / {GENERIC_LON_KEYS})"
-        )
-
-    timestamp_utc = records[0].get("timestamp_utc") or datetime.now(timezone.utc).strftime(
-        "%Y-%m-%dT%H:%M:%SZ"
-    )
-    return {
-        "flight_id": flight_id,
-        "timestamp_utc": timestamp_utc,
-        "source": source,
-        "event_id": event_id,
-        "records": records,
-    }
 
 
 def parse_excel_to_l1(

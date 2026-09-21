@@ -133,3 +133,43 @@ def test_model_failure_degrades_enrichment_without_losing_canonical_data(
     assert "Ollama offline" in status["error"]
     records = client.get("/v1/flights/degraded-demo/records", headers=AUTH).json()
     assert records["total"] == 8
+
+
+def test_l1_series_sorted_by_timestamp():
+    from app.canonical_series import series_from_l1_payload
+
+    payload = {
+        "flight_id": "sort-demo",
+        "source": "csv-generic",
+        "records": [
+            {"timestamp_utc": "2026-01-01T00:00:02Z", "lat": 1.0, "lon": 2.0},
+            {"timestamp_utc": "2026-01-01T00:00:00Z", "lat": 1.0, "lon": 2.0},
+            {"timestamp_utc": "2026-01-01T00:00:01Z", "lat": 1.0, "lon": 2.0},
+        ],
+    }
+    series = series_from_l1_payload(payload)
+    assert [sample["timestamp_utc"] for sample in series] == [
+        "2026-01-01T00:00:00Z",
+        "2026-01-01T00:00:01Z",
+        "2026-01-01T00:00:02Z",
+    ]
+
+
+def test_l1_series_keeps_order_when_timestamp_unparseable():
+    from app.canonical_series import series_from_l1_payload
+
+    payload = {
+        "flight_id": "unsorted-demo",
+        "source": "csv-generic",
+        "records": [
+            {"timestamp_utc": "2026-01-01T00:00:02Z", "lat": 1.0, "lon": 2.0},
+            {"timestamp_utc": "not-a-timestamp", "lat": 1.0, "lon": 2.0},
+            {"timestamp_utc": "2026-01-01T00:00:01Z", "lat": 1.0, "lon": 2.0},
+        ],
+    }
+    series = series_from_l1_payload(payload)
+    assert [sample["timestamp_utc"] for sample in series] == [
+        "2026-01-01T00:00:02Z",
+        "not-a-timestamp",
+        "2026-01-01T00:00:01Z",
+    ]

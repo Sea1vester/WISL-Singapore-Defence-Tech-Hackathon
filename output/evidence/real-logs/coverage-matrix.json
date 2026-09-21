@@ -52,8 +52,10 @@
     },
     "file": "ardupilot/dronekit-la_test_flight.tlog",
     "incident_types": [
+      "altitude_spike",
       "attitude_shock",
-      "last_known_position"
+      "battery_plunge",
+      "gps_jump"
     ],
     "parser": "ardupilot_tlog",
     "records": 6338
@@ -111,8 +113,10 @@
     },
     "file": "ardupilot/dronekit-python_flight_replay.tlog",
     "incident_types": [
+      "altitude_spike",
       "battery_low",
-      "last_known_position"
+      "battery_plunge",
+      "gps_jump"
     ],
     "parser": "ardupilot_tlog",
     "records": 2710
@@ -170,8 +174,7 @@
     },
     "file": "ardupilot/node-mavlink_vtol.tlog",
     "incident_types": [
-      "attitude_shock",
-      "last_known_position"
+      "attitude_shock"
     ],
     "parser": "ardupilot_tlog",
     "records": 799
@@ -287,8 +290,7 @@
     },
     "file": "ardupilot/uavlogviewer_vtol.tlog",
     "incident_types": [
-      "attitude_shock",
-      "last_known_position"
+      "attitude_shock"
     ],
     "parser": "ardupilot_tlog",
     "records": 799
@@ -346,25 +348,128 @@
     },
     "file": "local/0ceef477-0523-4e67-9b0a-57310817f1cc.ulg",
     "incident_types": [
-      "altitude_spike",
-      "last_known_position"
+      "altitude_spike"
     ],
     "parser": "px4_ulg",
     "records": 2456
   },
   {
-    "fields": {},
+    "fields": {
+      "attitude.pitch_deg": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "attitude.roll_deg": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "attitude.yaw_deg": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "battery.percent": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "battery.voltage_v": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "local_ned_inputs": {
+        "fraction": 0.0,
+        "status": "absent"
+      },
+      "position.alt_m": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "position.lat": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "position.lon": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "sensors.flight_mode": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "sensors.gps_satellites": {
+        "fraction": 0.0,
+        "status": "absent"
+      },
+      "sensors.warning": {
+        "fraction": 0.0,
+        "status": "absent"
+      }
+    },
     "file": "local/3dr_solo_outdoorflight.csv",
-    "incident_types": [],
-    "parser": "unparsed",
-    "records": 0
+    "incident_types": [
+      "attitude_shock",
+      "mission_incomplete"
+    ],
+    "parser": "csv_generic",
+    "records": 449
   },
   {
-    "fields": {},
+    "fields": {
+      "attitude.pitch_deg": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "attitude.roll_deg": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "attitude.yaw_deg": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "battery.percent": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "battery.voltage_v": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "local_ned_inputs": {
+        "fraction": 0.0,
+        "status": "absent"
+      },
+      "position.alt_m": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "position.lat": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "position.lon": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "sensors.flight_mode": {
+        "fraction": 1.0,
+        "status": "observed"
+      },
+      "sensors.gps_satellites": {
+        "fraction": 0.0,
+        "status": "absent"
+      },
+      "sensors.warning": {
+        "fraction": 0.0,
+        "status": "absent"
+      }
+    },
     "file": "local/3dr_solo_outdoorflight_with_payloadweight.csv",
-    "incident_types": [],
-    "parser": "unparsed",
-    "records": 0
+    "incident_types": [
+      "battery_low",
+      "mission_incomplete"
+    ],
+    "parser": "csv_generic",
+    "records": 666
   },
   {
     "fields": {
@@ -479,7 +584,6 @@
     },
     "file": "local/dji.csv",
     "incident_types": [
-      "last_known_position",
       "mission_incomplete",
       "operator_warning"
     ],
@@ -595,8 +699,10 @@
     },
     "file": "local/flight.tlog",
     "incident_types": [
+      "altitude_spike",
       "attitude_shock",
-      "last_known_position"
+      "battery_plunge",
+      "gps_jump"
     ],
     "parser": "ardupilot_tlog",
     "records": 6338
@@ -655,7 +761,6 @@
     "file": "local/log171.bin",
     "incident_types": [
       "attitude_shock",
-      "last_known_position",
       "operator_warning"
     ],
     "parser": "ardupilot_bin",
@@ -715,7 +820,6 @@
     "file": "local/sample_crash_log.bin",
     "incident_types": [
       "altitude_spike",
-      "last_known_position",
       "operator_warning",
       "telemetry_gap"
     ],
@@ -776,7 +880,6 @@
     "file": "local/unknown.csv",
     "incident_types": [
       "attitude_shock",
-      "last_known_position",
       "mission_incomplete",
       "operator_warning"
     ],
@@ -835,9 +938,7 @@
       }
     },
     "file": "px4_review/0d0d72a8-6258-459c-8b14-9ee9433449c9.ulg",
-    "incident_types": [
-      "last_known_position"
-    ],
+    "incident_types": [],
     "parser": "px4_ulg",
     "records": 828
   },
@@ -953,9 +1054,7 @@
       }
     },
     "file": "px4_review/29e51081-6bbb-4c3a-bcd2-fa6adc45874c.ulg",
-    "incident_types": [
-      "last_known_position"
-    ],
+    "incident_types": [],
     "parser": "px4_ulg",
     "records": 623
   },
@@ -1012,8 +1111,7 @@
     },
     "file": "px4_review/52310b22-f349-4f15-a827-fe552a2bb55b.ulg",
     "incident_types": [
-      "battery_plunge",
-      "last_known_position"
+      "battery_plunge"
     ],
     "parser": "px4_ulg",
     "records": 666
@@ -1071,8 +1169,7 @@
     },
     "file": "px4_review/660d802e-b89a-4f09-b810-df6e8ae11fae.ulg",
     "incident_types": [
-      "battery_plunge",
-      "last_known_position"
+      "battery_plunge"
     ],
     "parser": "px4_ulg",
     "records": 2295
@@ -1130,8 +1227,7 @@
     },
     "file": "px4_review/68de96cb-6ea7-47fe-b647-7c7dfe89ee67.ulg",
     "incident_types": [
-      "battery_low",
-      "last_known_position"
+      "battery_low"
     ],
     "parser": "px4_ulg",
     "records": 1801
@@ -1246,9 +1342,7 @@
       }
     },
     "file": "px4_review/912bb010-6131-436e-8abb-10216111d3e0.ulg",
-    "incident_types": [
-      "last_known_position"
-    ],
+    "incident_types": [],
     "parser": "px4_ulg",
     "records": 898
   },
@@ -1305,8 +1399,7 @@
     },
     "file": "px4_review/a80aaa45-cff0-4082-a80a-a6635c0f0689.ulg",
     "incident_types": [
-      "attitude_shock",
-      "last_known_position"
+      "attitude_shock"
     ],
     "parser": "px4_ulg",
     "records": 3139
@@ -1421,9 +1514,7 @@
       }
     },
     "file": "px4_review/e90d71e5-f68c-4f4a-acc2-35ae444be368.ulg",
-    "incident_types": [
-      "last_known_position"
-    ],
+    "incident_types": [],
     "parser": "px4_ulg",
     "records": 828
   },
@@ -1540,8 +1631,7 @@
     },
     "file": "px4_review/ee515ce6-3ccc-4917-af4c-6d90fbd5d597.ulg",
     "incident_types": [
-      "battery_plunge",
-      "last_known_position"
+      "battery_plunge"
     ],
     "parser": "px4_ulg",
     "records": 2199
@@ -1598,9 +1688,7 @@
       }
     },
     "file": "px4_review/f83add7e-8049-4451-a93f-173c550293b0.ulg",
-    "incident_types": [
-      "last_known_position"
-    ],
+    "incident_types": [],
     "parser": "px4_ulg",
     "records": 1364
   }

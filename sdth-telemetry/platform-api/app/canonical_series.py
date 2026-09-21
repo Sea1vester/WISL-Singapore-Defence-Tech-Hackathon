@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import math
+from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
@@ -44,6 +45,18 @@ def _iso(value: Any) -> str | None:
     if text.endswith("Z"):
         return text
     return text
+
+
+def _parse_iso(value: Any) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed
 
 
 def l1_record_to_canonical(
@@ -167,6 +180,12 @@ def series_from_l1_payload(payload: dict[str, Any]) -> list[dict[str, Any]]:
                 batch_ts=batch_ts,
             )
         )
+    # Telemetry streams are not always logged in order (e.g. MAVLink tlogs
+    # interleave buffered messages). Sort by timestamp only when every record
+    # parses; otherwise keep the recorded order rather than guessing.
+    parsed = [_parse_iso(sample.get("timestamp_utc")) for sample in series]
+    if series and all(ts is not None for ts in parsed):
+        series = [sample for _, sample in sorted(zip(parsed, series), key=lambda pair: pair[0])]
     return series
 
 

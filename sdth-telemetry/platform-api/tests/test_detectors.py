@@ -91,7 +91,7 @@ def test_rule_b_produces_geolocated_incident():
                 "timestamp_utc": (ts_base + timedelta(seconds=i)).strftime(
                     "%Y-%m-%dT%H:%M:%SZ"
                 ),
-                "position": {"lat": 1.3521, "lon": 103.8198, "alt_m": 50.0},
+                "position": {"lat": 1.3521, "lon": 103.8198, "alt_m": 0.0 if i < 5 else 50.0},
                 "sensors": {},
                 "attitude": {
                     "yaw_deg": 45.0 + i * 3.0,
@@ -336,7 +336,7 @@ def test_last_known_position_rule_b():
     for i in range(40):
         series.append({
             "timestamp_utc": (ts_base + timedelta(seconds=i)).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            "position": {"lat": 1.3521, "lon": 103.8198, "alt_m": 50.0},
+            "position": {"lat": 1.3521, "lon": 103.8198, "alt_m": 0.0 if i < 5 else 50.0},
             "sensors": {},
             "attitude": {"yaw_deg": 45.0 + i * 3.0, "roll_deg": 1.0, "pitch_deg": 0.5},
             "battery": {"percent": 80},
@@ -423,3 +423,148 @@ def test_airborne_modes():
     assert _is_airborne("auto_land") is False
     assert _is_airborne(None) is False
     assert _is_airborne("") is False
+
+
+def test_last_known_position_ignores_ground_freeze():
+    from datetime import datetime, timedelta, timezone
+
+    ts_base = datetime(2026, 7, 16, 15, 0, 0, tzinfo=timezone.utc)
+    series = []
+    for i in range(90):
+        flying = i >= 60
+        series.append({
+            "timestamp_utc": (ts_base + timedelta(seconds=i)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "position": {
+                "lat": 1.3521 + (i - 60) * 0.0001 if flying else 1.3521,
+                "lon": 103.8198,
+                "alt_m": 60.0 if flying else 0.0,
+            },
+            "sensors": {},
+            "attitude": {"yaw_deg": 45.0 + i * 3.0, "roll_deg": 1.0, "pitch_deg": 0.5},
+            "battery": {"percent": 80},
+        })
+    results = _detect_last_known_position(series)
+    assert all(r.incident_type != "last_known_position" for r in results)
+
+
+def test_last_known_position_fires_on_midair_freeze():
+    from datetime import datetime, timedelta, timezone
+
+    ts_base = datetime(2026, 7, 16, 15, 0, 0, tzinfo=timezone.utc)
+    series = []
+    for i in range(50):
+        climbing = i < 10
+        series.append({
+            "timestamp_utc": (ts_base + timedelta(seconds=i)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "position": {
+                "lat": 1.3521 + i * 0.0001 if climbing else 1.3521 + 9 * 0.0001,
+                "lon": 103.8198,
+                "alt_m": i * 5.0 if climbing else 50.0,
+            },
+            "sensors": {},
+            "attitude": {"yaw_deg": 45.0 + i * 3.0, "roll_deg": 1.0, "pitch_deg": 0.5},
+            "battery": {"percent": 80},
+        })
+    results = _detect_last_known_position(series)
+    assert any(r.incident_type == "last_known_position" for r in results)
+
+
+def test_attitude_shock_requires_airborne_sample():
+    from datetime import datetime, timedelta, timezone
+
+    ts_base = datetime(2026, 7, 16, 15, 0, 0, tzinfo=timezone.utc)
+
+    def build(alt_m: float) -> list[dict]:
+        series = []
+        for i in range(10):
+            series.append({
+                "timestamp_utc": (ts_base + timedelta(seconds=i)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "position": {"lat": 1.3521, "lon": 103.8198, "alt_m": alt_m},
+                "sensors": {},
+                "attitude": {"roll_deg": 50.0 if i == 5 else 1.0, "pitch_deg": 0.5, "yaw_deg": 45.0},
+                "battery": {"percent": 80},
+            })
+        return series
+
+    ground_types = {inc.incident_type for inc in detect_incidents(build(0.0))}
+    assert "attitude_shock" not in ground_types
+
+    airborne = build(30.0)
+    # ground reference comes from the first samples, so start on the ground
+    for i, sample in enumerate(airborne):
+        if i < 5:
+            sample["position"]["alt_m"] = 0.0
+    air_types = {inc.incident_type for inc in detect_incidents(airborne)}
+    assert "attitude_shock" in air_types
+
+
+def test_last_known_position_ignores_hover_jitter():
+    import random
+    from datetime import datetime, timedelta, timezone
+
+    rng = random.Random(7)
+    ts_base = datetime(2026, 7, 16, 15, 0, 0, tzinfo=timezone.utc)
+    series = []
+    lat = 1.3521
+    for i in range(95):
+        if i >= 5:
+            lat += rng.uniform(2e-6, 4e-6) * (1 if i % 2 else -1)  # ~0.2-0.4 m wander
+        series.append({
+            "timestamp_utc": (ts_base + timedelta(seconds=i)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "position": {"lat": lat, "lon": 103.8198, "alt_m": 0.0 if i < 5 else 50.0},
+            "sensors": {},
+            "attitude": {"yaw_deg": 45.0 + i * 3.0, "roll_deg": 1.0, "pitch_deg": 0.5},
+            "battery": {"percent": 80},
+        })
+    results = _detect_last_known_position(series)
+    assert all(r.incident_type != "last_known_position" for r in results)
+
+
+def test_last_known_position_exact_fix_then_movement():
+    from datetime import datetime, timedelta, timezone
+
+    ts_base = datetime(2026, 7, 16, 15, 0, 0, tzinfo=timezone.utc)
+    frozen_lat, frozen_lon = 1.3521, 103.8198
+    series = []
+    for i in range(60):
+        moving = i >= 50
+        series.append({
+            "timestamp_utc": (ts_base + timedelta(seconds=i)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "position": {
+                "lat": frozen_lat + (i - 50) * 0.0001 if moving else frozen_lat,
+                "lon": frozen_lon,
+                "alt_m": 0.0 if i < 5 else 50.0,
+            },
+            "sensors": {},
+            "attitude": {"yaw_deg": 45.0 + i * 3.0, "roll_deg": 1.0, "pitch_deg": 0.5},
+            "battery": {"percent": 80},
+        })
+    results = [r for r in _detect_last_known_position(series) if r.incident_type == "last_known_position"]
+    assert len(results) == 1
+    inc = results[0]
+    last_frozen_ts = (ts_base + timedelta(seconds=50)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    assert inc.evidence["frozen_end"]["timestamp_utc"] == last_frozen_ts
+    assert inc.evidence["frozen_end"]["lat"] == frozen_lat
+    assert inc.evidence["frozen_end"]["lon"] == frozen_lon
+
+
+def test_last_known_position_static_attitude_is_parked_not_frozen():
+    from datetime import datetime, timedelta, timezone
+
+    ts_base = datetime(2026, 7, 16, 15, 0, 0, tzinfo=timezone.utc)
+    series = []
+    for i in range(50):
+        moving = i >= 45
+        series.append({
+            "timestamp_utc": (ts_base + timedelta(seconds=i)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "position": {
+                "lat": 1.3521 + (i - 45) * 0.0001 if moving else 1.3521,
+                "lon": 103.8198,
+                "alt_m": 0.0 if i < 5 else 50.0,
+            },
+            "sensors": {},
+            "attitude": {"yaw_deg": 45.0, "roll_deg": 1.0, "pitch_deg": 0.5},
+            "battery": {"percent": 80},
+        })
+    results = _detect_last_known_position(series)
+    assert all(r.incident_type != "last_known_position" for r in results)

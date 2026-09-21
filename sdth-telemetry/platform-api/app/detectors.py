@@ -19,6 +19,7 @@ Why these numbers:
 from __future__ import annotations
 
 import math
+import statistics
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -41,6 +42,9 @@ GAP_S = 15.0
 MERGE_GAP_S = 5.0
 EARTH_RADIUS_M = 6_371_000.0
 UXO_FROZEN_POSITION_S = 30.0
+FROZEN_FIX_EPS_M = 0.02
+AIRBORNE_ALT_M = 3.0
+AIRBORNE_SPEED_MPS = 1.5
 AIRBORNE_MODES = ("P-GPS", "ATTI", "LOITER", "ALTHOLD", "RTL", "SMART_RTH", "POSITION", "GUIDED", "AUTO", "ORBIT", "LAND", "FBWA", "FLIP", "ACRO", "STABILIZE", "SPORT", "MOVIE", "CINE", "TRIP")
 LAND_MODES = ("LAND", "AUTO_LAND", "LANDING", "RTH_LAND")
 
@@ -261,54 +265,115 @@ def _detect_mission_incomplete(series: list[dict[str, Any]]) -> list[DetectedInc
     return found
 
 
+def airborne_window(series: list[dict[str, Any]]) -> tuple[int, int] | None:
+    """Index span where the vehicle is off the ground.
+
+    Ground reference is the median altitude of the first few samples; a sample
+    counts as airborne when it sits >AIRBORNE_ALT_M above that reference or is
+    moving faster than a person walks.
+    """
+    if not series:
+        return None
+    ref_samples: list[float] = []
+    for sample in series[: min(10, len(series))]:
+        alt = _num((sample.get("position") or {}).get("alt_m"))
+        if alt is not None and math.isfinite(alt):
+            ref_samples.append(alt)
+    if not ref_samples:
+        return None
+    ref = statistics.median(ref_samples)
+    first: int | None = None
+    last: int | None = None
+    for i, sample in enumerate(series):
+        alt = _num((sample.get("position") or {}).get("alt_m"))
+        high = alt is not None and math.isfinite(alt) and alt - ref > AIRBORNE_ALT_M
+        if high or _velocity_from_series(series, i) > AIRBORNE_SPEED_MPS:
+            if first is None:
+                first = i
+            last = i
+    if first is None or last is None:
+        return None
+    return (first, last)
+
+
 def _detect_last_known_position(series: list[dict[str, Any]]) -> list[DetectedIncident]:
     if len(series) < 3:
+        return []
+    window = airborne_window(series)
+    if window is None:
         return []
     found: list[DetectedIncident] = []
     frozen_start_idx: int | None = None
     frozen_start_ts: str = ""
-    position = series[0].get("position") or {}
-    prev_lat = _num(position.get("lat"))
-    prev_lon = _num(position.get("lon"))
+    anchor_lat: float | None = None
+    anchor_lon: float | None = None
+    frozen_samples = 0
+    imu_motion_samples = 0
+    velocity_at_freeze = 0.0
 
-    for i in range(1, len(series)):
-        curr = series[i]
-        curr_pos = curr.get("position") or {}
-        curr_lat = _num(curr_pos.get("lat"))
-        curr_lon = _num(curr_pos.get("lon"))
-        ts = curr.get("timestamp_utc") or ""
-        vel = _velocity_from_series(series, i)
-        imu_moving = _imu_indicates_motion(series, i)
-        effective_vel = max(vel, 0.5) if imu_moving else vel
+    def _latlon(sample: dict[str, Any]) -> tuple[float | None, float | None]:
+        pos = sample.get("position") or {}
+        return _num(pos.get("lat")), _num(pos.get("lon"))
 
-        if frozen_start_idx is not None:
-            elapsed = (parse_timestamp(ts) - parse_timestamp(frozen_start_ts)).total_seconds() if (parse_timestamp(ts) and parse_timestamp(frozen_start_ts)) else 0
-            if elapsed > UXO_FROZEN_POSITION_S and (effective_vel > 0.5 or imu_moving):
-                incident = DetectedIncident(
+    def _emit(end_idx: int) -> None:
+        end = series[end_idx]
+        end_lat, end_lon = _latlon(end)
+        end_ts = end.get("timestamp_utc") or ""
+        start_dt = parse_timestamp(frozen_start_ts)
+        end_dt = parse_timestamp(end_ts)
+        elapsed = (end_dt - start_dt).total_seconds() if start_dt and end_dt else 0
+        if elapsed > UXO_FROZEN_POSITION_S and imu_motion_samples >= 0.5 * frozen_samples:
+            found.append(
+                DetectedIncident(
                     incident_type="last_known_position",
                     severity="critical",
                     started_at=frozen_start_ts,
-                    ended_at=ts,
+                    ended_at=end_ts,
                     signature="last_known_position",
                     summary=f"Position frozen for {elapsed:.0f}s while IMU indicated motion. Possible mid-air failure at last-known fix.",
                     evidence={
-                        "frozen_start": {"timestamp_utc": frozen_start_ts, "lat": prev_lat, "lon": prev_lon},
-                        "frozen_end": {"timestamp_utc": ts, "lat": curr_lat, "lon": curr_lon},
+                        "frozen_start": {"timestamp_utc": frozen_start_ts, "lat": anchor_lat, "lon": anchor_lon},
+                        "frozen_end": {"timestamp_utc": end_ts, "lat": end_lat, "lon": end_lon},
                         "elapsed_s": elapsed,
-                        "velocity_at_freeze": vel,
+                        "velocity_at_freeze": velocity_at_freeze,
                         "limitations": "warhead state unknown, treat as potential UXO, do not approach",
                     },
                 )
-                found.append(incident)
+            )
+
+    for i in range(1, len(series)):
+        prev_lat, prev_lon = _latlon(series[i - 1])
+        curr_lat, curr_lon = _latlon(series[i])
+
+        if frozen_start_idx is not None:
+            frozen_samples += 1
+            if _imu_indicates_motion(series, i):
+                imu_motion_samples += 1
+            moved = (
+                None not in (anchor_lat, anchor_lon, curr_lat, curr_lon)
+                and _haversine_m(anchor_lat, anchor_lon, curr_lat, curr_lon) >= FROZEN_FIX_EPS_M
+            )
+            if moved:
+                _emit(i - 1)
                 frozen_start_idx = None
-        else:
-            pos_changed = _position_changed({"lat": prev_lat, "lon": prev_lon}, {"lat": curr_lat, "lon": curr_lon})
-            if not pos_changed and (vel > 0.5 or imu_moving):
-                frozen_start_idx = i
-                frozen_start_ts = ts
             else:
-                prev_lat = curr_lat
-                prev_lon = curr_lon
+                continue
+
+        if (
+            frozen_start_idx is None
+            and window[0] <= i <= window[1]
+            and None not in (prev_lat, prev_lon, curr_lat, curr_lon)
+            and _haversine_m(prev_lat, prev_lon, curr_lat, curr_lon) < FROZEN_FIX_EPS_M
+        ):
+            frozen_start_idx = i
+            frozen_start_ts = series[i].get("timestamp_utc") or ""
+            anchor_lat, anchor_lon = curr_lat, curr_lon
+            frozen_samples = 1
+            imu_motion_samples = 1 if _imu_indicates_motion(series, i) else 0
+            velocity_at_freeze = _velocity_from_series(series, i)
+
+    if frozen_start_idx is not None:
+        _emit(len(series) - 1)
 
     return found
 
@@ -352,6 +417,7 @@ def detect_incidents(series: list[dict[str, Any]], user_markers: list[dict[str, 
         for left, right in zip(parsed_times, parsed_times[1:])
     )
     battery_peaks: deque[tuple[datetime, float]] = deque()
+    airborne = airborne_window(series)
     for i, sample in enumerate(series):
         ts = sample.get("timestamp_utc") or ""
         battery = sample.get("battery") or {}
@@ -396,7 +462,8 @@ def detect_incidents(series: list[dict[str, Any]], user_markers: list[dict[str, 
             )
 
         max_tilt = max(roll, pitch)
-        if max_tilt >= ATTITUDE_CRIT_DEG:
+        in_air = airborne is not None and airborne[0] <= i <= airborne[1]
+        if in_air and max_tilt >= ATTITUDE_CRIT_DEG:
             found.append(
                 DetectedIncident(
                     incident_type="attitude_shock",
@@ -408,7 +475,7 @@ def detect_incidents(series: list[dict[str, Any]], user_markers: list[dict[str, 
                     evidence={"sample": {"timestamp_utc": ts, "attitude": attitude}},
                 )
             )
-        elif max_tilt >= ATTITUDE_WARN_DEG:
+        elif in_air and max_tilt >= ATTITUDE_WARN_DEG:
             found.append(
                 DetectedIncident(
                     incident_type="attitude_shock",

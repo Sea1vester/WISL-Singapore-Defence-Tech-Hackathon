@@ -8,7 +8,7 @@
     "parse_success": "parse_raw_log returns an L1 payload",
     "scenario_expectations": "scenario-card injected conditions are compared with detector types; results do not prove real-world causes"
   },
-  "elapsed_ms": 34759.4,
+  "elapsed_ms": 29247.3,
   "environment": {
     "cwd": "/Users/sylvesterlim/.treehouse/SDTH-237abf/3/SDTH",
     "platform": "macOS-15.7.4-arm64-arm-64bit-Mach-O",
@@ -17,7 +17,7 @@
   "files_detail": [
     {
       "bytes": 5865472,
-      "canonical_elapsed_ms": 21.3,
+      "canonical_elapsed_ms": 25.5,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 6338,
       "canonical_required_fields_non_null": true,
@@ -73,32 +73,32 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
+        "altitude_spike",
         "attitude_shock",
-        "last_known_position"
+        "battery_plunge",
+        "gps_jump"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 2547.6,
-      "elapsed_ms": 5808.2,
+      "detector_elapsed_ms": 81.1,
+      "elapsed_ms": 3369.8,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 6338,
-      "parse_elapsed_ms": 2780.2,
+      "parse_elapsed_ms": 2801.4,
       "parse_ok": true,
       "parser": "ardupilot_tlog",
       "path": "ardupilot/dronekit-la_test_flight.tlog",
       "scenario": null,
       "sha256": "16c79fedb900a61e9f67bca6133dd49a40a66f6b431e75138c8d9023c9a31523",
       "source": "ardupilot-tlog",
-      "timestamps_monotonic": false
+      "timestamps_monotonic": true
     },
     {
       "bytes": 2723840,
-      "canonical_elapsed_ms": 12.5,
+      "canonical_elapsed_ms": 13.4,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 2710,
       "canonical_required_fields_non_null": true,
@@ -154,32 +154,32 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
+        "altitude_spike",
         "battery_low",
-        "last_known_position"
+        "battery_plunge",
+        "gps_jump"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 459.4,
-      "elapsed_ms": 1995.2,
+      "detector_elapsed_ms": 27.3,
+      "elapsed_ms": 1562.6,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 2710,
-      "parse_elapsed_ms": 1330.9,
+      "parse_elapsed_ms": 1322.4,
       "parse_ok": true,
       "parser": "ardupilot_tlog",
       "path": "ardupilot/dronekit-python_flight_replay.tlog",
       "scenario": null,
       "sha256": "434c0492f77c3afe99bcfe05c03bd09a65e2125cb0c4407ba9e32577b161adce",
       "source": "ardupilot-tlog",
-      "timestamps_monotonic": false
+      "timestamps_monotonic": true
     },
     {
       "bytes": 957331,
-      "canonical_elapsed_ms": 5.3,
+      "canonical_elapsed_ms": 5.5,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 799,
       "canonical_required_fields_non_null": true,
@@ -235,32 +235,29 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
-        "attitude_shock",
-        "last_known_position"
+        "attitude_shock"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 7.1,
-      "elapsed_ms": 531.5,
+      "detector_elapsed_ms": 6.3,
+      "elapsed_ms": 528.4,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 799,
-      "parse_elapsed_ms": 460.1,
+      "parse_elapsed_ms": 457.6,
       "parse_ok": true,
       "parser": "ardupilot_tlog",
       "path": "ardupilot/node-mavlink_vtol.tlog",
       "scenario": null,
       "sha256": "18c84c91e28115418c46cd35200ecc7197015a0817049bab6093ab38acd6242c",
       "source": "ardupilot-tlog",
-      "timestamps_monotonic": false
+      "timestamps_monotonic": true
     },
     {
       "bytes": 65536,
-      "canonical_elapsed_ms": 0.0,
+      "canonical_elapsed_ms": 0.1,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 5,
       "canonical_required_fields_non_null": true,
@@ -325,11 +322,11 @@
       "detection_expectation_met": null,
       "detector_completed": true,
       "detector_elapsed_ms": 0.2,
-      "elapsed_ms": 87.7,
+      "elapsed_ms": 89.1,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 5,
-      "parse_elapsed_ms": 85.1,
+      "parse_elapsed_ms": 87.2,
       "parse_ok": true,
       "parser": "ardupilot_bin",
       "path": "ardupilot/pymavlink_test.BIN",
@@ -340,7 +337,7 @@
     },
     {
       "bytes": 957331,
-      "canonical_elapsed_ms": 4.4,
+      "canonical_elapsed_ms": 6.1,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 799,
       "canonical_required_fields_non_null": true,
@@ -396,32 +393,29 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
-        "attitude_shock",
-        "last_known_position"
+        "attitude_shock"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 7.1,
-      "elapsed_ms": 555.3,
+      "detector_elapsed_ms": 6.3,
+      "elapsed_ms": 527.2,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 799,
-      "parse_elapsed_ms": 486.0,
+      "parse_elapsed_ms": 455.5,
       "parse_ok": true,
       "parser": "ardupilot_tlog",
       "path": "ardupilot/uavlogviewer_vtol.tlog",
       "scenario": null,
       "sha256": "18c84c91e28115418c46cd35200ecc7197015a0817049bab6093ab38acd6242c",
       "source": "ardupilot-tlog",
-      "timestamps_monotonic": false
+      "timestamps_monotonic": true
     },
     {
       "bytes": 42192714,
-      "canonical_elapsed_ms": 7.9,
+      "canonical_elapsed_ms": 9.2,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 2456,
       "canonical_required_fields_non_null": true,
@@ -477,21 +471,18 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
-        "altitude_spike",
-        "last_known_position"
+        "altitude_spike"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 22.9,
-      "elapsed_ms": 1469.7,
+      "detector_elapsed_ms": 28.0,
+      "elapsed_ms": 1577.3,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 2456,
-      "parse_elapsed_ms": 1231.2,
+      "parse_elapsed_ms": 1326.0,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "local/0ceef477-0523-4e67-9b0a-57310817f1cc.ulg",
@@ -502,35 +493,169 @@
     },
     {
       "bytes": 65828,
-      "canonical_numeric_fields_finite": false,
-      "canonical_required_fields_non_null": false,
-      "canonical_schema_valid": false,
+      "canonical_elapsed_ms": 1.6,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 449,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "unclassified",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "detected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
       "detection_expectation_met": null,
-      "elapsed_ms": 1.3,
-      "error": "UnsupportedLogFormat: No parser registered for 3dr_solo_outdoorflight.csv",
-      "parse_ok": false,
+      "detector_completed": true,
+      "detector_elapsed_ms": 4.2,
+      "elapsed_ms": 62.4,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 449,
+      "parse_elapsed_ms": 22.9,
+      "parse_ok": true,
+      "parser": "csv_generic",
       "path": "local/3dr_solo_outdoorflight.csv",
       "scenario": null,
       "sha256": "c7d0f0d666626e16e9cec91df5bb1faa3a44b57578df7d54feb98f8e96d95139",
-      "timestamps_monotonic": false
+      "source": "csv-generic",
+      "timestamps_monotonic": true
     },
     {
       "bytes": 93923,
-      "canonical_numeric_fields_finite": false,
-      "canonical_required_fields_non_null": false,
-      "canonical_schema_valid": false,
+      "canonical_elapsed_ms": 2.5,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 666,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "unclassified",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "kinetic_loss"
+      ],
+      "detected_incident_types": [
+        "battery_low",
+        "mission_incomplete"
+      ],
       "detection_expectation_met": null,
-      "elapsed_ms": 1.4,
-      "error": "UnsupportedLogFormat: No parser registered for 3dr_solo_outdoorflight_with_payloadweight.csv",
-      "parse_ok": false,
+      "detector_completed": true,
+      "detector_elapsed_ms": 9.5,
+      "elapsed_ms": 93.9,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 666,
+      "parse_elapsed_ms": 33.2,
+      "parse_ok": true,
+      "parser": "csv_generic",
       "path": "local/3dr_solo_outdoorflight_with_payloadweight.csv",
       "scenario": null,
       "sha256": "73d52dffe7e2fb34b4f40e9190189e554e9c3d65cdd215d465c47a4762b8341e",
-      "timestamps_monotonic": false
+      "source": "csv-generic",
+      "timestamps_monotonic": true
     },
     {
       "bytes": 3232657,
-      "canonical_elapsed_ms": 1.8,
+      "canonical_elapsed_ms": 2.1,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 602,
       "canonical_required_fields_non_null": true,
@@ -594,12 +719,12 @@
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 7.7,
-      "elapsed_ms": 168.6,
+      "detector_elapsed_ms": 8.1,
+      "elapsed_ms": 174.4,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 602,
-      "parse_elapsed_ms": 112.8,
+      "parse_elapsed_ms": 116.1,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "local/7db88836-72f2-408d-85f6-66c982b0eb2b.ulg",
@@ -610,7 +735,7 @@
     },
     {
       "bytes": 3010195,
-      "canonical_elapsed_ms": 11.2,
+      "canonical_elapsed_ms": 13.5,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 2622,
       "canonical_required_fields_non_null": true,
@@ -671,18 +796,17 @@
         "kinetic_loss"
       ],
       "detected_incident_types": [
-        "last_known_position",
         "mission_incomplete",
         "operator_warning"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 26.6,
-      "elapsed_ms": 370.8,
+      "detector_elapsed_ms": 24.0,
+      "elapsed_ms": 369.7,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 2622,
-      "parse_elapsed_ms": 128.8,
+      "parse_elapsed_ms": 137.8,
       "parse_ok": true,
       "parser": "dji_csv",
       "path": "local/dji.csv",
@@ -693,7 +817,7 @@
     },
     {
       "bytes": 414727,
-      "canonical_elapsed_ms": 0.3,
+      "canonical_elapsed_ms": 0.4,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 96,
       "canonical_required_fields_non_null": true,
@@ -753,12 +877,12 @@
       "detected_incident_types": [],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 1.0,
-      "elapsed_ms": 61.9,
+      "detector_elapsed_ms": 1.1,
+      "elapsed_ms": 61.6,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 96,
-      "parse_elapsed_ms": 52.8,
+      "parse_elapsed_ms": 51.2,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "local/e0ad253a-a5f5-4883-ab96-56c397fe18ee.ulg",
@@ -769,7 +893,7 @@
     },
     {
       "bytes": 5865472,
-      "canonical_elapsed_ms": 21.7,
+      "canonical_elapsed_ms": 25.8,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 6338,
       "canonical_required_fields_non_null": true,
@@ -825,32 +949,32 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
+        "altitude_spike",
         "attitude_shock",
-        "last_known_position"
+        "battery_plunge",
+        "gps_jump"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 2710.9,
-      "elapsed_ms": 6009.8,
+      "detector_elapsed_ms": 82.7,
+      "elapsed_ms": 3397.1,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 6338,
-      "parse_elapsed_ms": 2794.1,
+      "parse_elapsed_ms": 2816.5,
       "parse_ok": true,
       "parser": "ardupilot_tlog",
       "path": "local/flight.tlog",
       "scenario": null,
       "sha256": "16c79fedb900a61e9f67bca6133dd49a40a66f6b431e75138c8d9023c9a31523",
       "source": "ardupilot-tlog",
-      "timestamps_monotonic": false
+      "timestamps_monotonic": true
     },
     {
       "bytes": 2981888,
-      "canonical_elapsed_ms": 7.7,
+      "canonical_elapsed_ms": 7.8,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 1038,
       "canonical_required_fields_non_null": true,
@@ -906,22 +1030,19 @@
           "status": "partial"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
         "attitude_shock",
-        "last_known_position",
         "operator_warning"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 9.5,
-      "elapsed_ms": 1245.7,
+      "detector_elapsed_ms": 8.1,
+      "elapsed_ms": 1228.0,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 1038,
-      "parse_elapsed_ms": 1147.9,
+      "parse_elapsed_ms": 1134.8,
       "parse_ok": true,
       "parser": "ardupilot_bin",
       "path": "local/log171.bin",
@@ -932,7 +1053,7 @@
     },
     {
       "bytes": 3151839,
-      "canonical_elapsed_ms": 7.4,
+      "canonical_elapsed_ms": 8.3,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 1136,
       "canonical_required_fields_non_null": true,
@@ -993,18 +1114,17 @@
       ],
       "detected_incident_types": [
         "altitude_spike",
-        "last_known_position",
         "operator_warning",
         "telemetry_gap"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 10.2,
-      "elapsed_ms": 1249.9,
+      "detector_elapsed_ms": 11.2,
+      "elapsed_ms": 1238.0,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 1136,
-      "parse_elapsed_ms": 1145.8,
+      "parse_elapsed_ms": 1133.7,
       "parse_ok": true,
       "parser": "ardupilot_bin",
       "path": "local/sample_crash_log.bin",
@@ -1015,7 +1135,7 @@
     },
     {
       "bytes": 3760696,
-      "canonical_elapsed_ms": 13.3,
+      "canonical_elapsed_ms": 15.7,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 3273,
       "canonical_required_fields_non_null": true,
@@ -1077,18 +1197,17 @@
       ],
       "detected_incident_types": [
         "attitude_shock",
-        "last_known_position",
         "mission_incomplete",
         "operator_warning"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 31.2,
-      "elapsed_ms": 460.0,
+      "detector_elapsed_ms": 27.0,
+      "elapsed_ms": 471.7,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 3273,
-      "parse_elapsed_ms": 163.6,
+      "parse_elapsed_ms": 169.1,
       "parse_ok": true,
       "parser": "dji_csv",
       "path": "local/unknown.csv",
@@ -1099,7 +1218,7 @@
     },
     {
       "bytes": 3522916,
-      "canonical_elapsed_ms": 2.4,
+      "canonical_elapsed_ms": 2.8,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 828,
       "canonical_required_fields_non_null": true,
@@ -1155,20 +1274,16 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
-      "detected_incident_types": [
-        "last_known_position"
-      ],
+      "derived_hazard_labels": [],
+      "detected_incident_types": [],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 7.8,
-      "elapsed_ms": 198.1,
+      "detector_elapsed_ms": 8.6,
+      "elapsed_ms": 197.6,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 828,
-      "parse_elapsed_ms": 123.3,
+      "parse_elapsed_ms": 121.8,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/0d0d72a8-6258-459c-8b14-9ee9433449c9.ulg",
@@ -1179,7 +1294,7 @@
     },
     {
       "bytes": 13464630,
-      "canonical_elapsed_ms": 1.8,
+      "canonical_elapsed_ms": 2.1,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 597,
       "canonical_required_fields_non_null": true,
@@ -1243,12 +1358,12 @@
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 6.2,
-      "elapsed_ms": 404.8,
+      "detector_elapsed_ms": 6.9,
+      "elapsed_ms": 407.6,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 597,
-      "parse_elapsed_ms": 341.0,
+      "parse_elapsed_ms": 340.5,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/10b96f7e-780f-4e1d-ae2d-4a2e78b2a2ff.ulg",
@@ -1259,7 +1374,7 @@
     },
     {
       "bytes": 2261876,
-      "canonical_elapsed_ms": 1.9,
+      "canonical_elapsed_ms": 2.2,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 623,
       "canonical_required_fields_non_null": true,
@@ -1315,20 +1430,16 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
-      "detected_incident_types": [
-        "last_known_position"
-      ],
+      "derived_hazard_labels": [],
+      "detected_incident_types": [],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 5.8,
-      "elapsed_ms": 151.8,
+      "detector_elapsed_ms": 7.2,
+      "elapsed_ms": 154.8,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 623,
-      "parse_elapsed_ms": 95.8,
+      "parse_elapsed_ms": 97.5,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/29e51081-6bbb-4c3a-bcd2-fa6adc45874c.ulg",
@@ -1339,7 +1450,7 @@
     },
     {
       "bytes": 3278764,
-      "canonical_elapsed_ms": 2.1,
+      "canonical_elapsed_ms": 2.3,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 666,
       "canonical_required_fields_non_null": true,
@@ -1395,21 +1506,18 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
-        "battery_plunge",
-        "last_known_position"
+        "battery_plunge"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 7.5,
-      "elapsed_ms": 179.0,
+      "detector_elapsed_ms": 8.6,
+      "elapsed_ms": 181.2,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 666,
-      "parse_elapsed_ms": 118.2,
+      "parse_elapsed_ms": 117.8,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/52310b22-f349-4f15-a827-fe552a2bb55b.ulg",
@@ -1420,7 +1528,7 @@
     },
     {
       "bytes": 25828236,
-      "canonical_elapsed_ms": 7.8,
+      "canonical_elapsed_ms": 8.4,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 2295,
       "canonical_required_fields_non_null": true,
@@ -1476,21 +1584,18 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
-        "battery_plunge",
-        "last_known_position"
+        "battery_plunge"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 23.0,
-      "elapsed_ms": 832.4,
+      "detector_elapsed_ms": 18.6,
+      "elapsed_ms": 798.9,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 2295,
-      "parse_elapsed_ms": 592.3,
+      "parse_elapsed_ms": 585.3,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/660d802e-b89a-4f09-b810-df6e8ae11fae.ulg",
@@ -1501,7 +1606,7 @@
     },
     {
       "bytes": 20372598,
-      "canonical_elapsed_ms": 6.2,
+      "canonical_elapsed_ms": 7.2,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 1801,
       "canonical_required_fields_non_null": true,
@@ -1557,21 +1662,18 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
-        "battery_low",
-        "last_known_position"
+        "battery_low"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 18.8,
-      "elapsed_ms": 737.1,
+      "detector_elapsed_ms": 20.0,
+      "elapsed_ms": 741.1,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 1801,
-      "parse_elapsed_ms": 566.5,
+      "parse_elapsed_ms": 566.4,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/68de96cb-6ea7-47fe-b647-7c7dfe89ee67.ulg",
@@ -1582,7 +1684,7 @@
     },
     {
       "bytes": 9358128,
-      "canonical_elapsed_ms": 0.8,
+      "canonical_elapsed_ms": 0.9,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 267,
       "canonical_required_fields_non_null": true,
@@ -1644,12 +1746,12 @@
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 2.6,
-      "elapsed_ms": 258.7,
+      "detector_elapsed_ms": 2.9,
+      "elapsed_ms": 263.7,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 267,
-      "parse_elapsed_ms": 228.0,
+      "parse_elapsed_ms": 230.7,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/8f469367-021d-4f19-a667-36b318bce7fe.ulg",
@@ -1660,7 +1762,7 @@
     },
     {
       "bytes": 3402568,
-      "canonical_elapsed_ms": 2.6,
+      "canonical_elapsed_ms": 3.0,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 898,
       "canonical_required_fields_non_null": true,
@@ -1716,20 +1818,16 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
-      "detected_incident_types": [
-        "last_known_position"
-      ],
+      "derived_hazard_labels": [],
+      "detected_incident_types": [],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 8.4,
-      "elapsed_ms": 252.1,
+      "detector_elapsed_ms": 8.9,
+      "elapsed_ms": 201.1,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 898,
-      "parse_elapsed_ms": 170.1,
+      "parse_elapsed_ms": 120.9,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/912bb010-6131-436e-8abb-10216111d3e0.ulg",
@@ -1740,7 +1838,7 @@
     },
     {
       "bytes": 31951896,
-      "canonical_elapsed_ms": 10.2,
+      "canonical_elapsed_ms": 11.4,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 3139,
       "canonical_required_fields_non_null": true,
@@ -1796,21 +1894,18 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
-        "attitude_shock",
-        "last_known_position"
+        "attitude_shock"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 29.6,
-      "elapsed_ms": 1089.3,
+      "detector_elapsed_ms": 24.4,
+      "elapsed_ms": 1066.7,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 3139,
-      "parse_elapsed_ms": 800.0,
+      "parse_elapsed_ms": 776.1,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/a80aaa45-cff0-4082-a80a-a6635c0f0689.ulg",
@@ -1821,7 +1916,7 @@
     },
     {
       "bytes": 96057094,
-      "canonical_elapsed_ms": 5.4,
+      "canonical_elapsed_ms": 4.6,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 1190,
       "canonical_required_fields_non_null": true,
@@ -1883,12 +1978,12 @@
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 12.1,
-      "elapsed_ms": 1788.5,
+      "detector_elapsed_ms": 9.8,
+      "elapsed_ms": 1685.1,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 1190,
-      "parse_elapsed_ms": 1610.4,
+      "parse_elapsed_ms": 1507.1,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/cbaae174-5963-47c9-b8d0-87addb2f8ad5.ulg",
@@ -1899,7 +1994,7 @@
     },
     {
       "bytes": 3522916,
-      "canonical_elapsed_ms": 2.4,
+      "canonical_elapsed_ms": 2.8,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 828,
       "canonical_required_fields_non_null": true,
@@ -1955,20 +2050,16 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
-      "detected_incident_types": [
-        "last_known_position"
-      ],
+      "derived_hazard_labels": [],
+      "detected_incident_types": [],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 7.8,
-      "elapsed_ms": 195.9,
+      "detector_elapsed_ms": 8.7,
+      "elapsed_ms": 198.3,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 828,
-      "parse_elapsed_ms": 122.3,
+      "parse_elapsed_ms": 123.9,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/e90d71e5-f68c-4f4a-acc2-35ae444be368.ulg",
@@ -1979,7 +2070,7 @@
     },
     {
       "bytes": 13464630,
-      "canonical_elapsed_ms": 1.8,
+      "canonical_elapsed_ms": 2.1,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 597,
       "canonical_required_fields_non_null": true,
@@ -2043,12 +2134,12 @@
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 6.2,
-      "elapsed_ms": 399.7,
+      "detector_elapsed_ms": 6.7,
+      "elapsed_ms": 406.6,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 597,
-      "parse_elapsed_ms": 336.4,
+      "parse_elapsed_ms": 342.2,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/e9f4426f-4645-4519-bddf-51ea0936bd0e.ulg",
@@ -2059,7 +2150,7 @@
     },
     {
       "bytes": 9514459,
-      "canonical_elapsed_ms": 7.6,
+      "canonical_elapsed_ms": 8.3,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 2199,
       "canonical_required_fields_non_null": true,
@@ -2115,21 +2206,18 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
+      "derived_hazard_labels": [],
       "detected_incident_types": [
-        "battery_plunge",
-        "last_known_position"
+        "battery_plunge"
       ],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 21.8,
-      "elapsed_ms": 465.1,
+      "detector_elapsed_ms": 20.4,
+      "elapsed_ms": 464.4,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 2199,
-      "parse_elapsed_ms": 268.2,
+      "parse_elapsed_ms": 267.2,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/ee515ce6-3ccc-4917-af4c-6d90fbd5d597.ulg",
@@ -2140,7 +2228,7 @@
     },
     {
       "bytes": 5226716,
-      "canonical_elapsed_ms": 5.1,
+      "canonical_elapsed_ms": 5.7,
       "canonical_numeric_fields_finite": true,
       "canonical_records": 1364,
       "canonical_required_fields_non_null": true,
@@ -2196,20 +2284,16 @@
           "status": "absent"
         }
       },
-      "derived_hazard_labels": [
-        "jamming"
-      ],
-      "detected_incident_types": [
-        "last_known_position"
-      ],
+      "derived_hazard_labels": [],
+      "detected_incident_types": [],
       "detection_expectation_met": null,
       "detector_completed": true,
-      "detector_elapsed_ms": 12.7,
-      "elapsed_ms": 291.7,
+      "detector_elapsed_ms": 10.7,
+      "elapsed_ms": 289.6,
       "expected_incident_types": [],
       "invalid_timestamp_count": 0,
       "l1_records": 1364,
-      "parse_elapsed_ms": 167.9,
+      "parse_elapsed_ms": 169.7,
       "parse_ok": true,
       "parser": "px4_ulg",
       "path": "px4_review/f83add7e-8049-4451-a93f-173c550293b0.ulg",
@@ -2222,11 +2306,11 @@
   "format_parser_counts": {
     "ardupilot_bin": 3,
     "ardupilot_tlog": 5,
+    "csv_generic": 2,
     "dji_csv": 2,
-    "px4_ulg": 17,
-    "unparsed": 2
+    "px4_ulg": 17
   },
-  "generated_at_utc": "2026-09-21T08:24:24.734112+00:00",
+  "generated_at_utc": "2026-09-21T09:05:33.794516+00:00",
   "independence": {
     "comparison_pair_not_recurrence_evidence": [
       "gps_jamming",
@@ -2350,17 +2434,17 @@
   },
   "totals": {
     "detection_expectations_met": 0,
-    "detector_completed_files": 27,
+    "detector_completed_files": 29,
     "detector_timeout_files": 0,
     "expected_types_missing_coarse_observable": 0,
     "expected_types_with_coarse_observable": 0,
     "files": 29,
-    "finite_numeric_files": 27,
-    "monotonic_timestamp_files": 22,
-    "non_null_canonical_files": 27,
+    "finite_numeric_files": 29,
+    "monotonic_timestamp_files": 29,
+    "non_null_canonical_files": 29,
     "normal_control_present": false,
-    "parse_successes": 27,
-    "schema_valid_files": 27,
+    "parse_successes": 29,
+    "schema_valid_files": 29,
     "unique_simulated_scenarios": 0,
     "whole_path_timeout_files": 0
   }

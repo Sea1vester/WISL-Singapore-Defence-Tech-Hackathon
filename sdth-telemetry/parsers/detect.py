@@ -6,6 +6,7 @@ import csv
 from pathlib import Path
 
 from .dji_csv import is_dji_csv
+from .generic_rows import GENERIC_LAT_KEYS, GENERIC_LON_KEYS
 
 
 def sniff_csv_fieldnames(path: Path) -> list[str]:
@@ -24,6 +25,11 @@ def detect_format(path: Path) -> str:
         fields = sniff_csv_fieldnames(path)
         if is_dji_csv(fields):
             return "dji_csv"
+        lowered = {field.lower() for field in fields}
+        lat_keys = {key.lower() for key in GENERIC_LAT_KEYS}
+        lon_keys = {key.lower() for key in GENERIC_LON_KEYS}
+        if lowered & lat_keys and lowered & lon_keys:
+            return "csv_generic"
         return "csv_unknown"
     if suffix == ".ulg":
         return "px4_ulg"

@@ -89,7 +89,7 @@ def ardupilot_l1(flight_id: str = "flight-ardupilot", *, inject: str | None = "a
             "timestamp_utc": _ts(i),
             "lat": 1.35,
             "lon": 103.82,
-            "alt_m": 30.0,
+            "alt_m": 0.0 if i < 5 else 30.0,
             "roll": 3.0,
             "pitch": 2.0,
             "yaw": 90.0,

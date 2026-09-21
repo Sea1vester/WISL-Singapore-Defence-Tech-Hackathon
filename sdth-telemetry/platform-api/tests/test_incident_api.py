@@ -240,7 +240,7 @@ def test_rule_b_full_flow_frozen_position(client):
             "timestamp_utc": (ts_base + timedelta(seconds=i)).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "lat": 1.3521,
             "lon": 103.8198,
-            "alt_m": 50.0,
+            "alt_m": 0.0 if i < 5 else 50.0,
             "flight_mode": "P-GPS",
             "roll_deg": 1.0,
             "pitch_deg": 0.5,
