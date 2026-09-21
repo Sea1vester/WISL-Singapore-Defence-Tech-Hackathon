@@ -1,0 +1,2367 @@
+{
+  "audit_name": "WISL submission corpus independent validation",
+  "criteria": {
+    "canonical_schema": "each parser record projects to L2 and validates against CANONICAL_JSON_SCHEMA",
+    "coarse_observable_inventory": "coarse record-input diagnostic only; it is not a detector predicate, independent ground truth, or detector-accuracy measure",
+    "independence": "format skins of the same scenario are counted as one simulated mission, not recurrence evidence",
+    "integrity": "required canonical scalar fields are non-null; timestamps parse and are non-decreasing; all canonical numeric fields are finite",
+    "parse_success": "parse_raw_log returns an L1 payload",
+    "scenario_expectations": "scenario-card injected conditions are compared with detector types; results do not prove real-world causes"
+  },
+  "elapsed_ms": 34759.4,
+  "environment": {
+    "cwd": "/Users/sylvesterlim/.treehouse/SDTH-237abf/3/SDTH",
+    "platform": "macOS-15.7.4-arm64-arm-64bit-Mach-O",
+    "python": "3.13.6 (v3.13.6:4e665351082, Aug  6 2025, 11:22:35) [Clang 16.0.0 (clang-1600.0.26.6)]"
+  },
+  "files_detail": [
+    {
+      "bytes": 5865472,
+      "canonical_elapsed_ms": 21.3,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 6338,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 0.9998,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 0.9998,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 0.9998,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "attitude_shock",
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 2547.6,
+      "elapsed_ms": 5808.2,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 6338,
+      "parse_elapsed_ms": 2780.2,
+      "parse_ok": true,
+      "parser": "ardupilot_tlog",
+      "path": "ardupilot/dronekit-la_test_flight.tlog",
+      "scenario": null,
+      "sha256": "16c79fedb900a61e9f67bca6133dd49a40a66f6b431e75138c8d9023c9a31523",
+      "source": "ardupilot-tlog",
+      "timestamps_monotonic": false
+    },
+    {
+      "bytes": 2723840,
+      "canonical_elapsed_ms": 12.5,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 2710,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "battery_low",
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 459.4,
+      "elapsed_ms": 1995.2,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 2710,
+      "parse_elapsed_ms": 1330.9,
+      "parse_ok": true,
+      "parser": "ardupilot_tlog",
+      "path": "ardupilot/dronekit-python_flight_replay.tlog",
+      "scenario": null,
+      "sha256": "434c0492f77c3afe99bcfe05c03bd09a65e2125cb0c4407ba9e32577b161adce",
+      "source": "ardupilot-tlog",
+      "timestamps_monotonic": false
+    },
+    {
+      "bytes": 957331,
+      "canonical_elapsed_ms": 5.3,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 799,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 0.9987,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 0.9987,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 0.9987,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "attitude_shock",
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 7.1,
+      "elapsed_ms": 531.5,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 799,
+      "parse_elapsed_ms": 460.1,
+      "parse_ok": true,
+      "parser": "ardupilot_tlog",
+      "path": "ardupilot/node-mavlink_vtol.tlog",
+      "scenario": null,
+      "sha256": "18c84c91e28115418c46cd35200ecc7197015a0817049bab6093ab38acd6242c",
+      "source": "ardupilot-tlog",
+      "timestamps_monotonic": false
+    },
+    {
+      "bytes": 65536,
+      "canonical_elapsed_ms": 0.0,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 5,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "battery.voltage_v": {
+          "fraction": 0.8,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.warning": {
+          "fraction": 0.2,
+          "status": "partial"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "operator_warning"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 0.2,
+      "elapsed_ms": 87.7,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 5,
+      "parse_elapsed_ms": 85.1,
+      "parse_ok": true,
+      "parser": "ardupilot_bin",
+      "path": "ardupilot/pymavlink_test.BIN",
+      "scenario": null,
+      "sha256": "a51f040b2ad7f55185c1da5705f226f51469b86562c4ff76d05c99e0e52c2bf4",
+      "source": "ardupilot-bin",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 957331,
+      "canonical_elapsed_ms": 4.4,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 799,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 0.9987,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 0.9987,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 0.9987,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "attitude_shock",
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 7.1,
+      "elapsed_ms": 555.3,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 799,
+      "parse_elapsed_ms": 486.0,
+      "parse_ok": true,
+      "parser": "ardupilot_tlog",
+      "path": "ardupilot/uavlogviewer_vtol.tlog",
+      "scenario": null,
+      "sha256": "18c84c91e28115418c46cd35200ecc7197015a0817049bab6093ab38acd6242c",
+      "source": "ardupilot-tlog",
+      "timestamps_monotonic": false
+    },
+    {
+      "bytes": 42192714,
+      "canonical_elapsed_ms": 7.9,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 2456,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "altitude_spike",
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 22.9,
+      "elapsed_ms": 1469.7,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 2456,
+      "parse_elapsed_ms": 1231.2,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "local/0ceef477-0523-4e67-9b0a-57310817f1cc.ulg",
+      "scenario": null,
+      "sha256": "4ba21a780a32955ea146d6abb4e3cae76db8c3abf81a9497d7e6cc07352c6977",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 65828,
+      "canonical_numeric_fields_finite": false,
+      "canonical_required_fields_non_null": false,
+      "canonical_schema_valid": false,
+      "detection_expectation_met": null,
+      "elapsed_ms": 1.3,
+      "error": "UnsupportedLogFormat: No parser registered for 3dr_solo_outdoorflight.csv",
+      "parse_ok": false,
+      "path": "local/3dr_solo_outdoorflight.csv",
+      "scenario": null,
+      "sha256": "c7d0f0d666626e16e9cec91df5bb1faa3a44b57578df7d54feb98f8e96d95139",
+      "timestamps_monotonic": false
+    },
+    {
+      "bytes": 93923,
+      "canonical_numeric_fields_finite": false,
+      "canonical_required_fields_non_null": false,
+      "canonical_schema_valid": false,
+      "detection_expectation_met": null,
+      "elapsed_ms": 1.4,
+      "error": "UnsupportedLogFormat: No parser registered for 3dr_solo_outdoorflight_with_payloadweight.csv",
+      "parse_ok": false,
+      "path": "local/3dr_solo_outdoorflight_with_payloadweight.csv",
+      "scenario": null,
+      "sha256": "73d52dffe7e2fb34b4f40e9190189e554e9c3d65cdd215d465c47a4762b8341e",
+      "timestamps_monotonic": false
+    },
+    {
+      "bytes": 3232657,
+      "canonical_elapsed_ms": 1.8,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 602,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [],
+      "detected_incident_types": [
+        "battery_critical",
+        "battery_low",
+        "battery_plunge"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 7.7,
+      "elapsed_ms": 168.6,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 602,
+      "parse_elapsed_ms": 112.8,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "local/7db88836-72f2-408d-85f6-66c982b0eb2b.ulg",
+      "scenario": null,
+      "sha256": "5a12f07a3704a91ea90559964a7ce1e524a1edaa3acee3c16b1913aa69e17683",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 3010195,
+      "canonical_elapsed_ms": 11.2,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 2622,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "simulated kinematic format export",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.warning": {
+          "fraction": 0.0008,
+          "status": "partial"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming",
+        "kinetic_loss"
+      ],
+      "detected_incident_types": [
+        "last_known_position",
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 26.6,
+      "elapsed_ms": 370.8,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 2622,
+      "parse_elapsed_ms": 128.8,
+      "parse_ok": true,
+      "parser": "dji_csv",
+      "path": "local/dji.csv",
+      "scenario": null,
+      "sha256": "ba9cfc0783ff871c7099e243153dd8f23543cf531bf1dfe8ebaddc777c02e39d",
+      "source": "dji-csv",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 414727,
+      "canonical_elapsed_ms": 0.3,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 96,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [],
+      "detected_incident_types": [],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 1.0,
+      "elapsed_ms": 61.9,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 96,
+      "parse_elapsed_ms": 52.8,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "local/e0ad253a-a5f5-4883-ab96-56c397fe18ee.ulg",
+      "scenario": null,
+      "sha256": "ddb3499196acb0e0283c690cb110d14640b9870261935f3a062d62326b0fa875",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 5865472,
+      "canonical_elapsed_ms": 21.7,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 6338,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 0.9998,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 0.9998,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 0.9998,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "attitude_shock",
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 2710.9,
+      "elapsed_ms": 6009.8,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 6338,
+      "parse_elapsed_ms": 2794.1,
+      "parse_ok": true,
+      "parser": "ardupilot_tlog",
+      "path": "local/flight.tlog",
+      "scenario": null,
+      "sha256": "16c79fedb900a61e9f67bca6133dd49a40a66f6b431e75138c8d9023c9a31523",
+      "source": "ardupilot-tlog",
+      "timestamps_monotonic": false
+    },
+    {
+      "bytes": 2981888,
+      "canonical_elapsed_ms": 7.7,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 1038,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.warning": {
+          "fraction": 0.001,
+          "status": "partial"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "attitude_shock",
+        "last_known_position",
+        "operator_warning"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 9.5,
+      "elapsed_ms": 1245.7,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 1038,
+      "parse_elapsed_ms": 1147.9,
+      "parse_ok": true,
+      "parser": "ardupilot_bin",
+      "path": "local/log171.bin",
+      "scenario": null,
+      "sha256": "a4a3883fa13f28d55878c041cb4cc14deb3e5335aad6b9091f235c9b4e0d95f0",
+      "source": "ardupilot-bin",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 3151839,
+      "canonical_elapsed_ms": 7.4,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 1136,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "battery.voltage_v": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.warning": {
+          "fraction": 0.0009,
+          "status": "partial"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "altitude_spike",
+        "last_known_position",
+        "operator_warning",
+        "telemetry_gap"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 10.2,
+      "elapsed_ms": 1249.9,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 1136,
+      "parse_elapsed_ms": 1145.8,
+      "parse_ok": true,
+      "parser": "ardupilot_bin",
+      "path": "local/sample_crash_log.bin",
+      "scenario": null,
+      "sha256": "59106200c1558b8034ee4c13c36248849935f31d53d806eba4c6416178d15b05",
+      "source": "ardupilot-bin",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 3760696,
+      "canonical_elapsed_ms": 13.3,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 3273,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "simulated kinematic format export",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.warning": {
+          "fraction": 0.0052,
+          "status": "partial"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming",
+        "kinetic_loss"
+      ],
+      "detected_incident_types": [
+        "attitude_shock",
+        "last_known_position",
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 31.2,
+      "elapsed_ms": 460.0,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 3273,
+      "parse_elapsed_ms": 163.6,
+      "parse_ok": true,
+      "parser": "dji_csv",
+      "path": "local/unknown.csv",
+      "scenario": null,
+      "sha256": "1e1950ca4dc6cdce40beeaed7853421296875824fceb996d66f57824ca42ecb7",
+      "source": "dji-csv",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 3522916,
+      "canonical_elapsed_ms": 2.4,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 828,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 7.8,
+      "elapsed_ms": 198.1,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 828,
+      "parse_elapsed_ms": 123.3,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/0d0d72a8-6258-459c-8b14-9ee9433449c9.ulg",
+      "scenario": null,
+      "sha256": "ab9fe6d1fbb11639dcec0ed2481a656ecfb2fb13b378f9e3368ac110271ae134",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 13464630,
+      "canonical_elapsed_ms": 1.8,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 597,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [],
+      "detected_incident_types": [
+        "altitude_spike",
+        "attitude_shock",
+        "battery_plunge"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 6.2,
+      "elapsed_ms": 404.8,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 597,
+      "parse_elapsed_ms": 341.0,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/10b96f7e-780f-4e1d-ae2d-4a2e78b2a2ff.ulg",
+      "scenario": null,
+      "sha256": "a62f4fe441417385ef915ec376be2857cab3979330bb1d68d36cf09a5f7c1022",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 2261876,
+      "canonical_elapsed_ms": 1.9,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 623,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 5.8,
+      "elapsed_ms": 151.8,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 623,
+      "parse_elapsed_ms": 95.8,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/29e51081-6bbb-4c3a-bcd2-fa6adc45874c.ulg",
+      "scenario": null,
+      "sha256": "fe57da478509a1ae776585c012ec56322d1d9377119d01b99407a342ba531e09",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 3278764,
+      "canonical_elapsed_ms": 2.1,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 666,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "battery_plunge",
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 7.5,
+      "elapsed_ms": 179.0,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 666,
+      "parse_elapsed_ms": 118.2,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/52310b22-f349-4f15-a827-fe552a2bb55b.ulg",
+      "scenario": null,
+      "sha256": "3c0c0a811b4cb46cb9d853a2b5884d379b6b58b671e91cd8f2fd3ef2b87f980c",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 25828236,
+      "canonical_elapsed_ms": 7.8,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 2295,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "battery_plunge",
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 23.0,
+      "elapsed_ms": 832.4,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 2295,
+      "parse_elapsed_ms": 592.3,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/660d802e-b89a-4f09-b810-df6e8ae11fae.ulg",
+      "scenario": null,
+      "sha256": "de348e4be919e097797fdd95ce29032273fa28466476f240e63894cb22f261ce",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 20372598,
+      "canonical_elapsed_ms": 6.2,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 1801,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "battery_low",
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 18.8,
+      "elapsed_ms": 737.1,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 1801,
+      "parse_elapsed_ms": 566.5,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/68de96cb-6ea7-47fe-b647-7c7dfe89ee67.ulg",
+      "scenario": null,
+      "sha256": "d197e8627fd445f1e255c53a599574cbff4523ace47658f32a0ae82410b78fed",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 9358128,
+      "canonical_elapsed_ms": 0.8,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 267,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [],
+      "detected_incident_types": [
+        "telemetry_gap"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 2.6,
+      "elapsed_ms": 258.7,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 267,
+      "parse_elapsed_ms": 228.0,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/8f469367-021d-4f19-a667-36b318bce7fe.ulg",
+      "scenario": null,
+      "sha256": "038f6d3ed17e5351103e4e0395df95f98da981d1ad354b9eacd5688d8d7219f5",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 3402568,
+      "canonical_elapsed_ms": 2.6,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 898,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "battery.voltage_v": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 8.4,
+      "elapsed_ms": 252.1,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 898,
+      "parse_elapsed_ms": 170.1,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/912bb010-6131-436e-8abb-10216111d3e0.ulg",
+      "scenario": null,
+      "sha256": "df7a75a3b95b2766cf95311387e36fd019c905954078a26f21d3c1745b5992ad",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 31951896,
+      "canonical_elapsed_ms": 10.2,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 3139,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "attitude_shock",
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 29.6,
+      "elapsed_ms": 1089.3,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 3139,
+      "parse_elapsed_ms": 800.0,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/a80aaa45-cff0-4082-a80a-a6635c0f0689.ulg",
+      "scenario": null,
+      "sha256": "47fce5737ccd485a7bccf11bb306201fd9dc18bf56b91f7499c53a7444ffa20b",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 96057094,
+      "canonical_elapsed_ms": 5.4,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 1190,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [],
+      "detected_incident_types": [
+        "battery_plunge"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 12.1,
+      "elapsed_ms": 1788.5,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 1190,
+      "parse_elapsed_ms": 1610.4,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/cbaae174-5963-47c9-b8d0-87addb2f8ad5.ulg",
+      "scenario": null,
+      "sha256": "84aef6bed40257cee5640df1529f5968e3f4d2be54852ac4d5385c466e79fd06",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 3522916,
+      "canonical_elapsed_ms": 2.4,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 828,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 7.8,
+      "elapsed_ms": 195.9,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 828,
+      "parse_elapsed_ms": 122.3,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/e90d71e5-f68c-4f4a-acc2-35ae444be368.ulg",
+      "scenario": null,
+      "sha256": "ab9fe6d1fbb11639dcec0ed2481a656ecfb2fb13b378f9e3368ac110271ae134",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 13464630,
+      "canonical_elapsed_ms": 1.8,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 597,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [],
+      "detected_incident_types": [
+        "altitude_spike",
+        "attitude_shock",
+        "battery_plunge"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 6.2,
+      "elapsed_ms": 399.7,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 597,
+      "parse_elapsed_ms": 336.4,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/e9f4426f-4645-4519-bddf-51ea0936bd0e.ulg",
+      "scenario": null,
+      "sha256": "a62f4fe441417385ef915ec376be2857cab3979330bb1d68d36cf09a5f7c1022",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 9514459,
+      "canonical_elapsed_ms": 7.6,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 2199,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "battery_plunge",
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 21.8,
+      "elapsed_ms": 465.1,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 2199,
+      "parse_elapsed_ms": 268.2,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/ee515ce6-3ccc-4917-af4c-6d90fbd5d597.ulg",
+      "scenario": null,
+      "sha256": "04d4ceff095b8aa44867998c55b5a846c323246656a9594348c99e5dea71b57d",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    },
+    {
+      "bytes": 5226716,
+      "canonical_elapsed_ms": 5.1,
+      "canonical_numeric_fields_finite": true,
+      "canonical_records": 1364,
+      "canonical_required_fields_non_null": true,
+      "canonical_schema_valid": true,
+      "classification": "SITL log artifact",
+      "coverage": {
+        "attitude.pitch_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.roll_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "attitude.yaw_deg": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.percent": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "battery.voltage_v": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "local_ned_inputs": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.alt_m": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lat": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "position.lon": {
+          "fraction": 1.0,
+          "status": "observed"
+        },
+        "sensors.flight_mode": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.gps_satellites": {
+          "fraction": 0.0,
+          "status": "absent"
+        },
+        "sensors.warning": {
+          "fraction": 0.0,
+          "status": "absent"
+        }
+      },
+      "derived_hazard_labels": [
+        "jamming"
+      ],
+      "detected_incident_types": [
+        "last_known_position"
+      ],
+      "detection_expectation_met": null,
+      "detector_completed": true,
+      "detector_elapsed_ms": 12.7,
+      "elapsed_ms": 291.7,
+      "expected_incident_types": [],
+      "invalid_timestamp_count": 0,
+      "l1_records": 1364,
+      "parse_elapsed_ms": 167.9,
+      "parse_ok": true,
+      "parser": "px4_ulg",
+      "path": "px4_review/f83add7e-8049-4451-a93f-173c550293b0.ulg",
+      "scenario": null,
+      "sha256": "ab8563dc29844a91f5dae93f1e939632e0b1e61943009c4622b0e890eedf7a2f",
+      "source": "px4-ulg",
+      "timestamps_monotonic": true
+    }
+  ],
+  "format_parser_counts": {
+    "ardupilot_bin": 3,
+    "ardupilot_tlog": 5,
+    "dji_csv": 2,
+    "px4_ulg": 17,
+    "unparsed": 2
+  },
+  "generated_at_utc": "2026-09-21T08:24:24.734112+00:00",
+  "independence": {
+    "comparison_pair_not_recurrence_evidence": [
+      "gps_jamming",
+      "gps_denied_frozen"
+    ],
+    "format_exports_per_scenario": {},
+    "inferred_unique_missions": [],
+    "qualified_same_signature_recurrence_pair": null,
+    "reason": "Only gps_jamming injects a GPS-weak warning. gps_denied_frozen is a distinct card but has a last_known_position signature, so this corpus cannot demonstrate recurrence of one GPS-weak detector signature."
+  },
+  "input": "/Users/sylvesterlim/CodingFun/SDTH/raw_telemetry-datasets/public",
+  "limitations": [
+    "All corpus members are simulator-generated; kinematic skins are format exports and three binary families are SITL artifacts, not field-flight evidence.",
+    "No normal/control mission was found in this hazards-only directory.",
+    "The `gps_jamming` label denotes an injected GPS-weak warning; the audit does not infer RF jamming from GPS telemetry or warning text.",
+    "The detector's `jamming` display label can also arise from a frozen-position heuristic; it remains a triage label, not a causal finding.",
+    "A chosen 60-second subprocess bound is applied to the complete parser/L2/detector path, and a 15-second nested detector bound is retained. Timeouts are reported as processing-performance failures, not silent negative detections.",
+    "Root manifest.json names one PX4 file only and does not inventory or checksum this 90-file corpus."
+  ],
+  "scenario_summary": {
+    "battery_critical": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "battery_critical"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    },
+    "battery_critical_logger_dropout": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "battery_critical",
+        "telemetry_gap"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    },
+    "battery_low_rth": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "battery_low"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    },
+    "c2_link_lost": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    },
+    "compass_error": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    },
+    "gps_denied_frozen": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "last_known_position"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    },
+    "gps_jamming": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "operator_warning"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    },
+    "gps_weak_midair_end": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "mission_incomplete",
+        "operator_warning"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    },
+    "kinetic_tumble_cut": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "attitude_shock",
+        "mission_incomplete"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    },
+    "logger_dropout": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "telemetry_gap"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    },
+    "lost_airborne": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "mission_incomplete"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    },
+    "motor_fail_recover": {
+      "expectation_met": 0,
+      "expected_incident_types": [
+        "attitude_shock",
+        "operator_warning"
+      ],
+      "format_exports": 0,
+      "parse_successes": 0
+    }
+  },
+  "totals": {
+    "detection_expectations_met": 0,
+    "detector_completed_files": 27,
+    "detector_timeout_files": 0,
+    "expected_types_missing_coarse_observable": 0,
+    "expected_types_with_coarse_observable": 0,
+    "files": 29,
+    "finite_numeric_files": 27,
+    "monotonic_timestamp_files": 22,
+    "non_null_canonical_files": 27,
+    "normal_control_present": false,
+    "parse_successes": 27,
+    "schema_valid_files": 27,
+    "unique_simulated_scenarios": 0,
+    "whole_path_timeout_files": 0
+  }
+}

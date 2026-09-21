@@ -193,7 +193,79 @@ def _coarse_observable_present(series: list[dict[str, Any]], incident_type: str)
 AIRBORNE_MODE_TOKENS = frozenset({"P-GPS", "ATTI", "LOITER", "ALTHOLD", "RTL", "SMART_RTH", "POSITION", "GUIDED", "AUTO", "ORBIT", "FBWA", "FLIP", "ACRO", "STABILIZE", "SPORT", "MOVIE", "CINE", "TRIP"})
 
 
-def audit_one(path: Path, root: Path) -> dict[str, Any]:
+# Canonical-field coverage aliases evaluated against raw L1 records (not L2,
+# which back-fills 0.0).  Used by --real runs.
+COVERAGE_FIELDS: list[tuple[str, tuple[str, ...]]] = [
+    ("position.lat", ("lat",)),
+    ("position.lon", ("lon",)),
+    ("position.alt_m", ("alt_m", "alt", "alt_msl", "pos_z", "up_m")),
+    ("local_ned_inputs", ("north_m", "pos_x")),
+    ("attitude.roll_deg", ("roll_deg", "roll")),
+    ("attitude.pitch_deg", ("pitch_deg", "pitch")),
+    ("attitude.yaw_deg", ("yaw_deg", "yaw", "heading")),
+    ("battery.percent", ("battery_pct", "percent")),
+    ("battery.voltage_v", ("battery_v", "voltage_v")),
+    ("sensors.warning", ("warning",)),
+    ("sensors.flight_mode", ("flight_mode",)),
+    ("sensors.gps_satellites", ("gps_satellites",)),
+]
+
+
+def l1_field_coverage(records: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Per-canonical-field presence across L1 payload records.
+
+    A field is ``observed`` when any alias carries a non-empty value in at
+    least half the records, ``partial`` below that, ``absent`` at zero.
+    """
+    total = len(records)
+    row: dict[str, dict[str, Any]] = {}
+    for name, aliases in COVERAGE_FIELDS:
+        hits = sum(
+            1
+            for record in records
+            if isinstance(record, dict) and any(record.get(alias) not in (None, "") for alias in aliases)
+        )
+        fraction = hits / total if total else 0.0
+        status = "observed" if fraction >= 0.5 else ("partial" if fraction > 0 else "absent")
+        row[name] = {"status": status, "fraction": round(fraction, 4)}
+    return row
+
+
+def write_coverage_matrix(results: list[dict[str, Any]], out: Path) -> None:
+    """Emit coverage-matrix.json and coverage-matrix.md for --real audits."""
+    rows = [
+        {
+            "file": item["path"],
+            "parser": item.get("parser") or "unparsed",
+            "records": item.get("l1_records", 0),
+            "fields": item.get("coverage") or {},
+            "incident_types": item.get("detected_incident_types") or [],
+        }
+        for item in results
+    ]
+    (out / "coverage-matrix.json").write_text(
+        json.dumps(rows, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    names = [name for name, _ in COVERAGE_FIELDS]
+    marks = {"observed": "O", "partial": "p", "absent": "-"}
+    lines = [
+        "| file | " + " | ".join(names) + " | incidents |",
+        "|---|" + "---|" * len(names) + "---|",
+    ]
+    last_parser: str | None = None
+    for row in sorted(rows, key=lambda r: (r["parser"], r["file"])):
+        if row["parser"] != last_parser:
+            last_parser = row["parser"]
+            lines.append(f"| **{last_parser}** |" + " |" * (len(names) + 1))
+        cells = []
+        for name in names:
+            field = row["fields"].get(name) or {}
+            cells.append(f"{marks.get(field.get('status'), '?')} {field.get('fraction', 0):.2f}")
+        lines.append(f"| `{row['file']}` | " + " | ".join(cells) + f" | {', '.join(row['incident_types']) or '-'} |")
+    (out / "coverage-matrix.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def audit_one(path: Path, root: Path, real: bool = False) -> dict[str, Any]:
     started = time.perf_counter()
     item: dict[str, Any] = {
         "path": str(path.relative_to(root)),
@@ -205,7 +277,7 @@ def audit_one(path: Path, root: Path) -> dict[str, Any]:
         "canonical_required_fields_non_null": False,
         "timestamps_monotonic": False,
         "canonical_numeric_fields_finite": False,
-        "detection_expectation_met": False,
+        "detection_expectation_met": None if real else False,
     }
     try:
         parse_started = time.perf_counter()
@@ -246,14 +318,17 @@ def audit_one(path: Path, root: Path) -> dict[str, Any]:
             left <= right for left, right in zip(timestamps, timestamps[1:]) if left and right
         )
         item["canonical_numeric_fields_finite"] = all(finite_numbers(sample) for sample in series)
+        if real:
+            item["coverage"] = l1_field_coverage(payload.get("records") or [])
         expected = EXPECTED_DETECTIONS.get(item["scenario"], set())
         item["expected_incident_types"] = sorted(expected)
-        item["coarse_observable_expected_types"] = sorted(
-            incident for incident in expected if _coarse_observable_present(series, incident)
-        )
-        item["coarse_observable_missing_expected_types"] = sorted(
-            expected - set(item["coarse_observable_expected_types"])
-        )
+        if not real:
+            item["coarse_observable_expected_types"] = sorted(
+                incident for incident in expected if _coarse_observable_present(series, incident)
+            )
+            item["coarse_observable_missing_expected_types"] = sorted(
+                expected - set(item["coarse_observable_expected_types"])
+            )
         detected: list[str] = []
         detector_started = time.perf_counter()
         # SIGALRM/setitimer are POSIX-only; this whole per-file audit already runs
@@ -289,18 +364,19 @@ def audit_one(path: Path, root: Path) -> dict[str, Any]:
                 signal.setitimer(signal.ITIMER_REAL, 0)
                 signal.signal(signal.SIGALRM, previous_handler)
         item["detector_elapsed_ms"] = round((time.perf_counter() - detector_started) * 1000, 1)
-        item["missing_expected_incident_types"] = sorted(expected - set(detected))
-        item["detection_expectation_met"] = not item["missing_expected_incident_types"]
+        if not real:
+            item["missing_expected_incident_types"] = sorted(expected - set(detected))
+            item["detection_expectation_met"] = not item["missing_expected_incident_types"]
     except Exception as exc:  # Record all parser failures rather than stop corpus accounting.
         item["error"] = f"{type(exc).__name__}: {exc}"
     item["elapsed_ms"] = round((time.perf_counter() - started) * 1000, 1)
     return item
 
 
-def _audit_child(path_string: str, root_string: str, queue: Any) -> None:
+def _audit_child(path_string: str, root_string: str, queue: Any, real: bool = False) -> None:
     """Run one complete parser/L2/detector pass in a killable child process."""
     try:
-        queue.put(audit_one(Path(path_string), Path(root_string)))
+        queue.put(audit_one(Path(path_string), Path(root_string), real=real))
     except BaseException as exc:  # pragma: no cover - child crash accounting
         queue.put({"path": str(Path(path_string).relative_to(root_string)), "parse_ok": False, "error": f"child {type(exc).__name__}: {exc}"})
 
@@ -380,6 +456,11 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--e2e", action="store_true")
     parser.add_argument(
+        "--real",
+        action="store_true",
+        help="Audit real recorded logs: skip scenario-card expectations and emit an L1 field coverage matrix.",
+    )
+    parser.add_argument(
         "--timeout-s",
         type=float,
         default=30.0,
@@ -389,7 +470,7 @@ def main() -> int:
     root = args.input.resolve()
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=True)
-    metadata_names = {"manifest.json", "fixture-manifest.json", "corpus_manifest.json"}
+    metadata_names = {"manifest.json", "fixture-manifest.json", "corpus_manifest.json", "INVENTORY.json"}
     files = sorted(path for path in root.rglob("*") if path.is_file() and path.name not in metadata_names)
     began = time.perf_counter()
     results: list[dict[str, Any]] = []
@@ -398,7 +479,7 @@ def main() -> int:
     # make the audit itself unbounded.  A timeout is retained as an outcome.
     for path in files:
         queue: Any = mp.Queue()
-        child = mp.Process(target=_audit_child, args=(str(path), str(root), queue))
+        child = mp.Process(target=_audit_child, args=(str(path), str(root), queue, args.real))
         child.start()
         child.join(args.timeout_s)
         if child.is_alive():
@@ -409,7 +490,7 @@ def main() -> int:
                 "sha256": sha256(path), "scenario": scenario_from_name(path),
                 "parse_ok": False, "canonical_schema_valid": False,
                 "canonical_required_fields_non_null": False, "timestamps_monotonic": False,
-                "canonical_numeric_fields_finite": False, "detection_expectation_met": False,
+                "canonical_numeric_fields_finite": False, "detection_expectation_met": None if args.real else False,
                 "audit_timeout": True,
                 "error": f"parser/L2/detector path exceeded chosen {args.timeout_s:g} second per-file limit",
             }
@@ -422,7 +503,7 @@ def main() -> int:
                     "sha256": sha256(path), "scenario": scenario_from_name(path),
                     "parse_ok": False, "canonical_schema_valid": False,
                     "canonical_required_fields_non_null": False, "timestamps_monotonic": False,
-                    "canonical_numeric_fields_finite": False, "detection_expectation_met": False,
+                    "canonical_numeric_fields_finite": False, "detection_expectation_met": None if args.real else False,
                     "error": f"audit child exited {child.exitcode} without a result",
                 }
         results.append(item)
@@ -463,7 +544,7 @@ def main() -> int:
             "non_null_canonical_files": sum(item["canonical_required_fields_non_null"] for item in results),
             "monotonic_timestamp_files": sum(item["timestamps_monotonic"] for item in results),
             "finite_numeric_files": sum(item["canonical_numeric_fields_finite"] for item in results),
-            "detection_expectations_met": sum(item["detection_expectation_met"] for item in results),
+            "detection_expectations_met": sum(1 for item in results if item.get("detection_expectation_met")),
             "detector_completed_files": sum(item.get("detector_completed", False) for item in results),
             "detector_timeout_files": sum("detector_error" in item for item in results),
             "whole_path_timeout_files": sum(item.get("audit_timeout", False) for item in results),
@@ -507,6 +588,8 @@ def main() -> int:
         ]
         report["isolated_upload_processing_e2e"] = run_isolated_e2e([path for path in representatives if path], out)
     (out / "corpus-validation.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if args.real:
+        write_coverage_matrix(results, out)
     print(json.dumps(report["totals"], sort_keys=True))
     return 0 if report["totals"]["parse_successes"] == len(files) else 1
 
