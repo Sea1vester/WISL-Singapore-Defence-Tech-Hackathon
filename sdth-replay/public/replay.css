@@ -8,11 +8,8 @@
   --danger: #e8564f;
   --line: #1e2635;
   --line-soft: rgba(30, 38, 53, 0.7);
-  /* League Spartan for titles/labels; Garet for body copy where a viewer has it
-     installed/licensed (it's a paid font with no legitimate free CDN source) --
-     Poppins/Nunito Sans stand in as an open, similarly friendly fallback. */
-  --font-heading: "League Spartan", ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Garet", "Poppins", "Nunito Sans", ui-sans-serif, sans-serif;
+  --font-heading: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-mono: "IBM Plex Mono", "SF Mono", "Cascadia Code", "Consolas", monospace;
   /* Gentler, more minimalist corners than the original 2px HUD look. */
   --radius: 14px;
@@ -746,6 +743,7 @@ body.replay-embed #orbitalTelemetry strong {
   font-size: clamp(19px, 2.1vw, 31px);
   font-weight: 500;
   letter-spacing: -0.07em;
+  font-variant-numeric: tabular-nums;
 }
 
 html.replay-embed #orbitalTelemetry small,
