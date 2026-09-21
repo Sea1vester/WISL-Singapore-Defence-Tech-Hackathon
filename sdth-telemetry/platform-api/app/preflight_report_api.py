@@ -176,7 +176,7 @@ def create_comprehensive_report(
 ) -> ComprehensiveReportResponse:
     try:
         with db_session() as conn:
-            report = build_comprehensive_report(conn, flight_id)
+            report = build_comprehensive_report(conn, flight_id, allow_llm=False)
     except KeyError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Flight not found: {exc}") from exc
 
