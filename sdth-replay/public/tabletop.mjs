@@ -363,7 +363,7 @@ export function createTabletop(viewer, data, options = {}) {
       labels.add({
         position: C.Cartesian3.fromDegrees(street.lon, street.lat, ground(street.lon, street.lat) - 0.6),
         text: street.name,
-        font: `600 ${street.major ? 13 : 11.5}px "League Spartan", ui-sans-serif, system-ui, sans-serif`,
+        font: `600 ${street.major ? 13 : 11.5}px "Helvetica Neue", Helvetica, Arial, sans-serif`,
         // Near-white on a heavy dark outline: the tabletop terrain is a light
         // green, so a mid-tone label washes straight into it.
         fillColor: C.Color.fromCssColorString(street.major ? "#f4fffb" : "#e2f2ee"),
