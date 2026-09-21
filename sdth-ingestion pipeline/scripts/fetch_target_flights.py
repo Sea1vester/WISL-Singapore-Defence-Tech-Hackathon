@@ -103,7 +103,7 @@ def main() -> None:
         print(
             "No flights matched the target platforms (DJI, PX4/Auterion, ArduPilot, plus the "
             "legacy Hermes 900 / Orbiter 4 / Taurus UGV aliases). If you expect data, check "
-            "ingest status with Isaac or confirm the translation worker is running (ask Sylvester)."
+            "ingest status or confirm the translation worker is running (ask Sylvester)."
         )
         return
 

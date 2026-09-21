@@ -1,5 +1,7 @@
 # WISL synthetic telemetry handover
 
+> **Note:** this is the build spec for `sdth-synth/`, which is gitignored in this checkout. The package is described in the report §2 but is not present in a fresh clone.
+
 Feed this file to an implementation agent as the spec.
 Do not invent a second architecture.
 Do not let an LLM write numeric telemetry rows.
@@ -266,6 +268,6 @@ They parse today, replay as flights, fire GPS-weak on the DJI pair, and fail a c
 
 ## Pointers
 
-- Plan surface: `my_team_workspace/shared_lavish_plan.html`
+- Plan surface: `archive/my_team_workspace/shared_lavish_plan.html`
 - This spec: `docs/synthetic-telemetry-handover.md`
 - Root README: `README.md`

@@ -1,6 +1,6 @@
 # Pitch Q&A — keep in reserve
 
-Prioritise these three answers; the meeting suggested there may be time for only one or two questions. The new `pitch-script.md` is a separate three-minute Marp narration handoff. Preserve the existing deck's visual style when aligning slides. The old five-minute `pitch_script.md` remains a historical artifact.
+Prioritise these three answers; the meeting suggested there may be time for only one or two questions. The new `pitch-script.md` (in `docs/submission/`) is a separate three-minute Marp narration handoff. Preserve the existing deck's visual style when aligning slides. The old five-minute script remains a historical artifact at `archive/pitch_script_5min.md`.
 
 **What is the value proposition?** WISL connects a recorded flight observation to its timestamped evidence, related flights and a reviewable follow-up bulletin. The proposed benefit is less manual reconciliation across a mixed fleet. We have not measured operator time savings yet. Existing products already offer log analysis and fleet features; we must prove the workflow benefit rather than claim the category is unique.
 
@@ -11,5 +11,3 @@ Prioritise these three answers; the meeting suggested there may be time for only
 **Does local AI mean offline or trustworthy?** Inference uses a local model and validates cited evidence identifiers. That does not validate the hypothesis itself. Replay still uses external map resources, and the model receives bounded summaries rather than all raw samples. Evidence queries continue if the model is offline or returns invalid output.
 
 **Did you detect jamming or predict a crash?** No. The demonstrated record contains a GPS-weak warning. Its simulator scenario name is not evidence of interference or a causal diagnosis. Prediction and wearables are outside the demonstrated scope.
-
-**What is Isaac's role?** The report lists research support as a proposed role, with his user-supplied academic affiliation and DSO research internship. Do not claim unverified implementation contributions or DSO endorsement.

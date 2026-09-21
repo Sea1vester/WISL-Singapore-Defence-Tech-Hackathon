@@ -94,7 +94,7 @@ Meeting reference: 14:05–14:08; 14:16–14:18
 
 ## 12. Write the team case and incubation ask — Team text drafted
 
-Use Inessa’s ingestion/edge role and Sylvester’s visualization, validation and platform role. List Isaac’s research support as proposed; retain supplied NUS affiliations and DSO research internship without implying endorsement or invented work.
+Use Inessa’s ingestion/edge role and Sylvester’s visualization, validation and platform role. Do not list Isaac.
 
 Factual team framing in report; no fabricated accomplishments.
 

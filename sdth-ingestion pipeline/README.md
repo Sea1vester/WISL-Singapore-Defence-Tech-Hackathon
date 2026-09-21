@@ -42,12 +42,9 @@ Two independent things live here:
     the `X-WISL-SHA256` integrity header and bearer auth the platform expects)
   - `cli.py` — `wisl-edge-upload <log_dir> [--endpoint <url>] [--watch]`
 
-Ingestion is built entirely in-house — the team is no longer working with Orcrist on
-this (see git history for that decision).
-
-Camera frames and census are not this package.
-They live in [`sdth-vision`](../sdth-vision/README.md) and post to the platform API
-after a flight already exists.
+The server-side registry accepts thirteen raw-log extensions (`.bin`, `.csv`,
+`.hex`, `.hermes`, `.json`, `.ros`, `.stanag`, `.syslog`, `.tlog`, `.ulg`,
+`.ulog`, `.xlsx`, `.xml`), so the edge watcher can stay format-neutral.
 
 ## Usage
 

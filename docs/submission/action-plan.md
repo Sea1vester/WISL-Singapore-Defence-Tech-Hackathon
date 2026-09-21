@@ -1,10 +1,10 @@
 # WISL — Ruo-Mei follow-up plan
 
-Updated from your decisions and Gary’s PDFs. Internal dates removed. The meeting and PDFs are source material; your instructions determine the work. No outreach or customer validation is claimed.
+Updated from your decisions and the organiser's submission guidelines. Internal dates removed. The meeting and guidelines are source material; your instructions determine the work. No outreach or customer validation is claimed.
 
 ## 01. Confirm deliverables and assign owners — Complete
 
-Gary’s PDFs reviewed. Use a 10-body-page PDF, 250-word cover abstract and system-only video of at most two minutes. Rubric is 40% working proof, 30% mission need and 30% viability. Codex handles implementation and drafting; Sylvester supplies remaining factual details.
+The organiser's submission guidelines reviewed. Use a 10-body-page PDF, 250-word cover abstract and system-only video of at most two minutes. Rubric is 40% working proof, 30% mission need and 30% viability. Codex handles implementation and drafting; Sylvester supplies remaining factual details.
 
 Checklist written in docs/submission/deliverables-checklist.md.
 
@@ -68,7 +68,7 @@ Meeting reference: 14:07–14:08; 15:10–15:11
 
 ## 09. Rewrite the three-minute story — Script drafted
 
-Use the new pitch-script.md Marp narration and preserve the existing deck style. Lead with the three review questions, truthful evidence, intended user and team strengths.
+Use the docs/submission/pitch-script.md Marp narration and preserve the existing deck style. Lead with the three review questions, truthful evidence, intended user and team strengths.
 
 Three-minute script and reserve Q&A drafted; presentation delivery still needs rehearsal.
 
@@ -76,7 +76,7 @@ Meeting reference: 14:10–14:12; 14:20–14:21; 15:06–15:16
 
 ## 10. Produce the two-minute product video — Handoff complete; recording remains
 
-Follow docs/submission/video-handoff.md for actual system footage and copy-ready narration. Label synthetic/SITL and accelerated footage. Include nominal and degraded behaviour; omit pitch and architecture from this video.
+The video script is docs/submission/demo-pitch-vo.md; follow docs/submission/video-handoff.md for actual system footage and shot list. Label synthetic/SITL and accelerated footage. Include nominal and degraded behaviour; omit pitch and architecture from this video.
 
 Two-minute shot list prepared. MP4 capture/export and unlisted backup are still outstanding.
 
@@ -86,15 +86,13 @@ Meeting reference: 14:08–14:09; 15:06–15:10; 15:17
 
 Produce WISL_FinalReport_v1.pdf with technical method, measured results, limitations, cited use cases and incubation plan. Retain the explicit distinction between valid model references and verified interpretation.
 
-10 body pages plus cover/references/appendix; editable source and reproducible builder.
-
-Input needed: Who is the mentor/advisor, and what existed on June 21? These facts cannot be inferred from repository history.
+10 body pages plus cover/references/appendix; the editable report source is `docs/submission/WISL_FinalReport_v1.tex`. Mentor/advisor is none, and the June 21 baseline is stated in report §1.
 
 Meeting reference: 14:05–14:08; 14:16–14:18
 
 ## 12. Write the team case and incubation ask — Team text drafted
 
-Use Inessa’s ingestion/edge role and Sylvester’s visualization, validation and platform role. List Isaac’s research support as proposed; retain supplied NUS affiliations and DSO research internship without implying endorsement or invented work.
+Use Inessa’s ingestion/edge role and Sylvester’s visualization, validation and platform role.
 
 Factual team framing in report; no fabricated accomplishments.
 
@@ -130,6 +128,6 @@ Review names, baseline, report, video and source evidence before submission. Git
 
 Local implementation and written deliverables ready for review; no external submission or outreach performed.
 
-Input needed: What is the exact submission portal or organiser instruction? The PDFs do not specify it.
+Input needed: What is the exact submission portal or organiser instruction? The organiser's submission guidelines do not specify it.
 
 Meeting reference: 14:05–14:09

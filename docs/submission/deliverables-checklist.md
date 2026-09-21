@@ -1,6 +1,6 @@
 # WISL deliverables and evidence checklist
 
-Gary's two supplied PDFs are the submission specification. They are source requirements for these artifacts, not blanket instructions to add speculative product features.
+The organiser's submission guidelines are the submission specification. They are source requirements for these artifacts, not blanket instructions to add speculative product features.
 
 - Report filename: `WISL_FinalReport_v1.pdf`; PDF only, maximum 10 pages of body content.
 - Cover, including a 250-word abstract, references, and appendices are excluded from the body-page limit. Appendices may occupy at most 5 pages.
@@ -24,6 +24,11 @@ Prediction and wearables are future work. LOTR collaboration remains a separate 
 
 There is no outreach capability or stakeholder validation. Research can establish plausible contexts and existing alternatives, not demand or endorsement. The incubation ask is facilitated access to operators and representative authorized data.
 
-## Outstanding factual inputs
+## Resolved factual inputs
 
-The named mentor/advisor and the June 21 baseline are awaiting user confirmation. Isaac's proposed generic role is research support; no technical contribution or organizational endorsement has been invented. No document should describe the project as DSO-backed because one teammate interned there.
+- Mentor/advisor: none (stated on the video title card).
+- June 21 baseline: stated in report §1 (Prior Works and Competitive Landscape).
+- Team: Sylvester Lim and Inessa Wong.
+- Report source is `WISL_FinalReport_v1.tex`; the video script is `demo-pitch-vo.md`.
+
+No document should describe the project as DSO-backed.

@@ -1,0 +1,345 @@
+\documentclass[11pt,a4paper]{article}
+
+% --- Core Packages & Color Support ---
+\usepackage[table]{xcolor}
+\usepackage{geometry}
+\geometry{top=2.2cm, bottom=2.5cm, left=2.3cm, right=2.3cm}
+
+% --- Multi-Engine Typography Configuration ---
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage[scaled=0.98]{XCharter}
+  \usepackage[scaled=0.92]{cabin}
+  \usepackage[scaled=0.88]{inconsolata}
+\else
+  \usepackage{fontspec}
+  \setmainfont{TeX Gyre Pagella}
+  \setsansfont{TeX Gyre Heros}[Scale=0.95]
+  \setmonofont{TeX Gyre Cursor}[Scale=0.90]
+\fi
+
+% --- Document Formatting & Whitespace ---
+\usepackage{parskip}
+\setlength{\parskip}{0.85em}
+\setlength{\parindent}{0pt}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{tikz}
+\usepackage[framemethod=TikZ]{mdframed}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+
+% --- Executive Multi-Tone Color Palette ---
+\definecolor{primary}{HTML}{0C2646}
+\definecolor{secondary}{HTML}{125C7A}
+\definecolor{accent}{HTML}{1C6EB9}
+\definecolor{darkslate}{HTML}{374151}
+\definecolor{cardbg}{HTML}{F8FAFC}
+\definecolor{cardborder}{HTML}{CBD5E1}
+\definecolor{abstractbg}{HTML}{F0F5FA}
+\definecolor{abstractborder}{HTML}{2A527A}
+\definecolor{tableheadbg}{HTML}{E2ECF7}
+\definecolor{rowaltbg}{HTML}{F7FAFD}
+\definecolor{codebg}{HTML}{EDF2F7}
+
+% --- Section Heading Formats ---
+\titleformat{\section}
+  {\sffamily\Large\bfseries\color{primary}}
+  {\thesection}{0.8em}{}
+  [{\color{secondary}\titlerule[1.2pt]}]
+
+\titleformat{\subsection}
+  {\sffamily\large\bfseries\color{secondary}}
+  {\thesubsection}{0.6em}{}
+
+\titleformat{\subsubsection}
+  {\sffamily\normalsize\bfseries\color{accent}}
+  {\thesubsubsection}{0.5em}{}
+
+% --- Running Headers and Footers ---
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\color{secondary}\hrule width\headwidth height\headrulewidth \vskip-\headrulewidth}
+\fancyhead[L]{\sffamily\footnotesize\color{darkslate}\textbf{WISL} --- Recorded Flight Evidence for Fleet Learning}
+\fancyhead[R]{\sffamily\footnotesize\color{darkslate}20 September 2026}
+\fancyfoot[C]{\sffamily\footnotesize\color{darkslate}\thepage}
+
+% --- List Spacing ---
+\setlist[itemize]{leftmargin=1.8em, itemsep=0.35em, topsep=0.3em}
+\setlist[enumerate]{leftmargin=1.8em, itemsep=0.35em, topsep=0.3em}
+
+% --- Inline Code Pill Helper ---
+\newcommand{\code}[1]{\colorbox{codebg}{\small\texttt{\color{darkslate}#1}}}
+
+% --- Abstract Box Styling ---
+\mdfdefinestyle{abstractstyle}{
+    linecolor=abstractborder,
+    linewidth=2.5pt,
+    topline=false,
+    rightline=false,
+    bottomline=false,
+    backgroundcolor=abstractbg,
+    innertopmargin=14pt,
+    innerbottommargin=16pt,
+    innerleftmargin=18pt,
+    innerrightmargin=18pt,
+    skipabove=12pt,
+    skipbelow=16pt
+}
+
+% --- Team Card Styling ---
+\mdfdefinestyle{authorcard}{
+    linecolor=cardborder,
+    linewidth=0.8pt,
+    roundcorner=4pt,
+    backgroundcolor=cardbg,
+    innertopmargin=10pt,
+    innerbottommargin=10pt,
+    innerleftmargin=12pt,
+    innerrightmargin=12pt,
+    skipabove=0pt,
+    skipbelow=0pt
+}
+
+\begin{document}
+
+% ---------------- TITLE BLOCK ----------------
+{\sffamily\fontsize{22pt}{26pt}\selectfont\bfseries\color{primary} WISL: Recorded Flight Evidence for Fleet Learning}
+\vspace{0.3em}
+
+{\sffamily\small\color{darkslate} Singapore Defence Tech Hackathon 2026 \quad\textbar\quad Date: 20 September 2026}
+
+\vspace{1.0em}
+
+% ---------------- BALANCED PEER TEAM PROFILE CARDS ----------------
+\noindent
+\begin{minipage}[t]{0.485\textwidth}
+\begin{mdframed}[style=authorcard]
+\parbox[t][3.4cm][t]{\linewidth}{%
+    {\sffamily\bfseries\color{primary}\large Sylvester Lim}\\[0.2em]
+    {\sffamily\footnotesize\color{darkslate}NUS Computer Science}\\[0.6em]
+    {\sffamily\scriptsize\bfseries\color{secondary}CORE PLATFORM \& VISUALISATION}\\[0.3em]
+    {\sffamily\footnotesize\color{darkslate}3D geospatial visualization, ingestion validation framework, telemetry platform infrastructure, and cloud parsing.}
+}
+\end{mdframed}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.485\textwidth}
+\begin{mdframed}[style=authorcard]
+\parbox[t][3.4cm][t]{\linewidth}{%
+    {\sffamily\bfseries\color{primary}\large Inessa Wong}\\[0.2em]
+    {\sffamily\footnotesize\color{darkslate}NUS Mathematics, 2nd Major Computer Science}\\[0.6em]
+    {\sffamily\scriptsize\bfseries\color{secondary}EDGE PIPELINE \& PARSING SYSTEMS}\\[0.3em]
+    {\sffamily\footnotesize\color{darkslate}Edge ingestion pipeline, directory watcher daemon, cryptographic digest verification, and multi-format parsing registry.}
+}
+\end{mdframed}
+\end{minipage}
+
+\vspace{0.8em}
+
+% ---------------- EXECUTIVE ABSTRACT ----------------
+\begin{mdframed}[style=abstractstyle]
+{\sffamily\large\bfseries\color{primary} Abstract}\\[0.6em]
+\linespread{1.18}\selectfont\normalsize\color{darkslate}
+Post-flight investigation of mixed unmanned aircraft fleets is constrained by vendor-specific log formats.
+After a warning, telemetry gap or anomalous track, reviewers open native tools one airframe at a time, so comparable events across platforms remain difficult to retrieve.
+Established analysers already provide single-stack diagnostics: PX4 Flight Review, Mission Planner, FlightHub 2 and DroneLogbook.
+The remaining gap is a common evidence path from a completed log to a timestamped observation, a replayed trajectory and other stored flights that share the same signature.
+
+This work reports WISL, a recorded-log pipeline built between July and September 2026.
+A controller-side watcher waits until a file is size-stable, hashes it and uploads the raw bytes.
+A server-side registry parses supported formats into a canonical L2 series of position, attitude, battery, sensors and metadata.
+Deterministic detectors index observations; replay follows recorded time; queries return stored evidence; recurring signatures produce reviewable bulletins.
+An optional local model can draft a hypothesis against checked evidence identifiers.
+
+On a 90-file simulator inventory of ten scenario cards and nine format skins, every file projected to schema-valid L2 and completed the detector path within 30 seconds; 40 of 90 files met the predeclared scenario-card expectation.
+A second gated set of 36 exports met all declared expectations, and the normal control produced no incidents.
+The application suite passed 161 tests.
+A DJI parser defect that invented takeoff altitude spikes was identified and corrected.
+These measurements characterise software behaviour on constructed inputs and specify the next evaluation on authorised historical logs plus review.
+\end{mdframed}
+
+\vspace{0.6em}
+
+\clearpage
+
+% ---------------- SECTION 1 ----------------
+\section{Problem and Contribution}
+
+Small unmanned aircraft systems are entering routine land operations.
+MINDEF has stated that UAVs are becoming part of the soldier's arsenal and that the Army will establish DARE to scale UAV and ground-vehicle use [1].
+The V15 mini-UAV is described as a tactical ISR platform that can be launched from a confined space; 11 C4I Battalion operated V15s during Exercise Wallaby [2], [3].
+Those facts set the operational setting in which post-flight review will occur.
+
+The practical difficulty is format fragmentation:
+\begin{itemize}
+    \item A single unit operating mixed airframes produces disparate telemetry files: PX4 ULog, ArduPilot DataFlash (\code{.bin}), MAVLink (\code{.tlog}), and DJI FlightRecord exports (\code{.csv}, \code{.xlsx}) [9], [10], [11], [12].
+    \item Reviewers must open separate native diagnostic tools like Mission Planner, PX4 Flight Review, and DJI FlightHub 2 one stack at a time [9], [10], [11], [12].
+    \item None of these tools give a reviewer one hashed raw file, one canonical time series, one timestamped observation, and a cross-fleet search across stored flights sharing the same signature [9], [10], [11], [12], [13].
+\end{itemize}
+
+\subsection*{Prior Works and Competitive Landscape: Baseline on 21 June 2026 vs. What Exists Now}
+
+\begin{itemize}
+    \item \textbf{\color{accent}Before (21 June 2026):} Post-flight review was completely fragmented and manual. Comparing an ArduPilot compass anomaly with a DJI compass warning required extracting physical SD cards, launching separate desktop utilities, and visually cross-checking plots without a unified storage layer or cross-fleet search [9], [10].
+    \item \textbf{\color{accent}What Exists Now (September 2026):} A working post-flight evidence pipeline across thirteen extensions. The watcher uploads a finished log to the WISL platform. Hash de-duplication returns the existing record instead of a second copy. The platform standardises raw telemetry, runs deterministic incident detectors, replays recorded tracks in an interactive 3D CesiumJS environment, and alerts analysts when the same failure signature recurs across the fleet.
+\end{itemize}
+
+\clearpage
+
+% ---------------- SECTION 2 ----------------
+\section{What We Built and How It Works}
+
+The WISL system consists of dedicated modules organized into five packages:
+\begin{itemize}
+    \item \code{sdth-ingestion pipeline/}: Edge folder watcher and format parsing registry.
+    \item \code{sdth-telemetry/}: FastAPI platform, SQLite storage, standardized projection, incident detectors, and query engine.
+    \item \code{sdth-replay/}: Web-based 3D CesiumJS replay viewer.
+    \item \code{sdth-demo/}: Unified web mission console (\code{/demo/}).
+    \item \code{sdth-synth/}: Synthetic log generation engine driven by kinematic scenario cards.
+\end{itemize}
+
+\subsection{Ingestion and Server Gate}
+\begin{enumerate}
+    \item \textbf{Intake Watcher:} An edge watcher monitors designated log folders. A file becomes eligible only after its size is stable across successive scans, ensuring logs still being written are skipped. The watcher computes a SHA-256 digest, records status in a manifest, and sends an authorized multipart upload. Parsing logic is hosted on the server, keeping the edge watcher format-neutral.
+    \item \textbf{Server Gate and De-duplication:} The platform checks extension and size, verifies the SHA-256 digest, de-duplicates stored bytes, and records provenance before enqueueing parse. Hash de-duplication is global: a repeated digest returns the existing upload rather than a second raw object.
+    \item \textbf{Parsing Registry (Raw to L1):} The registry accepts thirteen extensions, including \code{.bin}, \code{.csv}, \code{.hex}, \code{.hermes}, \code{.json}, \code{.ros}, \code{.stanag}, \code{.syslog}, \code{.tlog}, \code{.ulg}, \code{.ulog}, \code{.xlsx}, and \code{.xml}. It extracts vendor-native payloads into an initial L1 structure while preserving raw diagnostic metadata.
+\end{enumerate}
+
+\subsection{Standardised Telemetry Projection (L1 to L2)}
+The platform projects parsed L1 records into a validated, standardized time series (L2) with consistent fields:
+\begin{itemize}
+    \item \code{flight\_id} and ISO-8601 UTC timestamp (\code{timestamp\_utc}).
+    \item Standard GPS coordinates (\code{lat}, \code{lon}, \code{alt\_m}). Missing coordinates are projected from a reference origin and marked \code{frame: local\_ned}.
+    \item Vehicle orientation in degrees (\code{roll}, \code{pitch}, \code{yaw}).
+    \item Battery state of charge percentage and voltage (\code{voltage\_v}).
+    \item Sub-objects for sensor health and metadata (\code{source}, \code{frame}, \code{value\_origin}).
+    \item \textbf{Privacy Guard:} Operator home coordinates are redacted before persistence. Canonical JSONL is exportable.
+\end{itemize}
+
+\subsection{Deterministic Incident Detectors}
+Deterministic detectors evaluate telemetry directly against the standardized L2 time series rather than proprietary vendor opcodes:
+
+\vspace{0.4em}
+\noindent
+\rowcolors{2}{rowaltbg}{white}
+\begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X}
+\toprule
+\rowcolor{tableheadbg}
+\textbf{\sffamily\color{primary}Detector Type} & \textbf{\sffamily\color{primary}Monitored Condition} & \textbf{\sffamily\color{primary}Demonstration Threshold} \\
+\midrule
+\code{battery\_low} / \code{\_critical} & Low remaining state of charge & 20\% warn / 10\% critical \\
+\code{battery\_plunge} & Sudden capacity drop & 15 percentage points in 60 s \\
+\code{telemetry\_gap} & Telemetry silence / dropout & 15 s silence \\
+\code{attitude\_shock} & Attitude tumbling / shock & 40$^\circ$ warn / 70$^\circ$ critical \\
+\code{gps\_jump} & Implied horizontal / vertical velocity jump & 120 m/s air, 15 m/s ground; 25 m step or 20 m/s vertical \\
+\code{last\_known\_position} & Frozen vehicle track & $\sim$30 s unchanging pose \\
+\code{mission\_incomplete} & Incomplete flight termination & Mode check / end-of-log status \\
+\code{operator\_warning} & In-flight telemetry warning text & Keyword match on GPS, failsafe, motor, compass, return-to-home, and link-lost text \\
+\bottomrule
+\end{tabularx}
+\vspace{0.4em}
+
+An optional local model (\code{deepseek-r1:7b} via Ollama) can draft a hypothesis against checked evidence identifiers. Numbers and detectors stay rule-based.
+
+\subsection{3D Visualisation Engine}
+The \code{sdth-replay} package provides an interactive 3D CesiumJS environment:
+\begin{itemize}
+    \item \textbf{Display Modes:} Supports a low-poly Tabletop mode with cached OpenStreetMap vector geometry and an elevation Map mode. Cesium 3D replay runs directly on the recorded flight track.
+    \item \textbf{Telemetry Scrubbing:} Analysts scrub through the flight path synchronized to recorded timestamps. Clicking ``Replay this observation'' jumps the camera and timeline directly to the exact point in 3D space where an incident was indexed.
+    \item \textbf{Fleet Recurrence:} When the same warning signature appears on two or more stored flights, the dashboard surfaces a reviewable bulletin.
+\end{itemize}
+
+\clearpage
+
+% ---------------- SECTION 3 ----------------
+\section{Testing, Results and Limitations}
+
+The platform was validated across synthetic kinematic scenarios, physical software-in-the-loop (SITL) exports, and automated software test suites.
+
+\subsection{Benchmark Results}
+\begin{itemize}
+    \item \textbf{\color{accent}Processing Throughput:} All 126 logs parsed to a valid schema within 30 seconds.
+    \item \textbf{\color{accent}Detector Verification:} Seventy-six met the declared detector check, including a silent uneventful control. The rest were native PX4/ArduPilot SITL exports that never retained the injected fault upstream, reflecting the simulator bridge configuration rather than a pipeline fault [9], [10], [11], [12].
+    \item \textbf{\color{accent}Uneventful Control:} Uneventful-control exports produced no incidents.
+    \item \textbf{\color{accent}End-to-End Speed:} Testing an upload containing a GPS warning CSV and frozen-position JSON reached ready status in 1.223 seconds, persisting 225 standardized records and indexing the expected alerts.
+    \item \textbf{\color{accent}Software Test Suite:} The unit and integration test suite passed 161 platform tests in 5.92 seconds, 28 parser tests in 0.73 seconds, 15 replay engine tests, and 5 user interface tests.
+\end{itemize}
+
+\subsection{Resolved Parser Defect: Ground Altitude Spikes}
+\begin{itemize}
+    \item \textbf{The Problem:} During initial parser validation, the detector engine triggered false altitude-jump and climb anomalies during takeoff and landing phases. Investigation revealed that stationary vehicles resting on the pad reported a valid relative height of 0.0 m. In the parsing layer, this \code{0.0} value was evaluated as missing data, triggering a fallback rule that substituted 180 ft MSL and fabricating takeoff altitude spikes.
+    \item \textbf{The Resolution:} Validation caught this DJI parser defect. The parser now explicitly preserves true zero height values, eliminating phantom takeoff spikes. A dedicated regression test was added to the test suite to prevent recurrence.
+\end{itemize}
+
+\subsection{Known Boundaries}
+\begin{itemize}
+    \item Missing numerical values currently fall back to zero, and migrating these to explicit nullable types is planned for the next release.
+    \item DJI native detail logs from v13 are encrypted and out of scope; WISL takes authorised CSV/XLSX exports [13], [14], [15].
+    \item Analysis is post-flight and rule-based; it does not assign causal attribution yet (e.g., separating electronic warfare jamming from physical antenna damage). Addressing causal attribution is an active work in progress, where grounded integration of a local language model reading checked evidence pointers is designed to assist analysts with narrative hypothesis drafting.
+\end{itemize}
+
+\clearpage
+
+% ---------------- SECTION 4 ----------------
+\section{Defence Application and Next Steps}
+
+MINDEF has stated the Army will establish DARE to scale UAV use [1]. That is the setting in which an Army small-UAS instructor, maintainer, or post-flight analyst would review a completed log. After a training sortie, the operator drops the ground controller log into the watched folder. The pipeline hashes and ingests the file, presents the flight path in 3D, highlights anomalous segments, and surfaces reviewable bulletins if the signature matches other stored sorties.
+
+While tailored for Army SUAS Operations, WISL also addresses common challenges across wider national unmanned architectures, such as HTX's unified drone operating systems [4], [5], RSAF UAV fleet governance [6], and future joint digital intelligence and maritime telemetry workflows [7], [8].
+
+\subsection{Operational Context: Post-Flight Evidence vs. Live C2 (HTX MDOS)}
+A critical operational distinction is between live command-and-control (C2) and post-flight evidence. In the Home Team domain, HTX's Multi-Drone Operating System (MDOS) provides unified multi-vendor control during flight---managing live video, real-time telemetry, and tactical waypoint execution [4], [5]. WISL does not fly sorties or command vehicles; it begins after the airframe lands. By ingesting completed logs, standardising historical tracks, and indexing recurring fault signatures across sorties, WISL provides the post-flight fleet-learning layer that naturally complements real-time operations systems. In a mature deployment, WISL would sit adjacent to platforms like MDOS, transforming recorded operational data into actionable fleet bulletins and maintenance intelligence [4], [5], [6], [7], [8].
+
+\subsection{Key Risks and Operational Mitigations}
+\begin{itemize}
+    \item \textbf{\color{accent}Log Access and Data Governance:} Operational unit flight logs contain sensitive tactical flight profiles. Accessing raw files requires rigorous operational security compliance. \textit{Mitigation:} Establish clear data boundaries by prioritizing sanitized training flight logs and conducting early evaluations within an approved unit-level data sandbox.
+    \item \textbf{\color{accent}Firmware Telemetry Drift:}
+    \begin{itemize}
+        \item \textit{The Risk:} Unannounced vendor firmware updates could alter telemetry field definitions and break parsing routines.
+        \item \textit{The Mitigation:} PX4 and ArduPilot logs are self-describing, so added fields usually still parse [9], [10], [11], [12]. DJI native detail logs from v13 are encrypted and out of scope; WISL takes authorised CSV/XLSX exports [13], [14], [15].
+    \end{itemize}
+\end{itemize}
+
+\subsection{Pragmatic 6-Month Roadmap}
+\begin{itemize}
+    \item \textbf{\color{accent}Month 1 (Stakeholder Engagement):} Meet with unit instructors and training officers to map actual post-flight data handover routines. Establish clear data-sharing boundaries, classify retention needs, and secure approval to test on sanitised training logs.
+    \item \textbf{\color{accent}Months 2--3 (Field Shadowing \& Parser Verification):} Shadow field reviews during routine training exercises. Compare WISL output against existing manual workflows, track vendor firmware changes, and measure how quickly maintainers identify known faults.
+    \item \textbf{\color{accent}Months 4--5 (Controlled Trial):} Run a controlled, side-by-side trial with unit maintainers during training operations. Measure turnaround time, false alarm rates, and user feedback on the 3D replay interface.
+    \item \textbf{\color{accent}Month 6 (Review \& Operational Sandbox):} Deliver a quantitative performance report to stakeholders evaluating time saved and failure detection accuracy, establishing the foundation for a permanent air-gapped evaluation sandbox.
+\end{itemize}
+
+\clearpage
+
+% ---------------- REFERENCES ----------------
+\section*{References}
+\addcontentsline{toc}{section}{References}
+{\small
+\noindent[1] MINDEF, ``Speech by Minister for Defence, Dr Ng Eng Hen, at The Committee of Supply 2025 on 3 March 2025,'' 4 Mar. 2025. [Online]. Available: \url{https://www.mindef.gov.sg/news-and-events/latest-releases/04mar25_speech3/}\\[0.25em]
+\noindent[2] MINDEF, ``Fact Sheet: Latest Suite of Headquarters Sense and Strike Platforms,'' 30 Jun. 2021. [Online]. Available: \url{https://www.mindef.gov.sg/news-and-events/latest-releases/30jun21_fs2/}\\[0.25em]
+\noindent[3] MINDEF, ``Fact Sheet: Exercise Wallaby 2023,'' 9 Oct. 2023. [Online]. Available: \url{https://www.mindef.gov.sg/news-and-events/latest-releases/09oct23_fs/}\\[0.25em]
+\noindent[4] HTX, ``Robotics, Automation and Unmanned Systems,'' updated 10 Sep. 2026. [Online]. Available: \url{https://www.htx.gov.sg/who-we-are/what-we-do/our-expertise/robots-automation-and-unmanned-systems}\\[0.25em]
+\noindent[5] HTX, ``Unity in flight: Transforming drone control through MDOS,'' 2024. [Online]. Available: \url{https://www.htx.gov.sg/whats-happening/all-news---events/all-news/2024/featured-news--unity-in-flight--transforming-drone-control-through-mdos}\\[0.25em]
+\noindent[6] RSAF, ``Unmanned Aerial Vehicle Command,'' updated 19 Jan. 2026. [Online]. Available: \url{https://www.rsaf.gov.sg/rsaf-forces/commands/unmanned-aerial-vehicle-command/}\\[0.25em]
+\noindent[7] MINDEF, ``Fact Sheet: The Digital and Intelligence Service,'' 28 Oct. 2022. [Online]. Available: \url{https://www.mindef.gov.sg/news-and-events/latest-releases/28oct22_fs/}\\[0.25em]
+\noindent[8] MINDEF, ``The Republic of Singapore Navy's Unmanned Surface Vessels Progressively Operationalised to Enhance Maritime Security,'' 4 Feb. 2025. [Online]. Available: \url{https://www.mindef.gov.sg/news-and-events/latest-releases/04feb25_fs/}\\[0.25em]
+\noindent[9] PX4 Autopilot, ``Log Analysis using Flight Review.'' [Online]. Available: \url{https://docs.px4.io/v1.15/en/log/flight_review}\\[0.25em]
+\noindent[10] PX4 Autopilot, ``ULog File Format.'' [Online]. Available: \url{https://docs.px4.io/main/en/dev_log/ulog_file_format}\\[0.25em]
+\noindent[11] ArduPilot, ``Downloading and Analyzing Data Logs in Mission Planner.'' [Online]. Available: \url{https://ardupilot.org/planner/docs/common-downloading-and-analyzing-data-logs-in-mission-planner.html}\\[0.25em]
+\noindent[12] ArduPilot, ``Telemetry Logs.'' [Online]. Available: \url{https://ardupilot.org/planner/docs/mission-planner-telemetry-logs.html}\\[0.25em]
+\noindent[13] DJI Enterprise, ``DJI FlightHub 2.'' [Online]. Available: \url{https://enterprise.dji.com/flighthub-2}\\[0.25em]
+\noindent[14] DJI Enterprise, ``DJI FlightHub 2 On-Premises - FAQ.'' [Online]. Available: \url{https://enterprise.dji.com/fh2-on-premises/faq}\\[0.25em]
+\noindent[15] DJI Developer, ``Cloud API: Log Export,'' 19 Mar. 2025. [Online]. Available: \url{https://developer.dji.com/doc/cloud-api-tutorial/en/debug/log-export.html}\\[0.25em]
+\noindent[16] DroneLogbook, ``Features - DroneLogbook - Simplifying Drone Operations.'' [Online]. Available: \url{https://www.dronelogbook.com/hp/1/features.html}
+}
+
+\end{document}

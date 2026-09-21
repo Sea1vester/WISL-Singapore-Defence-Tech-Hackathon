@@ -1,6 +1,6 @@
 # Submission corpus validation
 
-This validation concerns `/Users/sylvesterlim/CodingFun/SDTH/sdth-synth/out/hazards`, a hazards-only simulator corpus. It is not a field-flight evaluation, a claim about RF causes, or evidence of operational performance. The 90 original files were never modified.
+This validation concerns `sdth-synth/out/hazards`, a hazards-only simulator corpus. It is not a field-flight evaluation, a claim about RF causes, or evidence of operational performance. The 90 original files were never modified.
 
 Before execution, the audit criteria were:
 
@@ -18,9 +18,9 @@ Use the repository virtual environment. This is the final full-inventory command
 
 ```sh
 PYTHONPATH=sdth-telemetry/platform-api:sdth-telemetry \
-  /Users/sylvesterlim/CodingFun/SDTH/.venv/bin/python \
+  .venv/bin/python \
   sdth-telemetry/scripts/validate_submission_corpus.py \
-  --input /Users/sylvesterlim/CodingFun/SDTH/sdth-synth/out/hazards \
+  --input sdth-synth/out/hazards \
   --out output/evidence/corpus-validation-v2/original90 \
   --timeout-s 30
 ```
@@ -29,14 +29,14 @@ The V2 fixtures are separately labelled and are not part of the 90-file submissi
 
 ```sh
 PYTHONPATH=sdth-synth/src \
-  /Users/sylvesterlim/CodingFun/SDTH/.venv/bin/python \
+  .venv/bin/python \
   sdth-telemetry/scripts/generate_v2_failure_fixtures.py \
   --synth-root sdth-synth \
   --normal-scenario output/evidence/corpus-validation-v2/normal_control_v2.yaml \
   --out output/evidence/corpus-validation-v2/failure-fixtures
 
 PYTHONPATH=sdth-telemetry/platform-api:sdth-telemetry \
-  /Users/sylvesterlim/CodingFun/SDTH/.venv/bin/python \
+  .venv/bin/python \
   sdth-telemetry/scripts/validate_submission_corpus.py \
   --input output/evidence/corpus-validation-v2/failure-fixtures \
   --out output/evidence/corpus-validation-v2/failure-fixtures-audit \
