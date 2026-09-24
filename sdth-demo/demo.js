@@ -8,6 +8,7 @@ const DEMO_LIBRARY_LOGS = [
   { url: "/demo/fixtures/singapore/dji_csv_sg_hillview_inspection_battery_critical.csv", name: "dji_csv_sg_hillview_inspection_battery_critical.csv", type: "text/csv" },
   { url: "/demo/fixtures/singapore/dji_csv_sg_hillview_inspection_dropout.csv", name: "dji_csv_sg_hillview_inspection_dropout.csv", type: "text/csv" },
   { url: "/demo/fixtures/singapore/dji_csv_sg_seletar_ends_airborne.csv", name: "dji_csv_sg_seletar_ends_airborne.csv", type: "text/csv" },
+  { url: "/demo/fixtures/dji_csv_gps_jamming.csv", name: "dji_csv_gps_jamming.csv", type: "text/csv" },
 ];
 const $ = (id) => document.getElementById(id);
 const wideLayout = window.matchMedia("(min-width: 760px)");
@@ -388,7 +389,7 @@ $("missionSearch").addEventListener("input", renderFlights);
 $("sampleButton").addEventListener("click", async () => {
   if (!state.token) { setAuthPanel(true); return; }
   const button = $("sampleButton"); button.disabled = true;
-  try { const response = await fetch("/demo/fixtures/singapore/dji_csv_sg_lck_survey_gps_weak.csv"); if (!response.ok) throw new Error("The included sample could not be loaded."); await uploadFile(new File([await response.blob()], "dji_csv_sg_lck_survey_gps_weak.csv", {type:"text/csv"})); }
+  try { const response = await fetch("/demo/fixtures/dji_csv_gps_jamming.csv"); if (!response.ok) throw new Error("The included sample could not be loaded."); await uploadFile(new File([await response.blob()], "dji_csv_gps_jamming.csv", {type:"text/csv"})); }
   catch (error) { setMessage(friendlyError(error.message), "error"); }
   finally { button.disabled = false; }
 });

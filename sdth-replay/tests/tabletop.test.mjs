@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { elevationHeightAt, featureKind, illustrativeBuildingHeight, illustrativeBuildingMinHeight, illustrativeStoneHeight, lineFromGeometry, lineSegmentsFromGeometry, normalizeBounds, ringFromGeometry } from "../public/tabletop.mjs";
 
 test("normalizes only finite non-wrapping geographic bounds", () => {
@@ -54,4 +55,9 @@ test("building min heights come from min_height or building:min_level", () => {
   assert.equal(illustrativeBuildingMinHeight({ min_height: "6" }), 6);
   assert.equal(illustrativeBuildingMinHeight({ "building:min_level": "2" }), 6);
   assert.equal(illustrativeBuildingMinHeight({}), 0);
+});
+
+test("tabletop.mjs never probes Primitive#ready (removed in modern Cesium)", () => {
+  const src = readFileSync(new URL("../public/tabletop.mjs", import.meta.url), "utf8").replace(/\/\/[^\n]*/g, "");
+  assert.ok(!/\.ready\b/.test(src), "tabletop.mjs references a .ready property that does not exist on Primitive");
 });

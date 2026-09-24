@@ -432,32 +432,46 @@ export function createTabletop(viewer, data, options = {}) {
   // orange footprint trims stay opaque. Tabletop mode restores flat opaque
   // colours. Per-instance alpha only blends in the translucent pass, so the
   // two primitives' appearance is swapped alongside the colour rewrite.
-  const applyOverlayStyle = () => {
-    for (const [key, prim] of Object.entries(overlayPrims)) {
-      if (prim) prim.appearance = new C.PerInstanceColorAppearance({ flat: true, translucent: mapOverlay, closed: true });
+  // Per-instance colours can only be rewritten once the batch table exists,
+  // which happens after the asynchronous primitive compiles -- until then
+  // getGeometryInstanceAttributes returns an object with no `color` slot.
+  // There is no Primitive#ready flag, so pending records are retried on a
+  // bounded, idempotent timer rather than probing readiness.
+  let overlayStyleDead = false, overlayStyleAttempts = 0;
+  const applyOverlayStylePass = () => {
+    for (const prim of Object.values(overlayPrims)) {
+      if (prim && prim._wislTranslucent !== mapOverlay) {
+        prim._wislTranslucent = mapOverlay;
+        prim.appearance = new C.PerInstanceColorAppearance({ flat: true, translucent: mapOverlay, closed: true });
+      }
     }
     let pending = false;
     for (const rec of overlayShading) {
+      if (rec.applied === mapOverlay) continue;
       const prim = overlayPrims[rec.prim];
-      if (!prim) continue;
-      if (!prim.ready) { pending = true; continue; }
+      if (!prim) { rec.applied = mapOverlay; continue; }
       const attrs = prim.getGeometryInstanceAttributes(rec.id);
-      if (!attrs?.color) continue;
+      if (!attrs?.color) { pending = true; continue; }
+      rec.applied = mapOverlay;
       const css = mapOverlay ? rec.overlayCss : rec.css;
       attrs.color = C.ColorGeometryInstanceAttribute.toValue(
         color(C, css).withAlpha(mapOverlay ? rec.alpha : 1.0),
       );
     }
-    // Asynchronous primitives finish compiling after the overlay toggle; one
-    // retry catches stragglers without a per-frame cost.
-    if (pending) setTimeout(applyOverlayStyle, 400);
+    if (pending && !overlayStyleDead && ++overlayStyleAttempts < 240) {
+      setTimeout(applyOverlayStylePass, 300);
+    }
+  };
+  const applyOverlayStyle = () => {
+    overlayStyleAttempts = 0;
+    applyOverlayStylePass();
   };
   return {
     get show() { return collection.show; },
     set show(value) { this.setVisible(value); },
     setVisible(value) { visible = Boolean(value); applyVisibility(); },
     setMapOverlay(value) { mapOverlay = Boolean(value); applyVisibility(); applyOverlayStyle(); },
-    destroy() { if (!collection.isDestroyed?.()) viewer.scene.primitives.remove(collection); },
+    destroy() { overlayStyleDead = true; if (!collection.isDestroyed?.()) viewer.scene.primitives.remove(collection); },
   };
 }
 

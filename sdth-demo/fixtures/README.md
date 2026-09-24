@@ -1,6 +1,6 @@
 # Recorded demo fixtures
 
-Auto-imported into the local Mission library on Session connect.
+The six `singapore/` missions plus `dji_csv_gps_jamming.csv` are auto-imported into the local Mission library on Session connect. `dji_csv_gps_jamming.csv` is the one UK flight kept for continuity with the earlier evidence; it lives in the Stonehenge cache region, so it still gets terrain in the replay.
 The GPS-warning and dropout CSVs plus the Orbiter JSON are unchanged copies from the original hazard corpus and V2 Orbiter skin.
 The `Exercise ·` CSVs are the audited V2 failure-plus-control set.
 The two `dji_csv_supplemental_*.csv` files are independent of the original 90-file denominator.
