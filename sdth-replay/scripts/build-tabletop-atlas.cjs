@@ -4,7 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../public/assets');
-const names = ['stonehenge', 'shropshire', 'north-wales'];
+const names = ['stonehenge', 'shropshire', 'north-wales', 'lim-chu-kang', 'hillview', 'seletar'];
 const cellMeters = 400;
 const bbox = geometry => {
   const points = (geometry || []).filter(p => Number.isFinite(p?.lon) && Number.isFinite(p?.lat));

@@ -9,6 +9,8 @@ const endpoint = 'https://elevation3d.arcgis.com/arcgis/rest/services/WorldEleva
 const input = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const name = process.argv[3] || 'stonehenge';
 const boundsFlag = process.argv.indexOf('--bounds');
+const gridFlag = process.argv.indexOf('--grid');
+const gridSize = gridFlag >= 0 ? Math.max(2, Math.floor(Number(process.argv[gridFlag + 1])) || 49) : 49;
 const parseBounds = value => {
   const [west,south,east,north] = String(value).split(',').map(Number);
   if (![west,south,east,north].every(Number.isFinite) || west >= east || south >= north) throw new Error('Invalid --bounds west,south,east,north');
@@ -41,10 +43,10 @@ async function heightAt(lon, lat) {
 }
 (async()=>{
  await Lerc.load();
- const rows=49,columns=49,heights=[];
+ const rows=gridSize,columns=gridSize,heights=[];
  for(let r=0;r<rows;r++) for(let c=0;c<columns;c++) heights.push(await heightAt(bounds.west+(bounds.east-bounds.west)*c/(columns-1), bounds.south+(bounds.north-bounds.south)*r/(rows-1)));
  const source={...(existingCache ? input.source : {}),map:'© OpenStreetMap contributors',mapUrl:'https://www.openstreetmap.org/copyright',mapBounds, mapBoundsProvenance: existingCache ? (input.source?.mapBoundsProvenance || 'Original bounded OpenStreetMap extract retained while elevation coverage was expanded.') : 'Bounded OpenStreetMap extract used for this cache.',elevation:'Esri World Elevation / Terrain3D',elevationUrl:endpoint,elevationTileLevel:level,retrievedAt:new Date().toISOString(),osmTimestamp:existingCache ? input.source?.osmTimestamp : input.osm3s?.timestamp_osm_base,notes:'Mapped footprints; illustrative vertical feature dimensions. Elevation grid sampled from Esri LERC tiles. Row 0 is south. No surveyed obstacle or clearance claims.'};
- const elements=existingCache ? input.elements : input.elements.map(e=>({type:e.type,id:e.id,tags:Object.fromEntries(Object.entries(e.tags||{}).filter(([k])=>!k.includes(':')||k==='building:levels')),geometry:e.geometry}));
+ const elements=existingCache ? input.elements : input.elements.map(e=>({type:e.type,id:e.id,tags:Object.fromEntries(Object.entries(e.tags||{}).filter(([k])=>!k.includes(':')||k==='building:levels'||k==='building:min_level')),geometry:e.geometry}));
  const data={bounds,source,elevation:{bounds,rows,columns,heights},elements};
  const out=path.resolve(__dirname,`../public/assets/tabletop-${name}.json`);fs.writeFileSync(out,JSON.stringify(data));
  console.log(out, 'elevation',Math.min(...heights),Math.max(...heights),'features',data.elements.length,'tiles',tiles.size);

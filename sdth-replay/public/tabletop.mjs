@@ -110,9 +110,18 @@ function numericMetres(value) {
 export function illustrativeBuildingHeight(tags = {}) {
   const explicit = numericMetres(tags.height);
   const levels = Number(tags["building:levels"]);
-  const estimated = Number.isFinite(levels) && levels > 0 ? levels * 3.1 : 8;
-  // The cap is part of the visual language, rather than a claim about survey data.
-  return Math.round(Math.min(24, Math.max(4, explicit ?? estimated)) * 10) / 10;
+  const estimated = Number.isFinite(levels) && levels > 0 ? levels * 3.0 + 1.5 : 8;
+  // Explicit height wins; levels estimate 3.0 m/level + roof; 8 m fallback.
+  return Math.round(Math.min(200, Math.max(3, explicit ?? estimated)) * 10) / 10;
+}
+
+// Height of the extrusion's lower edge: `min_height` wins, then
+// `building:min_level` at the same 3.0 m/level estimate, else ground level.
+export function illustrativeBuildingMinHeight(tags = {}) {
+  const explicit = numericMetres(tags.min_height);
+  const minLevel = Number(tags["building:min_level"]);
+  const estimated = Number.isFinite(minLevel) && minLevel > 0 ? minLevel * 3.0 : 0;
+  return Math.round(Math.min(200, Math.max(0, explicit ?? estimated)) * 10) / 10;
 }
 
 // The values are a readable model scale, not a survey of archaeological remains.
@@ -326,6 +335,7 @@ export function createTabletop(viewer, data, options = {}) {
       continue;
     }
     const height = kind === "stone" ? illustrativeStoneHeight(tags, element.id) : illustrativeBuildingHeight(tags);
+    const minHeight = kind === "stone" ? 0 : Math.min(illustrativeBuildingMinHeight(tags), height - 0.1);
     const baseAt = (p) => ground(p.lon, p.lat) - 0.84;
     const base = baseAt(ring[0]);
     const tone = buildingIndex++ % PALETTE.building.length;
@@ -336,7 +346,7 @@ export function createTabletop(viewer, data, options = {}) {
     roofs.push(instance(C, roofGeometry, kind === "stone" ? PALETTE.stone[(tone + 1) % PALETTE.stone.length] : PALETTE.roof[tone]));
     for (let i = 0; i < ring.length; i += 1) {
       const edge = [ring[i], ring[(i + 1) % ring.length]];
-      walls.push(instance(C, new C.WallGeometry({ positions: positions(C, edge, 0), minimumHeights: edge.map(baseAt), maximumHeights: edge.map((p) => baseAt(p) + height), vertexFormat: C.PerInstanceColorAppearance.VERTEX_FORMAT }), kind === "stone" ? PALETTE.stone[(tone + i) % PALETTE.stone.length] : PALETTE.wall[(tone + i) % PALETTE.wall.length]));
+      walls.push(instance(C, new C.WallGeometry({ positions: positions(C, edge, 0), minimumHeights: edge.map((p) => baseAt(p) + minHeight), maximumHeights: edge.map((p) => baseAt(p) + height), vertexFormat: C.PerInstanceColorAppearance.VERTEX_FORMAT }), kind === "stone" ? PALETTE.stone[(tone + i) % PALETTE.stone.length] : PALETTE.wall[(tone + i) % PALETTE.wall.length]));
     }
     // Sparse orange roof rims provide the only accent, every fourth feature.
     if (kind === "building" && buildingIndex % 4 === 0) {

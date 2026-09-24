@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { elevationHeightAt, featureKind, illustrativeBuildingHeight, illustrativeStoneHeight, lineFromGeometry, lineSegmentsFromGeometry, normalizeBounds, ringFromGeometry } from "../public/tabletop.mjs";
+import { elevationHeightAt, featureKind, illustrativeBuildingHeight, illustrativeBuildingMinHeight, illustrativeStoneHeight, lineFromGeometry, lineSegmentsFromGeometry, normalizeBounds, ringFromGeometry } from "../public/tabletop.mjs";
 
 test("normalizes only finite non-wrapping geographic bounds", () => {
   assert.deepEqual(normalizeBounds({ west: 103.8, south: 1.3, east: 103.9, north: 1.4 }), { west: 103.8, south: 1.3, east: 103.9, north: 1.4 });
@@ -41,9 +41,17 @@ test("sampled elevation is bilinear and is safe for malformed grids", () => {
   assert.equal(illustrativeStoneHeight({ height: "30m" }, 1), 6);
 });
 
-test("building heights are illustrative, tag-sensitive, and capped for visual scale", () => {
-  assert.equal(illustrativeBuildingHeight({ height: "100 m" }), 24);
-  assert.equal(illustrativeBuildingHeight({ height: "10 ft" }), 4);
-  assert.equal(illustrativeBuildingHeight({ "building:levels": "5" }), 15.5);
+test("building heights prefer explicit tags, then level estimates, clamped to [3, 200]", () => {
+  assert.equal(illustrativeBuildingHeight({ height: "100 m" }), 100);
+  assert.equal(illustrativeBuildingHeight({ height: "10 ft" }), 3);
+  assert.equal(illustrativeBuildingHeight({ "building:levels": "40" }), 121.5);
+  assert.equal(illustrativeBuildingHeight({ height: "12.4" }), 12.4);
+  assert.equal(illustrativeBuildingHeight({ "building:levels": "5" }), 16.5);
   assert.equal(illustrativeBuildingHeight({}), 8);
+});
+
+test("building min heights come from min_height or building:min_level", () => {
+  assert.equal(illustrativeBuildingMinHeight({ min_height: "6" }), 6);
+  assert.equal(illustrativeBuildingMinHeight({ "building:min_level": "2" }), 6);
+  assert.equal(illustrativeBuildingMinHeight({}), 0);
 });
