@@ -26,7 +26,10 @@
       <div id="viewMode" aria-label="Replay presentation mode">
         <button id="studioViewButton" type="button" aria-pressed="true">Tabletop</button>
         <button id="mapViewButton" type="button" aria-pressed="false">Map</button>
+        <button id="satViewButton" type="button" aria-pressed="false">Satellite</button>
+        <button id="uavScaleButton" type="button" aria-pressed="false" title="Aircraft size: real-world scale (1:1) or enlarged marker">1:1</button>
       </div>
+      <div id="scaleLegend" aria-hidden="true"><span id="scaleLegendBar"></span><span id="scaleLegendText"></span></div>
       <div id="terrainContext" role="status">LOADING MAP CONTEXT</div>
       <section id="orbitalTelemetry" aria-label="Recorded flight telemetry">
         <div><span>ALTITUDE</span><strong id="orbitalAltitude">—</strong><small>m</small></div>

@@ -549,3 +549,45 @@ export function cameraFrameForIncident(frames, incident) {
   }
   return cameraFrameAt(frames, timeS);
 }
+
+/**
+ * Aircraft scale mode: true 1:1 size near the aircraft, enlarged marker far
+ * away. `override` ("true" | "enlarged" | null) wins over the distance rule.
+ */
+export function uavScaleMode(cameraDistanceM, override) {
+  if (override === "true" || override === "enlarged") {
+    return override;
+  }
+  return Number.isFinite(cameraDistanceM) && cameraDistanceM <= 400 ? "true" : "enlarged";
+}
+
+/**
+ * Ground-projected metres per pixel at screen centre for a perspective
+ * camera, from vertical FOV, camera height above the ellipsoid and the
+ * drawing buffer height in pixels. Returns 0 for unusable inputs.
+ */
+export function metersPerPixel(fovRadians, cameraHeightM, drawingBufferHeightPx) {
+  if (!Number.isFinite(fovRadians) || !Number.isFinite(cameraHeightM) ||
+      !Number.isFinite(drawingBufferHeightPx) || drawingBufferHeightPx <= 0 || cameraHeightM <= 0) {
+    return 0;
+  }
+  return (2 * cameraHeightM * Math.tan(fovRadians / 2)) / drawingBufferHeightPx;
+}
+
+/**
+ * Pick a round-number scale-bar step (20/50/100/200/500 m) nearest to a
+ * ~70 px bar at the current metres-per-pixel. Returns null when the input
+ * is unusable.
+ */
+export function scaleBarStep(metersPerPx) {
+  if (!Number.isFinite(metersPerPx) || metersPerPx <= 0) {
+    return null;
+  }
+  const targetM = metersPerPx * 70;
+  const options = [20, 50, 100, 200, 500];
+  let best = options[0];
+  for (const metres of options) {
+    if (Math.abs(metres - targetM) < Math.abs(best - targetM)) best = metres;
+  }
+  return { metres: best, pixels: best / metersPerPx };
+}

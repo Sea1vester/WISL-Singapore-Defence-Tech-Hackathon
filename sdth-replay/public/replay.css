@@ -701,6 +701,38 @@ body.replay-embed #viewMode {
   white-space: nowrap;
 }
 
+#scaleLegend {
+  position: absolute;
+  left: 16px;
+  bottom: 128px;
+  z-index: 24;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+}
+
+#scaleLegendBar {
+  display: block;
+  height: 3px;
+  border-left: 1px solid #dfe8ec;
+  border-right: 1px solid #dfe8ec;
+  background: rgba(223, 232, 236, 0.9);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+#scaleLegendText {
+  color: #dfe8ec;
+  font: 700 9px/1 var(--font-heading);
+  letter-spacing: 0.05em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+html.replay-embed #scaleLegend,
+body.replay-embed #scaleLegend {
+  display: none;
+}
+
 html.replay-embed #orbitalTelemetry,
 body.replay-embed #orbitalTelemetry {
   position: absolute;

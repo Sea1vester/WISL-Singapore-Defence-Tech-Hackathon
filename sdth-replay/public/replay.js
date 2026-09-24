@@ -19,6 +19,9 @@ import {
   replayTimeAtPercent,
   replayTimeForTimestamp,
   sampleEvent,
+  uavScaleMode,
+  metersPerPixel,
+  scaleBarStep,
 } from "/replay/lib/flight.mjs?v=stream-3";
 
 const CESIUM_VERSION = "1.125";
@@ -26,6 +29,10 @@ const SPEED_VALUES = [0.5, 1, 2, 4, 8, 12];
 const DEFAULT_PLAYBACK_SPEED = 12;
 const COLORS = ["#4fd8c4", "#e0a95c", "#e0707a", "#7ea0d8", "#a58cd8"];
 const UAV_MODEL_URI = "./assets/drone.glb";
+// drone.glb spans ~82 m in model units; a Mini 4 Pro spans ~0.35 m, so this
+// correction makes "1:1" mode render the aircraft at real-world size.
+const UAV_TRUE_SCALE = 0.35 / 82.35;
+const UAV_SCALE_NEAR_M = 400;
 const INGEST_PROGRESS = {
   received: 10,
   parsing: 35,
@@ -52,6 +59,8 @@ const state = {
   entities: [],
   clockListener: null,
   uavModelReady: false,
+  uavScaleOverride: null,
+  uavScaleApplied: "enlarged",
   bannerClosed: false,
   dismissedIncidentId: null,
   orbit: {
@@ -116,6 +125,8 @@ const state = {
   // view at all. Where a region has no cached terrain, setPresentationMode
   // still falls back to the globe on its own.
   mapVisible: false,
+  satVisible: false,
+  satLayer: null,
   routeOverview: null,
   atlas: [],
   tabletop: null,
@@ -178,6 +189,11 @@ const els = {
   routeOverviewAltRange: document.getElementById("routeOverviewAltRange"),
   studioViewButton: document.getElementById("studioViewButton"),
   mapViewButton: document.getElementById("mapViewButton"),
+  satViewButton: document.getElementById("satViewButton"),
+  uavScaleButton: document.getElementById("uavScaleButton"),
+  scaleLegend: document.getElementById("scaleLegend"),
+  scaleLegendBar: document.getElementById("scaleLegendBar"),
+  scaleLegendText: document.getElementById("scaleLegendText"),
 };
 
 function apiBase() {
@@ -308,6 +324,11 @@ async function probeUavModel() {
   try {
     const response = await fetch(UAV_MODEL_URI);
     state.uavModelReady = response.ok;
+    if (response.ok) {
+      // drone.glb POSITION accessors span ~82 m natively (measured offline);
+      // UAV_TRUE_SCALE rebases it to a Mini 4 Pro's ~0.35 m for 1:1 mode.
+      console.info(`uav model native span ~82.35 m; true-scale factor ${UAV_TRUE_SCALE.toFixed(5)}`);
+    }
   } catch {
     state.uavModelReady = false;
   }
@@ -344,8 +365,13 @@ async function createViewer() {
   // the layer level so labels remain readable under the route.
   const baseMap = new Cesium.UrlTemplateImageryProvider({
     url: "/tiles/{z}/{x}/{y}.png",
-    maximumLevel: 17,
+    maximumLevel: 19,
     credit: "© OpenStreetMap contributors",
+  });
+  const satMap = new Cesium.UrlTemplateImageryProvider({
+    url: "/tiles/sat/{z}/{x}/{y}.jpg",
+    maximumLevel: 19,
+    credit: "Esri, Maxar, Earthstar Geographics, and the GIS User Community",
   });
   const terrainProvider = new Cesium.EllipsoidTerrainProvider();
   const viewer = new Cesium.Viewer("cesiumContainer", {
@@ -402,8 +428,11 @@ async function createViewer() {
     imageryLayer.gamma = 0.78;
     imageryLayer.hue = 4.2;
     imageryLayer.alpha = 0.7;
-    imageryLayer.show = state.mapVisible;
+    imageryLayer.show = state.mapVisible && !state.satVisible;
   }
+  const satLayer = viewer.imageryLayers.addImageryProvider(satMap);
+  satLayer.show = state.satVisible === true;
+  state.satLayer = satLayer;
   // This is a Viewer property (rather than a reliable constructor setting in
   // every bundled Cesium build). Recorded paths may advance while imagery and
   // optional visuals are still loading.
@@ -1398,9 +1427,14 @@ function focusActiveRoute(flight) {
   }
   const positions = path.polyline?.positions?.getValue?.(viewer.clock.currentTime);
   if (positions?.length) {
-    viewer.camera.flyToBoundingSphere(Cesium.BoundingSphere.fromPoints(positions), {
+    const sphere = Cesium.BoundingSphere.fromPoints(positions);
+    // Distance that fits the route's bounding sphere in the vertical FOV
+    // with ~15% margin, pitched ~-35° looking roughly north.
+    const fovy = viewer.camera.frustum.fovy || Cesium.Math.toRadians(60);
+    const range = (sphere.radius / Math.tan(fovy / 2)) * 1.15;
+    viewer.camera.flyToBoundingSphere(sphere, {
       duration: 0,
-      offset: new Cesium.HeadingPitchRange(-0.5, -0.72, params.get("embed") === "1" ? 460 : 460),
+      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-35), range),
     });
     startOrbitFromCamera();
     return;
@@ -1426,6 +1460,66 @@ function updateLayerVisibility() {
   }
   updateSeverityLegend();
   if (state.viewer?.requestRender) state.viewer.requestRender();
+}
+
+// ---- Aircraft scale (1:1 vs enlarged) + scale legend ----
+
+function applyUavScaleMode(mode) {
+  state.uavScaleApplied = mode;
+  const enlargedMinPx = params.get("embed") === "1" ? 28 : 24;
+  for (const entity of state.layerEntities.uav) {
+    if (!entity) continue;
+    if (entity.model) {
+      if (mode === "true") {
+        entity.model.scale = UAV_TRUE_SCALE;
+        entity.model.maximumScale = UAV_TRUE_SCALE;
+        entity.model.minimumPixelSize = 0;
+      } else {
+        entity.model.scale = 1;
+        entity.model.maximumScale = 24;
+        entity.model.minimumPixelSize = enlargedMinPx;
+      }
+    }
+    // The point graphic doubles as the load-fallback marker and as the
+    // findability ring when the aircraft is rendered at real size.
+    if (entity.point) {
+      entity.point.show = mode === "true" || !state.uavModelReady;
+    }
+  }
+  if (els.uavScaleButton) {
+    els.uavScaleButton.textContent = mode === "true" ? "1:1" : "Enlarged";
+    els.uavScaleButton.setAttribute("aria-pressed", String(mode === "true"));
+  }
+  if (state.viewer?.requestRender) state.viewer.requestRender();
+}
+
+function updateScaleUi() {
+  const viewer = state.viewer;
+  if (!viewer || viewer.isDestroyed?.()) return;
+  const flight = state.flights[state.active];
+  const uav = flight ? viewer.entities.getById(`uav-${flight.flight_id}`) : null;
+  let distance = NaN;
+  if (uav) {
+    const pos = uav.position?.getValue?.(viewer.clock.currentTime);
+    if (pos) distance = Cesium.Cartesian3.distance(viewer.camera.position, pos);
+  }
+  const mode = uavScaleMode(distance, state.uavScaleOverride);
+  applyUavScaleMode(mode);
+  if (els.scaleLegendBar && els.scaleLegendText) {
+    const mpp = metersPerPixel(
+      viewer.camera.frustum.fovy,
+      viewer.camera.positionCartographic?.height,
+      viewer.canvas.height,
+    );
+    const step = scaleBarStep(mpp);
+    if (step) {
+      els.scaleLegend.hidden = false;
+      els.scaleLegendBar.style.width = `${Math.max(16, Math.min(180, step.pixels)).toFixed(0)}px`;
+      els.scaleLegendText.textContent = `${step.metres} m`;
+    } else {
+      els.scaleLegend.hidden = true;
+    }
+  }
 }
 
 // ---- Flight legend (color-coded mission list) ----
@@ -1795,7 +1889,7 @@ async function showActiveFlight() {
   if (state.mapContext) {
     state.tabletop = createStreamingTabletop(state.viewer, state.mapContext, {
       bounds: tabletopBounds(state.mapContext, flight.samples),
-      show: !state.mapVisible,
+      show: true,
       onProgress: progress => {
         if(drawId!==state.globeDraw)return;
         state.terrainProgress=progress;
@@ -1803,7 +1897,7 @@ async function showActiveFlight() {
       },
     });
   }
-  setPresentationMode(state.mapVisible);
+  setPresentationMode(state.satVisible ? "satellite" : state.mapVisible ? "map" : "tabletop");
   renderFlightList();
   renderFlightLegend();
   const pose = interpolate(flight, flight.samples[0].time_s);
@@ -2334,25 +2428,32 @@ function updateTerrainContext() {
   if(!note)return;
   const p=state.terrainProgress;
   note.textContent=!state.mapContext ? 'Showing a simplified globe — detailed terrain is not available for this area.'
-    : state.mapVisible ? 'Satellite map view · terrain preloaded'
+    : state.satVisible ? 'Satellite imagery view · terrain preloaded'
+    : state.mapVisible ? 'Map view · terrain preloaded'
     : p && !p.complete ? `Loading terrain… (${p.terrain}/${p.terrainTotal})`
     : p?.failed ? 'Terrain ready — a few map details could not be loaded.'
     : 'Offline terrain model · approximate elevation and building outlines';
 }
 
-function setPresentationMode(mapVisible) {
+function setPresentationMode(mode) {
+  const mapVisible = mode === "map" || mode === "satellite";
   state.mapVisible = mapVisible;
+  state.satVisible = mode === "satellite";
   const viewer = state.viewer;
   const imageryLayer = viewer?.imageryLayers.get(0);
   if (imageryLayer) {
-    imageryLayer.show = mapVisible;
-    imageryLayer.alpha = mapVisible ? 1 : 0;
-    imageryLayer.brightness = mapVisible ? 0.70 : 0.26;
-    imageryLayer.contrast = mapVisible ? 1 : 1.2;
-    imageryLayer.saturation = mapVisible ? 1 : 0.04;
-    imageryLayer.hue = mapVisible ? 0 : 4.2;
+    imageryLayer.show = mode === "map";
+    imageryLayer.alpha = mode === "map" ? 1 : 0;
+    imageryLayer.brightness = mode === "map" ? 0.70 : 0.26;
+    imageryLayer.contrast = mode === "map" ? 1 : 1.2;
+    imageryLayer.saturation = mode === "map" ? 1 : 0.04;
+    imageryLayer.hue = mode === "map" ? 0 : 4.2;
   }
-  state.tabletop?.setVisible(!mapVisible);
+  if (state.satLayer) state.satLayer.show = state.satVisible;
+  if (state.tabletop) {
+    state.tabletop.setVisible(true);
+    state.tabletop.setMapOverlay?.(mapVisible);
+  }
   if (state.tabletopFinish) state.tabletopFinish.enabled = !mapVisible;
   updateTerrainContext();
   if (viewer) {
@@ -2360,8 +2461,9 @@ function setPresentationMode(mapVisible) {
     viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString(mapVisible ? "#111b22" : "#194452");
     viewer.scene.requestRender();
   }
-  els.studioViewButton.setAttribute("aria-pressed", String(!mapVisible));
-  els.mapViewButton.setAttribute("aria-pressed", String(mapVisible));
+  els.studioViewButton.setAttribute("aria-pressed", String(mode === "tabletop"));
+  els.mapViewButton.setAttribute("aria-pressed", String(mode === "map"));
+  els.satViewButton?.setAttribute("aria-pressed", String(mode === "satellite"));
 }
 
 function resetPlayback() {
@@ -2381,9 +2483,14 @@ function resetPlayback() {
 }
 
 function bindControls() {
-  setPresentationMode(state.mapVisible);
-  els.studioViewButton.addEventListener("click", () => setPresentationMode(false));
-  els.mapViewButton.addEventListener("click", () => setPresentationMode(true));
+  setPresentationMode(state.satVisible ? "satellite" : state.mapVisible ? "map" : "tabletop");
+  els.studioViewButton.addEventListener("click", () => setPresentationMode("tabletop"));
+  els.mapViewButton.addEventListener("click", () => setPresentationMode("map"));
+  els.satViewButton?.addEventListener("click", () => setPresentationMode("satellite"));
+  els.uavScaleButton?.addEventListener("click", () => {
+    state.uavScaleOverride = state.uavScaleApplied === "true" ? "enlarged" : "true";
+    updateScaleUi();
+  });
   els.tokenInput.value = state.token;
   els.tokenInput.addEventListener("change", async () => {
     saveToken(els.tokenInput.value);
@@ -2525,6 +2632,7 @@ async function bootstrap(create = true) {
     state.atlas=await atlasReady;
     state.viewer.terrainProvider=await createTerrainProvider();
     await modelReady;
+    state._scaleUiTimer = setInterval(updateScaleUi, 1000);
   }
   const requested = (params.get("flights") || "")
     .split(",")

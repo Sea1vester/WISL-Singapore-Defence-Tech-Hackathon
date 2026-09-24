@@ -23,6 +23,9 @@ import {
   replayTimeForPlay,
   replayTimeAtPercent,
   replayTimeForTimestamp,
+  uavScaleMode,
+  metersPerPixel,
+  scaleBarStep,
 } from "../src/flight.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -295,4 +298,33 @@ test("incident click loads nearest camera_frame", () => {
   assert.equal(cameraFrameForIncident(frames, nearB).id, "frame-b");
   assert.equal(cameraFrameForIncident(frames, { id: "no-time" }), null);
   assert.equal(cameraFrameForIncident([], nearA), null);
+});
+
+test("uavScaleMode picks 1:1 near the aircraft and enlarged far away", () => {
+  assert.equal(uavScaleMode(120, null), "true");
+  assert.equal(uavScaleMode(400, null), "true");
+  assert.equal(uavScaleMode(401, null), "enlarged");
+  assert.equal(uavScaleMode(1200, null), "enlarged");
+  assert.equal(uavScaleMode(120, "enlarged"), "enlarged");
+  assert.equal(uavScaleMode(1200, "true"), "true");
+  assert.equal(uavScaleMode(NaN, null), "enlarged");
+});
+
+test("metersPerPixel derives ground scale from fov, height and buffer", () => {
+  // 60 deg fov, 500 m up, 1000 px buffer: 2*500*tan(30deg)/1000 = ~0.5774 m/px
+  const mpp = metersPerPixel(Math.PI / 3, 500, 1000);
+  assert.ok(Math.abs(mpp - 0.57735) < 1e-4, `got ${mpp}`);
+  assert.equal(metersPerPixel(Math.PI / 3, 0, 1000), 0);
+  assert.equal(metersPerPixel(Math.PI / 3, 500, 0), 0);
+  assert.equal(metersPerPixel(NaN, 500, 1000), 0);
+});
+
+test("scaleBarStep chooses round distances near a 70 px bar", () => {
+  // 1 m/px -> 70 m target -> 50 m step at 50 px
+  assert.deepEqual(scaleBarStep(1), { metres: 50, pixels: 50 });
+  // 2 m/px -> 140 m target -> 100 m step at 50 px
+  assert.deepEqual(scaleBarStep(2), { metres: 100, pixels: 50 });
+  assert.equal(scaleBarStep(0), null);
+  assert.equal(scaleBarStep(-3), null);
+  assert.equal(scaleBarStep(NaN), null);
 });
