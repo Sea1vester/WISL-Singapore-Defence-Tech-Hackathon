@@ -1,4 +1,4 @@
-import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=stream-16";
+import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=stream-17";
 
 const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false };
 const DEMO_LIBRARY_LOGS = [
@@ -144,7 +144,7 @@ function setReplay(flightId, timestamp = null) {
   const frameUrl = new URL("/replay/", window.location.origin);
   frameUrl.searchParams.set("flights", flightId);
   frameUrl.searchParams.set("embed", "1");
-  frameUrl.searchParams.set("v", "stream-15");
+  frameUrl.searchParams.set("v", "stream-17");
   if (state.token) frameUrl.searchParams.set("token", state.token);
   if (timestamp) frameUrl.searchParams.set("timestamp", timestamp);
   els.replayFrame.src = frameUrl.toString(); els.replayFrame.hidden = false; els.replayEmpty.hidden = true; els.openReplay.href = frameUrl.toString(); els.openReplay.classList.remove("disabled");
