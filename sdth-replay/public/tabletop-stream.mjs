@@ -33,13 +33,14 @@ export function createStreamingTabletop(viewer,data,options={}) {
   });
   const bounds=options.bounds||data.bounds;
   const controller=new AbortController(),parts=[];
-  let destroyed=false,visible=options.show!==false;
+  let destroyed=false,visible=options.show!==false,mapOverlay=false;
   const terrain=terrainChunks(bounds),maps=nearbyMapChunks(data.chunks||[],bounds);
   const progress={terrain:0,terrainTotal:terrain.length,map:0,mapTotal:maps.length,failed:0,complete:false};
   const update=()=>{if(!destroyed) options.onProgress?.({...progress});};
   const add=(source,config)=>{
     if(destroyed)return;
     const part=render(viewer,source,{...config,show:visible});
+    part.setMapOverlay?.(mapOverlay);
     parts.push(part);
     viewer.scene.requestRender();
   };
@@ -84,6 +85,7 @@ export function createStreamingTabletop(viewer,data,options={}) {
     get show(){return visible;},
     set show(value){this.setVisible(value);},
     setVisible(value){visible=Boolean(value);for(const part of parts)part.setVisible(visible);},
+    setMapOverlay(value){mapOverlay=Boolean(value);for(const part of parts)part.setMapOverlay?.(mapOverlay);},
     destroy(){
       if(destroyed)return;
       destroyed=true;controller.abort();for(const part of parts)part.destroy();parts.length=0;

@@ -259,7 +259,8 @@ export function createTabletop(viewer, data, options = {}) {
   const collection = new C.PrimitiveCollection();
   collection.show = options.show !== false;
   viewer.scene.primitives.add(collection);
-  const add = (instances) => { const p = primitive(C, instances); if (p) collection.add(p); };
+  const categorized = { terrain: [], surfaces: [], roads: [], buildings: [], seams: [], labels: [] };
+  const add = (instances, category) => { const p = primitive(C, instances); if (p) { collection.add(p); if (category) categorized[category].push(p); } };
   const ground = groundFunction(data, options);
   const elevation = options.elevation || data?.elevation;
 
@@ -271,7 +272,7 @@ export function createTabletop(viewer, data, options = {}) {
   const elevationHeights = Array.isArray(elevation?.heights) ? elevation.heights.map(Number).filter(Number.isFinite) : [];
   const baseHeight = Number.isFinite(Number(options.baseHeight)) ? Number(options.baseHeight) : (elevationHeights.length ? Math.min(...elevationHeights) - 8 : -9);
   if (options.terrain !== false && elevation?.heights) {
-    add(terrainTriangles(C, elevation, ground, bounds, options.resolution || 32));
+    add(terrainTriangles(C, elevation, ground, bounds, options.resolution || 32), "terrain");
     if (options.edges !== false) {
     // A continuous, opaque resin edge holds the sampled terrain above its finite base.
     const corners = slab;
@@ -289,10 +290,10 @@ export function createTabletop(viewer, data, options = {}) {
         vertexFormat:C.PerInstanceColorAppearance.VERTEX_FORMAT,
       }), '#42767e'));
     }
-    add(edgeWalls);
+    add(edgeWalls, "terrain");
     }
   }
-  else if (options.terrain !== false) add([instance(C, polygon(C, slab, ground((bounds.west + bounds.east) / 2, (bounds.south + bounds.north) / 2) - 1, baseHeight), PALETTE.slab)]);
+  else if (options.terrain !== false) add([instance(C, polygon(C, slab, ground((bounds.west + bounds.east) / 2, (bounds.south + bounds.north) / 2) - 1, baseHeight), PALETTE.slab)], "terrain");
 
   const buildings = [], walls = [], roofs = [], trims = [], roads = [], strokes = [], surfaces = [], seams = [], siteLines = [];
   const streetLabels = [], streetNames = new Set();
@@ -363,12 +364,15 @@ export function createTabletop(viewer, data, options = {}) {
     seams.push(...ribbon(C, vertical, 0.45, ground, -0.82, PALETTE.seam));
     seams.push(...ribbon(C, horizontal, 0.45, ground, -0.82, PALETTE.seam));
   }
-  add(surfaces); add(siteLines); add(roads); add(strokes); add(buildings); add(walls); add(roofs); add(trims); add(seams);
+  add(surfaces, "surfaces"); add(siteLines, "surfaces"); add(roads, "roads"); add(strokes, "roads");
+  add(buildings, "buildings"); add(walls, "buildings"); add(roofs, "buildings"); add(trims, "buildings");
+  add(seams, "seams");
 
   // Street-name labels live in the same collection, so show/hide and destroy
   // stay in step with the geometry they belong to.
   if (streetLabels.length && C.LabelCollection) {
     const labels = collection.add(new C.LabelCollection());
+    categorized.labels.push(labels);
     for (const street of streetLabels) {
       labels.add({
         position: C.Cartesian3.fromDegrees(street.lon, street.lat, ground(street.lon, street.lat) - 0.6),
@@ -391,15 +395,26 @@ export function createTabletop(viewer, data, options = {}) {
     }
   }
 
+  // Map-overlay mode: keep the extruded buildings over the globe's imagery and
+  // terrain, hide the slab, painted facets, road ribbons, seams and labels.
+  let visible = options.show !== false, mapOverlay = false;
+  const applyVisibility = () => {
+    collection.show = visible;
+    for (const [category, prims] of Object.entries(categorized)) {
+      const shown = visible && (!mapOverlay || category === "buildings");
+      for (const prim of prims) prim.show = shown;
+    }
+  };
   return {
     get show() { return collection.show; },
-    set show(value) { collection.show = Boolean(value); },
-    setVisible(value) { collection.show = Boolean(value); },
+    set show(value) { this.setVisible(value); },
+    setVisible(value) { visible = Boolean(value); applyVisibility(); },
+    setMapOverlay(value) { mapOverlay = Boolean(value); applyVisibility(); },
     destroy() { if (!collection.isDestroyed?.()) viewer.scene.primitives.remove(collection); },
   };
 }
 
 function inertTabletop() {
   let visible = false;
-  return { get show() { return visible; }, set show(value) { visible = Boolean(value); }, setVisible(value) { visible = Boolean(value); }, destroy() {} };
+  return { get show() { return visible; }, set show(value) { visible = Boolean(value); }, setVisible(value) { visible = Boolean(value); }, setMapOverlay() {}, destroy() {} };
 }
