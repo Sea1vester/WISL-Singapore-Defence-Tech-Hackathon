@@ -1,96 +1,117 @@
-# WISL code-check talk track
+# What to say at the code check
 
-Memorise this. Each block is what to say out loud, in order, mapped to the scorecard. Numbers are from the repo as of 24 Sep; if a live number differs, say the live one.
+This is the version to read the night before, not the version to read off during. Once you've gone through the demo a few times the words will come out on their own. Numbers are from the repo on 24 Sep. If the terminal shows something different on the day, trust the terminal.
 
----
+## Opening
 
-## The one-liner (say this first, 20 seconds)
+Start with the problem, not the stack. Something like:
 
-> "WISL is a post-flight evidence pipeline for mixed drone fleets. You give it a recorded flight log from any of nine vendor formats. It hashes it, parses it into one canonical telemetry schema, runs deterministic detectors that flag incidents with the exact samples they fired on, replays the flight in 3D at the incident timestamp, and turns recurring signatures across the fleet into human-review bulletins. Everything numeric is rule-based and reproducible. The local model is optional and can only draft a hypothesis that cites evidence that already exists."
+"A small unit flying cheap drones from three or four vendors ends up with a pile of logs in four or five formats and no way to ask 'has this happened before'. WISL takes those recorded logs, whatever the format, and turns them into evidence you can query. It parses everything into one schema, runs a fixed set of detectors, shows you the flight in 3D at the moment something went wrong, and when the same signature shows up on a second aircraft it writes a bulletin for a human to review. None of the numbers come from a model. There is a local model, but it can only propose an explanation, and it has to point at evidence that already exists."
 
----
+That's about thirty seconds. Then start the demo.
 
-## 1. Happy path (20%) — what to say while the demo runs
+## While the demo runs
 
-Walk the runbook: normal control → GPS-weak mission → replay to observation → What happened? / Similar warnings → Recurring patterns → bulletin → PDF. While doing it, narrate:
+Follow the runbook order. Normal control first, then the GPS-weak mission, replay to the observation, ask the three questions, open Recurring patterns, make a bulletin, download the PDF. What matters is what you say over the top of it.
 
-- "One command starts everything: `demo-console.sh`. One Python process, SQLite, an in-process worker. No Redis, no Docker, no internet needed for parsing, detection, replay of the bundled regions, or the PDF."
-- "Watch the terminal. Every upload prints five stages: **received → parsed → canonical → detected → done**, each with its time in milliseconds. A 200-row DJI CSV goes end to end in about 40 ms: parse ~7 ms, canonical write ~20 ms, detectors ~7 ms."
-- Drop `dji_csv_gps_jamming.csv` fresh, then drop it **again**: "Same bytes, same SHA-256, so it returns the existing upload — `dedup=true`. Evidence identity is the checksum; the flight id is literally derived from it."
-- On the normal control: "Zero incidents on a clean flight is a result, not an absence. It's our false-positive control."
-- On the PDF: "Built by ReportLab from stored evidence only. No model call. Same input, same PDF."
+Point at the terminal early. Every upload prints five lines, received, parsed, canonical, detected, done, each with a time in milliseconds. A two-hundred-row DJI CSV takes about forty milliseconds start to finish. Parsing is seven of those, the canonical write about twenty, the detectors another seven. Say those numbers out loud; assessors like hearing that you know where the time goes.
 
-Envelope, said plainly: "Post-flight logs only. Thirteen file extensions, nine vendor families. Thresholds are demonstration values. Terrain is cached for three regions; elsewhere we show a flat globe rather than invent terrain."
+The normal control is worth a sentence of its own. Zero incidents on a clean flight is the result you're showing, not the absence of one. If the detectors fired on that file we'd have a false-positive problem, and we did have one earlier, which I'll come back to.
 
----
+Then do a fresh upload in front of them. Import log, drop `dji_csv_gps_jamming.csv`, watch the five lines appear. Drop the same file a second time. The terminal says `dedup=true` and returns the same upload id. The identity of a flight is the SHA-256 of its bytes; the flight id is literally the first twenty characters of the hash. Same bytes, same flight, forever.
 
-## 2. Breadth / unhappy path (20%) — hand them the controls
+On the PDF, mention that it's ReportLab reading straight from the database. There's no model call in it. We used to have one and took it out in the last week because we wanted the report to be the same every time.
 
-- "Your rubric example is 'shift north 2 km, drop 10% of observations'. We generated exactly that through our synthetic scenario generator, and you can do it live to any DJI CSV you bring."
-- Pre-built in `sdth-demo/fixtures/perturbed/` — expected outcomes, memorise these three lines:
-  - **normal control, +2 km N, 10% dropped (215→197 rows)** → **no incidents**. "The 10% drop creates one-to-three-second gaps, well under the 15 s telemetry-gap threshold, and no implied-speed jump."
-  - **GPS-weak, +2 km N, 10% dropped (225→202)** → **operator_warning ×1**. "The warning text survives subsampling."
-  - **GPS-weak + 20 s block cut mid-cruise (202→182)** → **operator_warning ×1 + telemetry_gap ×1**. "The gap detector fires on the cut, not on the random drop."
-- Live: `generate_perturbed_fixtures.py --input their.csv --north-m 2000 --drop-frac 0.10 --cut-gap`. "The script prints what the detectors observed; then upload the result and compare with the terminal."
-- Other things to offer: other format skins (Excel, Hermes, Orbiter) of the same scenarios in `output/evidence/corpus-validation-v2/failure-fixtures/`; an unsupported extension → **415** at receive; a corrupted file → **stage=failed**, status `failed` with the parser error, nothing half-written because the canonical write is one transaction; wrong API key → **401**; a log outside cached regions → "Terrain uncached · flat globe".
-- Corpus numbers: "126 synthetic logs across nine formats all projected to schema-valid L2 within the 30-second bound. 36 of 36 gated exports met their scenario-card expectations. We also ran public real logs through it for a false-positive audit."
+Somewhere in here, say plainly what the system doesn't do. Post-flight only. Thirteen file extensions across nine vendor families. The thresholds are demonstration values we chose, not certified ones. Terrain is cached for three regions and outside those you get a flat globe, because we'd rather show nothing than invent ground.
 
----
+## When they want to break it
 
-## 3. Technical depth (30%) — the parts that are ours
+The rubric literally says "shift north 2 km, randomly remove 10% of observations". Tell them we read that and built it. The perturbed files are in `sdth-demo/fixtures/perturbed/`, and they're not in the Mission library on purpose, so uploading one is a fresh ingest they get to watch.
 
-Say these as "what we built", pointing at the file each time.
+You need three outcomes in your head:
 
-1. **Format registry** (`parsers/registry.py`) — "Extension plus content sniffing picks a parser. Every parser emits one L1 contract. DJI CSV and Excel, PX4 ULog via pyulog, ArduPilot bin/tlog via pymavlink, and text skins for Hermes, Orbiter, aunav and vendor hex. Adding a vendor is one parser file; the edge stays format-neutral."
-2. **Canonical L2** (`canonical_series.py`) — "L1 is projected into a schema-validated series: UTC timestamp, position with a frame tag, attitude, battery, sensors, metadata with value origin. Local-NED-only logs get projected from a reference origin and tagged. Detectors are written once against L2, not nine times against vendors. Schema validation caught a real bug: the DJI parser treated a true 0.0 m altitude as missing and fabricated takeoff spikes."
-3. **Detectors** (`detectors.py`, 660 lines) — "Eight deterministic rules: battery low/critical (20/10%), battery plunge (15 points in 60 s), telemetry gap (15 s), attitude shock (40°/70°), GPS jump (implied speed 120 m/s air, 15 m/s ground, 25 m step), last-known-position (30 s frozen), mission incomplete (ends airborne), operator warning (keyword match on GPS/failsafe/motor/compass/RTH/link text). Each incident stores the timestamped L2 samples it fired on in `evidence_json`. That's what 'Where is the evidence?' shows and the PDF prints."
-4. **Fleet layer** (`incidents.py`, `bulletins.py`) — "Rule incidents are replaced atomically per flight, then `incident_patterns` is rebuilt across the fleet by signature. Two flights with the same signature is a recurring pattern; a bulletin is a review record a human signs off. Never a vehicle command."
-5. **Privacy** (`privacy.py`) — "Operator home coordinates are redacted before persistence and written to an audit table. Retention is enforced on every ingest."
-6. **Replay** (`sdth-replay`) — "CesiumJS, served locally, no Ion token. The viewer only sees `/v1/flights/{id}/path`, a stable contract; never raw vendor rows. Terrain and OSM tiles are cached for the three demo regions."
-7. **Model guardrail** (`demo_api.py`) — "At most 100 flight summaries and 50 incidents go to a local Ollama model. `_validate_model_response` rejects any hypothesis citing an incident id not in that context. Timeouts degrade to the deterministic path. The console labels the output as unverified."
-8. **Synthetic generator** (`sdth-synth`, local) — "A kinematic flight core integrates scenario cards into flights, then vendor skins write native files. Two gates: physical sanity, and a 50 km geography gate away from real reference homes. Scenario cards are ground truth for expected detector outcomes."
+The normal control, shifted two kilometres north with ten percent of rows dropped, 215 rows down to 197. No incidents. Dropping one row in ten at one hertz leaves gaps of a second or two, nowhere near the fifteen-second telemetry-gap threshold, and the implied speed between surviving samples stays sane.
 
-Test line: "197 platform tests, 30 parser tests, 27 replay tests, 5 console tests. All green."
+The GPS-weak flight with the same treatment, 225 down to 202. One `operator_warning`. The warning is a text field in the log, and the row carrying it survived the drop. If a judge asks what happens if that exact row gets dropped, the honest answer is the warning would be missed. The synthetic flight repeats the warning text across the degraded window, so in practice several rows carry it.
 
----
+The same flight with a twenty-second block cut out mid-cruise, 202 down to 182. `operator_warning` plus one `telemetry_gap`. The gap detector fires on the cut and not on the random drop, which is the point of having two files.
 
-## 4. Ownership (10%) — decisions and trade-offs
+If they bring their own DJI CSV, the script does the same thing live:
 
-Have one sentence ready for each "why":
+```
+.venv/bin/python sdth-telemetry/scripts/generate_perturbed_fixtures.py --input their.csv --north-m 2000 --drop-frac 0.10 --cut-gap
+```
 
-- **Why parse server-side, not on the controller?** "Edge stays tiny and format-neutral; raw bytes are preserved for audit; a new vendor is a server change, not a firmware change. Cost: bigger uploads."
-- **Why checksum identities?** "Idempotent re-ingest, global dedup, tamper-evident. Cost: change one byte and it's a new flight — by design."
-- **Why deterministic detectors instead of a model?** "In July we let an LLM normalise logs. It invented values. We replaced it with parsers plus schema validation and demoted the model to hypothesis-drafting. Cost: hand-tuned thresholds, no learned anomaly detection."
-- **Why SQLite?** "One file, one process, reproducible for a judge. The same schema and worker run under the Redis/Compose deployment we built for the two-laptop demo."
-- **Why synthetic data?** "No rights to a large real failure corpus. Scenario cards give us ground truth. Everything is labelled synthetic; real public logs were used only for the false-positive audit."
-- **Why local Cesium and tile cache?** "Offline replay for the demo regions. We refuse to invent terrain outside the cache."
+It prints what the detectors saw. Then upload the output and let them compare against the terminal.
 
-Live modification to offer: change a threshold in `detectors.py`, call `POST /v1/flights/{id}/index-incidents`, show the incident set change. Or run the test suite.
+Other things you can invite them to try. Upload one of the Excel, Hermes or Orbiter versions of the same scenarios from `output/evidence/corpus-validation-v2/failure-fixtures/`. Rename a file to `.foo` and watch it get a 415 at the door. Truncate a CSV with `head` and watch `stage=failed` with the parser's error; nothing gets half-written because the canonical rows go in as one transaction. Type the API key wrong and get a 401.
 
-Individual contributions: say who built what. Be specific — file names, not areas.
+If they ask how much we've run through it: 126 synthetic logs across the nine formats, all of them projected to valid L2 inside the thirty-second bound, and 36 of 36 gated exports matched what their scenario cards said should happen. Separately we pulled public real logs off the internet and ran those for a false-positive check.
 
----
+## The architecture conversation
 
-## 5. Iteration (20%) — the story in five beats
+Have `ARCHITECTURE.md` open for the diagram, but talk from the code. Go through the pipeline in the order the bytes travel.
 
-"Seventy-plus commits over 21 active days from July 11 to September 21. The pivots:"
+The edge side is the folder watcher in `sdth-ingestion pipeline`. It waits until a file stops growing, hashes it, uploads the raw bytes with the hash in a header, and keeps a manifest so a restart doesn't re-send or lose anything. It knows nothing about formats. That was a deliberate choice: adding a vendor should be a server change, not something you push to a controller in the field.
 
-1. **July** — "SQLite + Ollama 'local cloud', first parsers for ulg/bin/tlog/csv/xlsx. The model was the normaliser."
-2. **Mid-August** — "Unified parser contract, deterministic L2 persistence, incident indexing across missions, redaction and retention audit, mitigation bulletins, secure controller delivery, two-laptop Tailscale demo. Built a raylib replay and replaced it with Cesium the same week."
-3. **Early September** — "Refocused on cheap drones after mentor feedback. Added the UXO risk detectors — mission-incomplete and last-known-position — and the Mission Control replay UI."
-4. **Mid-September** — "Built the gated synthetic corpus, audited it, found and fixed the DJI zero-altitude bug. Relabelled fixtures 'Exercise' after feedback that 'jamming' in a filename read as a causal claim."
-5. **Final week** — "PDF without a model call, false-positive fixes from real public logs, real-log coverage audit, local Cesium and tile cache so replay works offline, per-stage timed logging."
+Parsing is `parsers/registry.py`. Extension first, then a sniff of the content, then one of the parsers. DJI CSV and Excel, PX4 ULog through pyulog, ArduPilot bin and tlog through pymavlink, and text parsers for Hermes, Orbiter, aunav and a vendor hex format. Whatever goes in, what comes out is one L1 payload shape.
 
-Before/after artefacts: `output/evidence/demo-console-live-before-altitude-fix.json` vs `demo-console-live.json`. Superseded work is in `archive/`, including the dropped Orcrist collaboration brief and the old report pipeline.
+Then `canonical_series.py` turns L1 into L2, which is the schema every downstream piece is written against. UTC timestamp, position with a frame tag, attitude, battery, a sensors bag and a metadata bag that records where each value came from. Logs that only have local NED coordinates get projected from a reference origin and tagged as such so nobody mistakes them for GPS. The schema validation here earned its keep: it's how we found that the DJI parser was treating a genuine 0.0 metre altitude as missing data and backfilling it, which produced fake takeoff spikes in the replay.
 
----
+`detectors.py` is the biggest file and the one they'll probably want to read. Eight rules, all on L2. Battery low and critical at twenty and ten percent. Battery plunge, fifteen points in sixty seconds. Telemetry gap, fifteen seconds of silence. Attitude shock at forty and seventy degrees. GPS jump, which is really an implied-velocity check: over 120 metres a second in the air or 15 on the ground, or a 25 metre step between samples. Last-known-position, roughly thirty seconds of unchanging pose. Mission incomplete, meaning the log ends with the aircraft still airborne. And operator warning, a keyword match on the warning text vendors write into the log, things like GPS, failsafe, motor, compass, return-to-home, link lost. Each incident stores the L2 samples it fired on in a JSON column. That's what "Where is the evidence?" reads and what the PDF prints.
 
-## Bonus — operational realism
+Above that sits the fleet layer in `incidents.py` and `bulletins.py`. When a flight is re-indexed its rule incidents are deleted and rewritten in one transaction, then the patterns table is rebuilt across all flights by signature. Two flights with the same signature is a pattern. A bulletin is a row a human creates from a pattern and signs off. Nothing in the system ever sends a command to an aircraft.
 
-"The mission thread is: controller-side watcher sees a size-stable log, hashes and uploads it; the platform produces evidence; a human reviews a bulletin. No automated fleet action. The edge uploader survives restarts via its manifest. Operator locations are redacted. Replay works offline for cached regions. Not in scope: live GCS links, onboard inference, automated fixes, accreditation."
+`privacy.py` strips the operator's home coordinates before anything is persisted and writes an audit row saying it did. Retention runs on every ingest.
 
----
+The replay is CesiumJS served from our own process, no Ion token. It only ever sees `/v1/flights/{id}/path`, which is a stable contract we control, never raw vendor rows. Terrain and OpenStreetMap tiles for the three demo regions are cached on disk.
 
-## If asked something you don't know
+The model path is in `demo_api.py`. It sends at most a hundred flight summaries and fifty incidents to a local Ollama instance, and when the answer comes back `_validate_model_response` throws it away if any hypothesis cites an incident id that wasn't in the context we sent. Timeouts fall back to the deterministic answer. The console labels the whole panel as unverified.
 
-Say: "I'll show you in the code." Open the file. Don't guess a number.
+Finally the generator, `sdth-synth`, which isn't in the repo because its output is three gigabytes. It integrates a scenario card into a flight with a simple kinematic model and wind, then vendor "skins" write native-looking files. Two gates: one for physical sanity, one that refuses any home within fifty kilometres of a real reference location. The scenario cards are our ground truth for what the detectors should find.
+
+Tests: 197 in the platform, 30 for the parsers, 27 for the replay, 5 for the console. Run them if they ask; it takes eight seconds.
+
+## The "why" questions
+
+These come up in some form every time. Short answers, then stop talking.
+
+Why parse on the server and not the controller? Because the controller might be a phone. Keeping the edge dumb means a new vendor is a server deploy, and we keep the original bytes for audit. The cost is that uploads are bigger than they'd be if we pre-parsed.
+
+Why hash-based identities? Re-ingesting is idempotent, duplicates collapse globally, and if someone edits a log it becomes a different flight, which is what you want from evidence.
+
+Why not let the model do the parsing? We did, in July. It made up values. Not often, but it only has to happen once. We swapped in real parsers with schema validation and pushed the model to the edge of the system where it can only suggest, not assert.
+
+Why SQLite? Because you can run it right now on this laptop with one command, and the same schema runs under the Redis and Compose deployment we built for the two-laptop demo in August. We haven't hit a size where SQLite is the problem.
+
+Why synthetic data? We couldn't get rights to a real failure corpus of any size. Scenario cards give us ground truth, which real logs don't. Everything synthetic is labelled synthetic, and the real logs we did get were used to hunt false positives rather than to demo.
+
+Why cache Cesium and tiles locally? So the replay works with the wifi off, and so we're never quietly fetching terrain for a location we haven't vetted.
+
+If they want to see you change something, change a threshold in `detectors.py`, hit `POST /v1/flights/{id}/index-incidents`, and show the incident list move. That takes under a minute and covers the "can modify the system live" line in the rubric.
+
+They will ask who built what. Answer with file names, not areas.
+
+## The story of the three months
+
+They want to know the system changed because of what you learned, not just that it grew. Seventy-odd commits over 21 active days from 11 July to 21 September. The shape of it:
+
+July was the prototype. SQLite, Ollama, and parsers for ulg, bin, tlog, csv and xlsx. The model was doing the normalising, and that's the version that invented values.
+
+The big week was 22 August. In one push we did the unified parser contract, deterministic L2 persistence, incident indexing across missions, operator-location redaction with an audit trail, mitigation bulletins, the secure controller upload, and a two-laptop demo over Tailscale. We also wrote a raylib replay that week and threw it away for Cesium three days later.
+
+Early September was the mentor feedback about cheap drones. We refocused, added the two UXO-related detectors (mission incomplete and last known position) and rebuilt the replay UI.
+
+Mid-September was the synthetic corpus with its gates, the audit that found the DJI zero-altitude bug, and a relabelling. A mentor pointed out that a file called `gps_jamming` reads as a causal claim when all we can actually see is a GPS-weak warning. So the library now says "Exercise" and the docs say "the filename is not a diagnosis".
+
+The last week was cleanup you can verify: PDF without the model, false-positive fixes after running real public logs, a coverage audit of those logs, local Cesium and tile caching, and the per-stage timing lines you've been watching.
+
+The before-and-after files are in `output/evidence/`: `demo-console-live-before-altitude-fix.json` next to `demo-console-live.json`. Superseded work, including the collaboration brief with Orcrist that we dropped and the old report pipeline, is in `archive/`.
+
+## Bonus points
+
+The mission thread is: a watcher on the controller sees a finished log, hashes it and uploads it; the platform produces evidence; a human reads a bulletin and decides. The uploader survives restarts. Operator locations are redacted. The replay works offline for cached areas. Out of scope, and say so before they ask: live GCS links, anything running on the aircraft, automated fixes, and accreditation.
+
+## When you don't know
+
+Say "let me show you" and open the file. Never guess a number.
