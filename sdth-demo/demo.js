@@ -9,6 +9,8 @@ const DEMO_LIBRARY_LOGS = [
   { url: "/demo/fixtures/singapore/dji_csv_sg_hillview_inspection_dropout.csv", name: "dji_csv_sg_hillview_inspection_dropout.csv", type: "text/csv" },
   { url: "/demo/fixtures/singapore/dji_csv_sg_seletar_ends_airborne.csv", name: "dji_csv_sg_seletar_ends_airborne.csv", type: "text/csv" },
   { url: "/demo/fixtures/dji_csv_gps_jamming.csv", name: "dji_csv_gps_jamming.csv", type: "text/csv" },
+  { url: "/demo/fixtures/orbiter4_gps_denied_frozen.json", name: "orbiter4_gps_denied_frozen.json", type: "application/json" },
+  { url: "/demo/fixtures/dji_csv_motor_fail_recover_024.csv", name: "dji_csv_motor_fail_recover_024.csv", type: "text/csv" },
 ];
 const $ = (id) => document.getElementById(id);
 const wideLayout = window.matchMedia("(min-width: 760px)");
