@@ -1,6 +1,32 @@
 # Demo flow, step by step
 
-Button names below are the ones on screen. Keep the terminal running `./sdth-telemetry/scripts/demo-console.sh` visible next to the browser the whole time; it's half the demo.
+Button names below are the ones on screen. Keep the terminal visible next to the browser the whole time; it's half the demo.
+
+## Starting it
+
+From the repo root, in a terminal you'll leave on screen:
+
+```sh
+cd /Users/sylvesterlim/CodingFun/SDTH
+./sdth-telemetry/scripts/demo-console.sh
+```
+
+That one script starts the API, the background ingestion worker, the console and the replay viewer, all in one process on `127.0.0.1:8010`, and opens the browser for you. Stop it with Ctrl+C. It's `./sdth-telemetry/scripts/demo-console.sh`, not `demo-console.sh`; the script isn't on your PATH.
+
+On a fresh clone, or if `.venv` is missing, do this once first:
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -e './sdth-telemetry/platform-api[dev]'
+```
+
+Optional, in a second terminal, only if you plan to show the model step:
+
+```sh
+ollama serve
+```
+
+If a stale server is already on 8010 from earlier, the new one will fail to bind. Find it with `lsof -i :8010` and kill it, then start again. Restart the server after any code change; the old process keeps running the old code.
 
 Before they arrive: server up, console open at `http://127.0.0.1:8010/demo/`, no session connected yet (press **Clear session** if one is). Have `sdth-demo/fixtures/dji_csv_gps_jamming.csv` and the three files in `sdth-demo/fixtures/perturbed/` sitting in a Finder window.
 
