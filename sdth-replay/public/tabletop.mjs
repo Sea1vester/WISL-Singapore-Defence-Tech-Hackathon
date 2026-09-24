@@ -150,8 +150,18 @@ export function elevationHeightAt(elevation, lon, lat) {
 
 function color(C, value) { return C.Color.fromCssColorString(value); }
 function positions(C, points, height) { return points.map((p) => C.Cartesian3.fromDegrees(p.lon, p.lat, Number.isFinite(p.height) ? p.height : height)); }
-function instance(C, geometry, css) {
-  return new C.GeometryInstance({ geometry, attributes: { color: C.ColorGeometryInstanceAttribute.fromColor(color(C, css)) } });
+function instance(C, geometry, css, id) {
+  return new C.GeometryInstance({
+    ...(id !== undefined ? { id } : {}),
+    geometry,
+    attributes: { color: C.ColorGeometryInstanceAttribute.fromColor(color(C, css)) },
+  });
+}
+
+function lightenCss(css, fraction) {
+  const n = parseInt(css.slice(1), 16);
+  const lift = (v) => Math.round(v + (255 - v) * fraction);
+  return `#${((lift((n >> 16) & 255) << 16) | (lift((n >> 8) & 255) << 8) | lift(n & 255)).toString(16).padStart(6, "0")}`;
 }
 
 function polygon(C, points, height, extrudedHeight, perPositionHeight = false) {
@@ -260,7 +270,7 @@ export function createTabletop(viewer, data, options = {}) {
   collection.show = options.show !== false;
   viewer.scene.primitives.add(collection);
   const categorized = { terrain: [], surfaces: [], roads: [], buildings: [], seams: [], labels: [] };
-  const add = (instances, category) => { const p = primitive(C, instances); if (p) { collection.add(p); if (category) categorized[category].push(p); } };
+  const add = (instances, category) => { const p = primitive(C, instances); if (p) { collection.add(p); if (category) categorized[category].push(p); } return p; };
   const ground = groundFunction(data, options);
   const elevation = options.elevation || data?.elevation;
 
@@ -296,6 +306,9 @@ export function createTabletop(viewer, data, options = {}) {
   else if (options.terrain !== false) add([instance(C, polygon(C, slab, ground((bounds.west + bounds.east) / 2, (bounds.south + bounds.north) / 2) - 1, baseHeight), PALETTE.slab)], "terrain");
 
   const buildings = [], walls = [], roofs = [], trims = [], roads = [], strokes = [], surfaces = [], seams = [], siteLines = [];
+  // Wall/roof instances get stable ids so map-overlay mode can rewrite their
+  // colour (alpha + lighter roof) without rebuilding geometry.
+  const overlayShading = [];
   const streetLabels = [], streetNames = new Set();
   const centerLon=(bounds.west+bounds.east)/2, centerLat=(bounds.south+bounds.north)/2;
   const distance=element=>Math.min(...(element.geometry||[]).map(p=>(p.lon-centerLon)**2+(p.lat-centerLat)**2));
@@ -344,10 +357,14 @@ export function createTabletop(viewer, data, options = {}) {
     const roofRing = ring.map((p) => ({ ...p, height: baseAt(p) + height }));
     buildings.push(instance(C, polygon(C, ring, base, base - 0.18), kind === "stone" ? PALETTE.stone[tone] : PALETTE.building[tone]));
     const roofGeometry = new C.PolygonGeometry({ polygonHierarchy: new C.PolygonHierarchy(roofRing.map((p) => C.Cartesian3.fromDegrees(p.lon, p.lat, p.height))), perPositionHeight: true, vertexFormat: C.PerInstanceColorAppearance.VERTEX_FORMAT });
-    roofs.push(instance(C, roofGeometry, kind === "stone" ? PALETTE.stone[(tone + 1) % PALETTE.stone.length] : PALETTE.roof[tone]));
+    const roofCss = kind === "stone" ? PALETTE.stone[(tone + 1) % PALETTE.stone.length] : PALETTE.roof[tone];
+    roofs.push(instance(C, roofGeometry, roofCss, `roof-${buildingIndex}`));
+    overlayShading.push({ prim: "roof", id: `roof-${buildingIndex}`, css: roofCss, overlayCss: lightenCss(roofCss, 0.22), alpha: 0.7 });
     for (let i = 0; i < ring.length; i += 1) {
       const edge = [ring[i], ring[(i + 1) % ring.length]];
-      walls.push(instance(C, new C.WallGeometry({ positions: positions(C, edge, 0), minimumHeights: edge.map((p) => baseAt(p) + minHeight), maximumHeights: edge.map((p) => baseAt(p) + height), vertexFormat: C.PerInstanceColorAppearance.VERTEX_FORMAT }), kind === "stone" ? PALETTE.stone[(tone + i) % PALETTE.stone.length] : PALETTE.wall[(tone + i) % PALETTE.wall.length]));
+      const wallCss = kind === "stone" ? PALETTE.stone[(tone + i) % PALETTE.stone.length] : PALETTE.wall[(tone + i) % PALETTE.wall.length];
+      walls.push(instance(C, new C.WallGeometry({ positions: positions(C, edge, 0), minimumHeights: edge.map((p) => baseAt(p) + minHeight), maximumHeights: edge.map((p) => baseAt(p) + height), vertexFormat: C.PerInstanceColorAppearance.VERTEX_FORMAT }), wallCss, `wall-${buildingIndex}-${i}`));
+      overlayShading.push({ prim: "wall", id: `wall-${buildingIndex}-${i}`, css: wallCss, overlayCss: wallCss, alpha: 0.55 });
     }
     // Sparse orange roof rims provide the only accent, every fourth feature.
     if (kind === "building" && buildingIndex % 4 === 0) {
@@ -365,8 +382,12 @@ export function createTabletop(viewer, data, options = {}) {
     seams.push(...ribbon(C, horizontal, 0.45, ground, -0.82, PALETTE.seam));
   }
   add(surfaces, "surfaces"); add(siteLines, "surfaces"); add(roads, "roads"); add(strokes, "roads");
-  add(buildings, "buildings"); add(walls, "buildings"); add(roofs, "buildings"); add(trims, "buildings");
+  add(buildings, "buildings");
+  const wallsPrim = add(walls, "buildings");
+  const roofsPrim = add(roofs, "buildings");
+  add(trims, "buildings");
   add(seams, "seams");
+  const overlayPrims = { wall: wallsPrim, roof: roofsPrim };
 
   // Street-name labels live in the same collection, so show/hide and destroy
   // stay in step with the geometry they belong to.
@@ -405,11 +426,37 @@ export function createTabletop(viewer, data, options = {}) {
       for (const prim of prims) prim.show = shown;
     }
   };
+  // In map-overlay mode the extruded buildings sit over real imagery, so the
+  // opaque baked colours would read as pasted-on slabs: walls go translucent
+  // (~55%) and roofs semi-transparent (~70%) with a lighter tone, while the
+  // orange footprint trims stay opaque. Tabletop mode restores flat opaque
+  // colours. Per-instance alpha only blends in the translucent pass, so the
+  // two primitives' appearance is swapped alongside the colour rewrite.
+  const applyOverlayStyle = () => {
+    for (const [key, prim] of Object.entries(overlayPrims)) {
+      if (prim) prim.appearance = new C.PerInstanceColorAppearance({ flat: true, translucent: mapOverlay, closed: true });
+    }
+    let pending = false;
+    for (const rec of overlayShading) {
+      const prim = overlayPrims[rec.prim];
+      if (!prim) continue;
+      if (!prim.ready) { pending = true; continue; }
+      const attrs = prim.getGeometryInstanceAttributes(rec.id);
+      if (!attrs?.color) continue;
+      const css = mapOverlay ? rec.overlayCss : rec.css;
+      attrs.color = C.ColorGeometryInstanceAttribute.toValue(
+        color(C, css).withAlpha(mapOverlay ? rec.alpha : 1.0),
+      );
+    }
+    // Asynchronous primitives finish compiling after the overlay toggle; one
+    // retry catches stragglers without a per-frame cost.
+    if (pending) setTimeout(applyOverlayStyle, 400);
+  };
   return {
     get show() { return collection.show; },
     set show(value) { this.setVisible(value); },
     setVisible(value) { visible = Boolean(value); applyVisibility(); },
-    setMapOverlay(value) { mapOverlay = Boolean(value); applyVisibility(); },
+    setMapOverlay(value) { mapOverlay = Boolean(value); applyVisibility(); applyOverlayStyle(); },
     destroy() { if (!collection.isDestroyed?.()) viewer.scene.primitives.remove(collection); },
   };
 }

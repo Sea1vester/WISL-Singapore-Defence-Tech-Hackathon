@@ -11,7 +11,7 @@ cd /Users/sylvesterlim/CodingFun/SDTH
 ./sdth-telemetry/scripts/demo-console.sh
 ```
 
-That one script starts the API, the background ingestion worker, the console and the replay viewer, all in one process on `127.0.0.1:8010`, and opens the browser for you. Stop it with Ctrl+C. It's `./sdth-telemetry/scripts/demo-console.sh`, not `demo-console.sh`; the script isn't on your PATH.
+That one script starts the API, the background ingestion worker, the console and the replay viewer, all in one process on `127.0.0.1:8010`, and opens the browser for you. Stop it with Ctrl+C. It's `./sdth-telemetry/scripts/demo-console.sh`, not `demo-console.sh`; the script isn't on your PATH. On the demo laptop, delete `data/demo-console.db` before the session so the Mission library contains only the six Singapore missions, not earlier imports.
 
 On a fresh clone, or if `.venv` is missing, do this once first:
 
