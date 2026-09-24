@@ -30,3 +30,8 @@ sdth-replay/public/cesium/
 wisl-demo-record/
 my_team_workspace/
 archive/reference/*transcript*
+# Datasets stay local. Only sdth-demo/fixtures (demo library + perturbed judge set),
+# output/evidence/corpus-validation-v2/failure-fixtures (multi-format judge set) and
+# tiny parser test fixtures are tracked.
+output/evidence/corpus-validation/supplemental/**/DJI/
+archive/sdth-vision/tests/fixtures/pipeline20/

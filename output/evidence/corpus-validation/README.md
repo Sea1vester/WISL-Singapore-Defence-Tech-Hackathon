@@ -8,10 +8,10 @@ The 20 timeouts are failures of the bounded processing check and have no negativ
 
 `targeted-corrected/corpus-validation.json` is the focused post-fix regression: the 10 original DJI CSV exports plus two separate supplemental synthetic fixtures passed parsing, canonicalization, detector expectations, and required integrity checks (12/12). Its isolated database exercise uploaded, processed, persisted, replayed, and queried original `gps_jamming` and `gps_denied_frozen` logs in 3.04 seconds. It reported 225 replay samples and the expected `operator_warning` / `last_known_position` incidents respectively.
 
-The supplemental files are outside the submitted corpus:
+The supplemental files are outside the submitted corpus. Their scenario cards and manifests (with SHA-256) stay here; the CSV bytes themselves are tracked once, in `sdth-demo/fixtures/`:
 
-- `supplemental/normal-control/DJI/dji_csv/dji_csv_supplemental_normal_control.csv` is an injected-cue-free simulator control and produced no incidents after the DJI valid-zero fix.
-- `supplemental/gps-weak-recurrence/DJI/dji_csv/dji_csv_supplemental_gps_weak_recurrence.csv` is a separate simulator mission with a distinct seed, home, and route; it produced `operator_warning` from the exact GPS-weak text.
+- `sdth-demo/fixtures/dji_csv_supplemental_normal_control.csv` is an injected-cue-free simulator control and produced no incidents after the DJI valid-zero fix.
+- `sdth-demo/fixtures/dji_csv_supplemental_gps_weak_recurrence.csv` is a separate simulator mission with a distinct seed, home, and route; it produced `operator_warning` from the exact GPS-weak text.
 
 These are simulator checks only. A GPS weak warning, frozen position, or the UI's `jamming` label does not establish an RF-jamming cause or another operational fact.
 
