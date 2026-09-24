@@ -32,14 +32,14 @@ The replay currently loads Cesium and map resources externally. Local model infe
 
 This order follows the submitted two-minute voiceover ([`demo-pitch-vo.md`](demo-pitch-vo.md)):
 
-1. Open the nominal control mission (**Exercise · Normal control**). The log parses cleanly and the detector engine flags zero incidents; mouse over the empty incident feed.
-2. Open **Supplemental GPS-weak mission** from the library. This is a separate generated mission for recurrence testing, outside the original 90-file corpus. Press Play on the 3D track, trace altitude/battery, and switch between **Map** and **Tabletop** views.
+1. Open the nominal control mission (**Lim Chu Kang · Survey · Normal control**). The log parses cleanly and the detector engine flags zero incidents; mouse over the empty incident feed.
+2. Open **Lim Chu Kang · Survey · GPS-weak** from the library. This is a separate generated mission for recurrence testing, outside the original 90-file corpus. Press Play on the 3D track, trace altitude/battery, and switch between **Tabletop**, **Map** and **Satellite** views.
 3. Click **Replay this observation** (or scrub to the warning marker) to pause at the exact recorded timestamp of the GPS-weak warning.
 4. In **Mission analysis**, ask **What happened?**, then **Similar warnings**. **Where is the evidence?** is the third deterministic query. An empty match result is valid until another record with the same warning is ingested.
 5. Open **Recurring patterns** and click **Create review bulletin**. These are review records, with no automatic vehicle commands or maintenance actions.
-6. Stay on **Supplemental GPS-weak mission** and click **⬇ Comprehensive PDF**. The console shows **Building PDF…** for roughly 15 seconds; open the downloaded `{flight-id}-comprehensive-report.pdf` to show findings and evidence pages.
+6. Stay on **Lim Chu Kang · Survey · GPS-weak** and click **⬇ Comprehensive PDF**. The console shows **Building PDF…** for roughly 15 seconds; open the downloaded `{flight-id}-comprehensive-report.pdf` to show findings and evidence pages.
 7. Optionally expand **AI-assisted analysis** and click **Analyze fleet records**. Inspect cited observations and limitations.
-8. Close on **Exercise · Recording ends airborne** — press Play; the log ends while the aircraft is still airborne. **Supplemental normal-control mission** and the original logger-dropout log are also available. Label all synthetic material. Consult the validation report for expected results and false alerts.
+8. Close on **Seletar · Recording ends airborne** — press Play; the log ends while the aircraft is still airborne. **Seletar · Perimeter · GPS-weak** (the recurrence partner) and **Hillview · Inspection · Telemetry dropout** are also available. Label all synthetic material. Consult the validation report for expected results and false alerts.
 
 To demonstrate a fresh ingestion, select **Import log** (or **Logs & uploads**). Use **Try an example log with a GPS warning**, or upload `sdth-demo/fixtures/dji_csv_gps_jamming.csv` (an unchanged copy from the intended original corpus). Wait for **Ready to review**. The filename describes the generator scenario; the supported observation is a GPS-weak warning, not proof of jamming. **Flight library** switches between stored missions; **Replay this observation** pauses at the incident timestamp. A detector observation may also expose a parser or simulator artifact; inspect its evidence before drawing a conclusion.
 

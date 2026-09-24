@@ -11,7 +11,7 @@ const SOURCES = [
   { prefix: "", suffix: ".png", minZoom: 13, maxZoom: 18 },
   { prefix: "sat/", suffix: ".jpg", minZoom: 13, maxZoom: 19 },
 ];
-const MAX_TILES = 8000;
+const MAX_TILES = Number(process.env.WARM_MAX_TILES || 30000);
 const DELAY_MS = Number(process.env.WARM_TILE_DELAY_MS || 60);
 
 const atlasPath = path.join(__dirname, "..", "public", "assets", "tabletop-atlas.json");

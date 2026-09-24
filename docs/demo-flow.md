@@ -46,7 +46,7 @@ Roughly twelve minutes if you don't get interrupted. You will get interrupted; t
 
 ## 2. Open a clean flight first
 
-**Do:** Click **Exercise · Normal control**. Wait for the replay to load. Open **Mission analysis** at the bottom.
+**Do:** Click **Lim Chu Kang · Survey · Normal control**. Wait for the replay to load. Open **Mission analysis** at the bottom.
 
 **Say:** "Start with the boring one. This is a nominal flight: takeoff, cruise, return, land. The detectors ran on it and found nothing. I'm showing you this first because zero incidents on a clean flight is the control. If anything lit up here we'd have a false-positive problem, and we did have one in September, which I'll come back to."
 
@@ -56,7 +56,7 @@ Don't linger. Fifteen seconds.
 
 ## 3. Open the flagged flight and press play
 
-**Do:** Click **Supplemental GPS-weak mission**. Press **Play** in the replay. Let it run for ten seconds or so, then point at the telemetry strip.
+**Do:** Click **Lim Chu Kang · Survey · GPS-weak**. Press **Play** in the replay. Let it run for ten seconds or so, then point at the telemetry strip.
 
 **Say:** "Same pipeline, different log. The aircraft follows its recorded positions on the recorded clock. Altitude, battery and UTC along the bottom are straight out of the log. Track speed is the one derived number, from consecutive positions. The path in the inset is the whole route.
 
@@ -102,9 +102,9 @@ Flip to the evidence page and point at the timestamps matching the incident you 
 
 ## 7. The big 3D view
 
-**Do:** Press **Full view ↗** next to the replay heading. It opens `/replay/` in a new tab with the same flight. Toggle between **Map** and **Tabletop**. Drag to orbit, scroll to zoom. Press **Play** again.
+**Do:** Press **Full view ↗** next to the replay heading. It opens `/replay/` in a new tab with the same flight. Toggle between **Tabletop**, **Map** and **Satellite**. Drag to orbit, scroll to zoom. Press **Play** again.
 
-**Say:** "Same viewer, full screen. Map is OpenStreetMap imagery on cached elevation. Tabletop is the same terrain drawn as a low-poly model, which is easier to read when you're looking at a path rather than a place. The aircraft model is oversized so you can see it; the path is at true scale.
+**Say:** "Same viewer, full screen. Map is OpenStreetMap imagery on cached elevation. Tabletop is the same terrain drawn as a low-poly model, which is easier to read when you're looking at a path rather than a place. The aircraft renders at true 1:1 scale when the camera is close and enlarges to a marker from far away — the HUD toggle switches between **1:1** and **Enlarged**; a scale legend in the corner shows the ground distance.
 
 The viewer only ever sees one endpoint, `/v1/flights/{id}/path`. It never sees raw vendor rows. That's the contract that let us swap the whole renderer once already: the first version of this was raylib, and we replaced it with Cesium in a week because the API didn't change."
 
@@ -148,7 +148,7 @@ Only if Ollama is running and only if they ask.
 
 ## 11. Close on the one that ends badly
 
-**Do:** Click **Exercise · Recording ends airborne**. Press **Play**. Let it run to the end.
+**Do:** Click **Seletar · Recording ends airborne**. Press **Play**. Let it run to the end.
 
 **Say:** "Last one. The log just stops with the aircraft still in the air. The mission_incomplete detector flags that: last sample airborne, no landing recorded. The incident carries the position of that last sample. We can't tell you why it stopped. We can tell you exactly where and when, and whether it's happened to another aircraft."
 

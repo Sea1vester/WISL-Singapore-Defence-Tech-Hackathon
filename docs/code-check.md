@@ -59,10 +59,10 @@ Other things to invite the mentor to try, and what to expect:
 - Any other bundled format: `output/evidence/corpus-validation-v2/failure-fixtures/` has Excel, Hermes and Orbiter skins of the same scenarios.
 - A file with an unsupported extension → rejected at `received` with the reason (extension gate).
 - A truncated or corrupted file → `stage=failed` in the log, `failed` status with the parser error; nothing half-written (the canonical write is one transaction).
-- A log outside the three cached regions → replay says **Terrain uncached · flat globe**; no terrain is invented.
+- A log outside the six cached regions → replay says **Terrain uncached · flat globe**; no terrain is invented.
 - Uploading with a wrong API key → 401.
 
-Envelope to state plainly: post-flight logs only; 13 extensions; detector thresholds are demonstration values (table in `sdth-telemetry/README.md`); terrain cached for three regions.
+Envelope to state plainly: post-flight logs only; 13 extensions; detector thresholds are demonstration values (table in `sdth-telemetry/README.md`); terrain cached for six regions (three in Singapore).
 
 ## 4. Technical Q&A — likely questions
 

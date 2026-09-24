@@ -22,7 +22,7 @@ Then do a fresh upload in front of them. Import log, drop `dji_csv_gps_jamming.c
 
 On the PDF, mention that it's ReportLab reading straight from the database. There's no model call in it. We used to have one and took it out in the last week because we wanted the report to be the same every time.
 
-Somewhere in here, say plainly what the system doesn't do. Post-flight only. Thirteen file extensions across nine vendor families. The thresholds are demonstration values we chose, not certified ones. Terrain is cached for three regions and outside those you get a flat globe, because we'd rather show nothing than invent ground.
+Somewhere in here, say plainly what the system doesn't do. Post-flight only. Thirteen file extensions across nine vendor families. The thresholds are demonstration values we chose, not certified ones. Terrain is cached for six regions (three in the UK, three in Singapore) and outside those you get a flat globe, because we'd rather show nothing than invent ground.
 
 ## When they want to break it
 
@@ -64,7 +64,7 @@ Above that sits the fleet layer in `incidents.py` and `bulletins.py`. When a fli
 
 `privacy.py` strips the operator's home coordinates before anything is persisted and writes an audit row saying it did. Retention runs on every ingest.
 
-The replay is CesiumJS served from our own process, no Ion token. It only ever sees `/v1/flights/{id}/path`, which is a stable contract we control, never raw vendor rows. Terrain and OpenStreetMap tiles for the three demo regions are cached on disk.
+The replay is CesiumJS served from our own process, no Ion token. It only ever sees `/v1/flights/{id}/path`, which is a stable contract we control, never raw vendor rows. Terrain, OpenStreetMap tiles and satellite imagery for the six demo regions are cached on disk.
 
 The model path is in `demo_api.py`. It sends at most a hundred flight summaries and fifty incidents to a local Ollama instance, and when the answer comes back `_validate_model_response` throws it away if any hypothesis cites an incident id that wasn't in the context we sent. Timeouts fall back to the deterministic answer. The console labels the whole panel as unverified.
 
