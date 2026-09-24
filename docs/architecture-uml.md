@@ -70,7 +70,7 @@ What happens between dropping a file and "Ready to review". The `stage=` labels 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Op as Operator / judge
+    actor Op as Operator or judge
     participant UI as Console (demo.js)
     participant API as ingest.py
     participant Q as local_worker
@@ -87,12 +87,12 @@ sequenceDiagram
     API->>DB: SELECT raw_uploads WHERE sha256 = ?
     alt digest already stored
         DB-->>API: existing row
-        API-->>UI: 200 {upload_id: existing, status}
+        API-->>UI: 200 upload_id of existing row
         Note over API: stage=received dedup=true
     else new digest
         API->>DB: INSERT raw_uploads (status=received)
         API->>Q: enqueue(upload_id)
-        API-->>UI: 200 {upload_id, status: received}
+        API-->>UI: 200 new upload_id, status received
         Note over API: stage=received dedup=false
         Q->>W: process_raw_upload(upload_id)
         W->>DB: UPDATE status=parsing
@@ -109,7 +109,7 @@ sequenceDiagram
         I->>DB: load L2 series
         I->>D: detect_incidents(series)
         D-->>I: [Incident]
-        I->>DB: DELETE rule incidents; INSERT incidents; rebuild incident_patterns
+        I->>DB: replace rule incidents, rebuild incident_patterns
         Note over W: stage=detected incidents=k types=…
         W->>Q: enqueue_translation_job(job_id)
         Note over W: stage=done total_ms=…
@@ -121,7 +121,7 @@ sequenceDiagram
     end
     loop until ready
         UI->>API: GET /v1/uploads/{id}
-        API-->>UI: {status}
+        API-->>UI: current status
     end
     UI->>API: GET /v1/flights/{id}, /incidents, /path
     UI-->>Op: Ready to review
