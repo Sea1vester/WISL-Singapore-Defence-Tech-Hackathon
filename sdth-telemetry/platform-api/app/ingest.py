@@ -1,5 +1,6 @@
 import hashlib
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from app.schemas import (
 )
 
 router = APIRouter(prefix="/v1", tags=["ingest"])
+logger = logging.getLogger("sdth.ingest")
 
 RAW_LOG_EXTENSIONS = {
     ".bin",
@@ -200,6 +202,10 @@ def upload_raw_log(
             ).fetchone()
             if existing:
                 temporary_path.unlink(missing_ok=True)
+                logger.info(
+                    "upload=%s stage=received name=%s bytes=%s sha256=%s dedup=true",
+                    existing["id"], original_name, size, sha256[:12],
+                )
                 return RawUploadResponse(
                     upload_id=existing["id"],
                     status=existing["status"],
@@ -232,6 +238,10 @@ def upload_raw_log(
         file.file.close()
 
     enqueue_raw_upload(upload_id)
+    logger.info(
+        "upload=%s stage=received name=%s bytes=%s sha256=%s dedup=false",
+        upload_id, original_name, size, sha256[:12],
+    )
     return RawUploadResponse(upload_id=upload_id, status="received", sha256=sha256)
 
 

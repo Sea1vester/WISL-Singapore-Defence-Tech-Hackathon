@@ -8,3 +8,4 @@ Superseded materials kept for history. None of these are part of the submitted W
 - `my_team_workspace/ruo-mei-action-plan.{md,json}` — internal planning duplicates of `docs/submission/action-plan.md`. (`my_team_workspace/shared_lavish_plan.html` stays at the repo root: `wfw` wires every worktree to it.)
 - `WISL x Orcrist - Data Ingestion Collaboration Brief.docx` — the Orcrist collaboration was dropped.
 - `build_wisl_final_report.py` / `WISL_FinalReport_v1.md` — the ReportLab/Markdown report pipeline, superseded by the `.tex` report.
+- `reference/` — programme reference materials: WISL guidelines, scorecard, proposal, conditional-approval letter, and pitch deck (coaching-room transcript is gitignored).

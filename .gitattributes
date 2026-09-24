@@ -5,3 +5,4 @@ output/evidence/corpus-validation-v2/**/*.csv -text -diff
 # Unified patches contain significant one-space context lines.
 output/evidence/corpus-validation-v2/generator-skin-patch.diff -whitespace
 output/pdf/*.pdf binary
+sdth-demo/fixtures/perturbed/*.csv -text -diff

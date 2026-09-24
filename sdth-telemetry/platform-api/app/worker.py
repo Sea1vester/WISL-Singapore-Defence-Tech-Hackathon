@@ -69,11 +69,18 @@ def process_raw_upload(upload_id: str) -> None:
             return
         _set_upload_status(conn, upload_id, "parsing")
 
+    started_total = time.perf_counter()
     try:
+        started = time.perf_counter()
         payload, parser_key = parse_raw_log(
             Path(upload["stored_path"]),
             sha256=upload["sha256"],
             original_name=upload["original_name"],
+        )
+        logger.info(
+            "upload=%s stage=parsed parser=%s source=%s records=%s ms=%s",
+            upload_id, parser_key, payload["source"], len(payload["records"]),
+            int((time.perf_counter() - started) * 1000),
         )
         redactions: list[str] = []
         if settings.redact_operator_location:
@@ -82,6 +89,7 @@ def process_raw_upload(upload_id: str) -> None:
         job_id = new_id()
         queued_job = None
         now = datetime.now(timezone.utc).isoformat()
+        started = time.perf_counter()
         with db_session() as conn:
             conn.execute(
                 """
@@ -163,16 +171,40 @@ def process_raw_upload(upload_id: str) -> None:
                 flight_id=payload["flight_id"],
                 ingest_id=ingest_id,
             )
+        logger.info(
+            "upload=%s stage=canonical flight=%s ingest=%s redactions=%s ms=%s",
+            upload_id, payload["flight_id"], ingest_id, len(redactions),
+            int((time.perf_counter() - started) * 1000),
+        )
         from app.incidents import index_flight
 
         try:
-            index_flight(payload["flight_id"])
+            started = time.perf_counter()
+            index_result = index_flight(payload["flight_id"])
+            with db_session() as conn:
+                rows = conn.execute(
+                    "SELECT DISTINCT incident_type FROM incidents WHERE flight_id = ?",
+                    (payload["flight_id"],),
+                ).fetchall()
+            logger.info(
+                "upload=%s stage=detected flight=%s incidents=%s types=%s ms=%s",
+                upload_id, payload["flight_id"], index_result["incident_count"],
+                ",".join(sorted(row["incident_type"] for row in rows)),
+                int((time.perf_counter() - started) * 1000),
+            )
         except Exception:
             logger.exception("Immediate incident index failed for %s", payload["flight_id"])
         if not existing or not queued_job or queued_job["status"] == "pending":
             enqueue_translation_job(job_id)
+        logger.info(
+            "upload=%s stage=done total_ms=%s",
+            upload_id, int((time.perf_counter() - started_total) * 1000),
+        )
     except Exception as exc:
-        logger.exception("Raw upload processing failed for %s", upload_id)
+        logger.exception(
+            "upload=%s stage=failed total_ms=%s",
+            upload_id, int((time.perf_counter() - started_total) * 1000),
+        )
         with db_session() as conn:
             _set_upload_status(conn, upload_id, "failed", error=str(exc))
 

@@ -47,6 +47,10 @@ The same exercise CSVs can still be loaded through the checksum-gated script:
 Duplicate content reuses the existing record.
 See the [validation report](docs/submission/corpus-validation.md) for supported conclusions and simulation limitations.
 
+### Perturbed fixtures (unhappy path)
+
+`sdth-demo/fixtures/perturbed/` holds synthetic DJI logs shifted 2 km north with 10% of rows dropped (one also has a 20 s mid-cruise gap) for the judges' unhappy-path test; see its `manifest.json` for observed detectors. They are not auto-imported — upload via the console's Import log dropzone. To perturb a judge-supplied DJI CSV: `.venv/bin/python sdth-telemetry/scripts/generate_perturbed_fixtures.py --input <file.csv> --out /tmp/perturbed --cut-gap`.
+
 ## Demo walkthrough
 
 The recorded demo sequence (narrated in [demo-pitch-vo.md](docs/submission/demo-pitch-vo.md)):
@@ -73,9 +77,11 @@ The download is needed once; skip `ollama serve` if it is already running. The l
 
 ## Runtime and evidence
 
-The database is `data/demo-console.db`; raw uploads, reports and visuals also stay under `data/`. These runtime files are excluded from Git. `WISL_PYTHON=/absolute/path/to/python` selects another Python environment; `API_PORT=8011` selects another local port. See the [detailed runbook](docs/submission/demo-runbook.md) for the complete demonstration sequence.
+The database is `data/demo-console.db`; raw uploads, reports and visuals also stay under `data/`. These runtime files are excluded from Git. `WISL_PYTHON=/absolute/path/to/python` selects another Python environment; `API_PORT=8011` selects another local port. See the [detailed runbook](docs/submission/demo-runbook.md) for the complete demonstration sequence. Every upload prints timed `stage=received → parsed → canonical → detected → done` lines in the launcher terminal (sample: `output/evidence/ingest-stage-log-sample.txt`).
 
 ## Layout
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — how the code fits together; [docs/code-check.md](docs/code-check.md) — live assessment guide and unhappy-path fixtures.
 
 The five packages, as described in the report:
 
@@ -92,7 +98,7 @@ Headline results from the report (§3):
 - 126 logs processed: the 90-file simulator inventory (ten scenario cards, nine format skins) plus a second gated set of 36 exports. Every file projected to schema-valid L2 within a 30-second bound.
 - 40 of 90 original files and all 36 gated exports met their declared scenario-card expectations; the normal control produced zero incidents.
 - A representative upload (GPS-warning CSV plus frozen-position JSON) reached ready status in 1.223 s, persisting 225 standardized records and indexing the expected alerts.
-- Test suites: 161 platform tests, 28 parser tests, 15 replay engine tests, 5 UI tests — all passing.
+- Test suites: 197 platform tests, 30 parser tests, 27 replay engine tests, 5 UI tests — all passing.
 - The audit caught and fixed a DJI parser defect that treated a true 0.0 m altitude as missing and fabricated takeoff spikes.
 
 Details: [docs/submission/corpus-validation.md](docs/submission/corpus-validation.md).

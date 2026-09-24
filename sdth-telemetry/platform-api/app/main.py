@@ -21,6 +21,11 @@ from app.query import router as query_router
 from app.tiles import router as tiles_router
 from app.visual_api import router as visual_router
 
+# Uvicorn only configures its own loggers; give the app/worker loggers a
+# stderr handler so per-stage ingest lines reach the console terminal too.
+if not logging.getLogger().handlers:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+
 logger = logging.getLogger("sdth")
 
 

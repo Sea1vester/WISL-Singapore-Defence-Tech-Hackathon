@@ -1,0 +1,67 @@
+{
+  "generated_for": "judges_unhappy_path_test",
+  "files": [
+    {
+      "file": "dji_csv_perturbed_normal_control_north2km_drop10.csv",
+      "sha256": "3dd3b7e25e6d0779f376be8e69bdf4d608c11f5c58c157354cdb8ba225be3279",
+      "source_card": "output/evidence/corpus-validation-v2/normal_control_v2.yaml",
+      "perturbation": {
+        "north_m": 2000.0,
+        "drop_frac": 0.1,
+        "seed": 2026,
+        "gap_s": null,
+        "rows_before": 215,
+        "rows_after": 197
+      },
+      "gate": {
+        "passed": true,
+        "issues": [],
+        "geography_gate": "passed"
+      },
+      "observed_detectors": {}
+    },
+    {
+      "file": "dji_csv_perturbed_gps_weak_north2km_drop10.csv",
+      "sha256": "e6732796a929505600e34730d1536fe853d55f0ee4d76aaed72471331901c87e",
+      "source_card": "sdth-synth/scenarios/hazards/gps_jamming.yaml",
+      "perturbation": {
+        "north_m": 2000.0,
+        "drop_frac": 0.1,
+        "seed": 2026,
+        "gap_s": null,
+        "rows_before": 225,
+        "rows_after": 202
+      },
+      "gate": {
+        "passed": true,
+        "issues": [],
+        "geography_gate": "passed"
+      },
+      "observed_detectors": {
+        "operator_warning": 1
+      }
+    },
+    {
+      "file": "dji_csv_perturbed_gps_weak_north2km_drop10_gap20s.csv",
+      "sha256": "1bb70537c176662eac46072e9399e9f195b4a234fb32a0acce7216bb15585bf5",
+      "source_card": "sdth-synth/scenarios/hazards/gps_jamming.yaml",
+      "perturbation": {
+        "north_m": 2000.0,
+        "drop_frac": 0.1,
+        "seed": 2026,
+        "gap_s": 20.0,
+        "rows_before": 202,
+        "rows_after": 182
+      },
+      "gate": {
+        "passed": true,
+        "issues": [],
+        "geography_gate": "passed"
+      },
+      "observed_detectors": {
+        "operator_warning": 1,
+        "telemetry_gap": 1
+      }
+    }
+  ]
+}

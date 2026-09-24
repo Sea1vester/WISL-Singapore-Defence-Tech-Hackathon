@@ -1,0 +1,14 @@
+# Ingest stage log sample — demo-console.sh, uvicorn stdout
+# Upload of sdth-demo/fixtures/perturbed/dji_csv_perturbed_gps_weak_north2km_drop10_gap20s.csv (dedup) + normal_control (fresh)
+2026-09-24 20:35:51,680 INFO upload=a79c578c-949d-4f4c-80c2-77cb8fb9a065 stage=received name=dji_csv_perturbed_gps_weak_north2km_drop10_gap20s.csv bytes=100753 sha256=1bb70537c176 dedup=true
+2026-09-24 20:35:51,695 INFO upload=89ff0171-4eec-40db-8eaa-06bffabb22a2 stage=received name=dji_csv_perturbed_normal_control_north2km_drop10.csv bytes=107521 sha256=3dd3b7e25e6d dedup=false
+2026-09-24 20:35:51,706 INFO upload=89ff0171-4eec-40db-8eaa-06bffabb22a2 stage=parsed parser=dji_csv source=dji-csv records=197 ms=7
+2026-09-24 20:35:51,730 INFO upload=89ff0171-4eec-40db-8eaa-06bffabb22a2 stage=canonical flight=flight-3dd3b7e25e6d0779f376 ingest=fb2fd7e0-83d2-416e-944c-470700849cd9 redactions=2 ms=22
+2026-09-24 20:35:51,738 INFO upload=89ff0171-4eec-40db-8eaa-06bffabb22a2 stage=detected flight=flight-3dd3b7e25e6d0779f376 incidents=0 types= ms=7
+2026-09-24 20:35:51,738 INFO upload=89ff0171-4eec-40db-8eaa-06bffabb22a2 stage=done total_ms=39
+
+# First upload of the same gap20s file (fresh ingest on this smoke db):
+2026-09-24 20:35:29,999 INFO upload=a79c578c-949d-4f4c-80c2-77cb8fb9a065 stage=parsed parser=dji_csv source=dji-csv records=182 ms=7
+2026-09-24 20:35:30,021 INFO upload=a79c578c-949d-4f4c-80c2-77cb8fb9a065 stage=canonical flight=flight-1bb70537c176662eac46 ingest=6d41147d-1293-466f-bcfc-9adbfe475ba8 redactions=2 ms=19
+2026-09-24 20:35:30,028 INFO upload=a79c578c-949d-4f4c-80c2-77cb8fb9a065 stage=detected flight=flight-1bb70537c176662eac46 incidents=2 types=operator_warning,telemetry_gap ms=6
+2026-09-24 20:35:30,028 INFO upload=a79c578c-949d-4f4c-80c2-77cb8fb9a065 stage=done total_ms=36
