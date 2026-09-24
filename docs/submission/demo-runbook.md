@@ -15,7 +15,7 @@ python3 -m venv .venv
 If the environment already exists, only run the last command. Use `WISL_PYTHON=/absolute/path/to/python` to select another installed environment. The launcher binds to loopback and uses a single background worker with SQLite; Redis is unnecessary for this local demo. The standard deployment's Redis queue remains available.
 
 Open **Session** and enter the value of `INGEST_API_KEYS`.
-The development default is `dev-teammate-key-change-me`; it is a public local development value, not a production credential.
+The development default is `dev-key-12345`; it is a public local development value, not a production credential.
 Connecting imports the bundled Mission library from `sdth-demo/fixtures/` into this laptop's SQLite store.
 The key does not sync flights between machines.
 Raw uploads and the database live under `data/` and are excluded from Git.

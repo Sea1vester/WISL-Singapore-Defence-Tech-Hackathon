@@ -17,9 +17,9 @@ if [[ -z "$API_KEY" && -f "$PROJECT_DIR/.env" ]]; then
   set -a
   source "$PROJECT_DIR/.env"
   set +a
-  API_KEY="${API_KEY:-${INGEST_API_KEYS:-dev-teammate-key-change-me}}"
+  API_KEY="${API_KEY:-${INGEST_API_KEYS:-dev-key-12345}}"
 fi
-API_KEY="${API_KEY:-dev-teammate-key-change-me}"
+API_KEY="${API_KEY:-dev-key-12345}"
 
 log() { printf '[Laptop B processor] %s\n' "$*"; }
 fail() { printf '[Laptop B processor] ERROR: %s\n' "$*" >&2; exit 1; }

@@ -25,7 +25,7 @@ export DEMO_STATIC_DIR="$TASK_ROOT/sdth-demo"
 export API_HOST=127.0.0.1
 export API_PORT="${API_PORT:-8010}"
 # The existing API key is entered in the console, never embedded in the page.
-export INGEST_API_KEYS="${INGEST_API_KEYS:-dev-teammate-key-change-me}"
+export INGEST_API_KEYS="${INGEST_API_KEYS:-dev-key-12345}"
 DEMO_URL="http://127.0.0.1:${API_PORT}/demo/"
 printf 'WISL console: %s\n' "$DEMO_URL"
 printf 'Open that URL. http://127.0.0.1:%s/ and /replay/ redirect there.\n' "$API_PORT"

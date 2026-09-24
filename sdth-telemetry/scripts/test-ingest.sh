@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API_KEY="${INGEST_API_KEYS:-dev-teammate-key-change-me}"
+API_KEY="${INGEST_API_KEYS:-dev-key-12345}"
 BASE_URL="${BASE_URL:-http://localhost:8000}"
 FIXTURE="${FIXTURE:-fixtures/sample_l1.json}"
 

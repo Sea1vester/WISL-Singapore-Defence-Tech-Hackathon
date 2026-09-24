@@ -18,7 +18,7 @@ Once dependencies are installed, only the last command is needed.
 The launcher prints and opens **<http://127.0.0.1:8010/demo/>**.
 `http://127.0.0.1:8010/` and `/replay/` now redirect there.
 `/replay/?embed=1` is only the 3D view inside the console.
-In **Session**, enter the development key `dev-teammate-key-change-me`, or one key from your `INGEST_API_KEYS` setting.
+In **Session**, enter the development key `dev-key-12345`, or one key from your `INGEST_API_KEYS` setting.
 This launcher runs the API and one background ingestion worker locally; Redis is not needed.
 Stop it with Ctrl+C.
 Run it again to recover interrupted ingestion jobs.

@@ -25,7 +25,7 @@ def main():
     inputs = [item for item in audit["files_detail"] if item.get("parser") == "dji_csv"]
     if not inputs or not all(item.get("detection_expectation_met") for item in inputs):
         raise SystemExit("Run and inspect the failure-fixture audit before loading the demo.")
-    key = os.environ.get("INGEST_API_KEY", "dev-teammate-key-change-me")
+    key = os.environ.get("INGEST_API_KEY", "dev-key-12345")
     results = []
     with httpx.Client(base_url=args.base_url, headers={"Authorization": f"Bearer {key}"}, timeout=30) as client:
         for item in inputs:

@@ -36,7 +36,7 @@ Roughly twelve minutes if you don't get interrupted. You will get interrupted; t
 
 ## 1. Connect a session
 
-**Do:** Open **Session**, paste `dev-teammate-key-change-me`, press **Connect**. The Mission library fills in on the left.
+**Do:** Open **Session**, paste `dev-key-12345`, press **Connect**. The Mission library fills in on the left.
 
 **Say:** "The console never has a key baked into it. You enter one, it goes in a header on every request, and the server checks it against a list. This one's the local development key. Connecting also imports the bundled missions into this laptop's SQLite, which is why the library just populated. They're synthetic flights from our generator; each is labelled as such."
 

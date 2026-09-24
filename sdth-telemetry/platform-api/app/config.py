@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     database_path: str = "./data/telemetry.db"
     redis_url: str = "redis://localhost:6379/0"
-    ingest_api_keys: str = "dev-teammate-key-change-me"
+    ingest_api_keys: str = "dev-key-12345"
     # Defaults target a plain local Ollama install. host.docker.internal only
     # resolves from inside a container, so whenever the API ran directly on the
     # host the model was unreachable and the AI-analysis panel sat permanently
