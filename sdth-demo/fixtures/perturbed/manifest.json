@@ -3,39 +3,39 @@
   "files": [
     {
       "file": "dji_csv_perturbed_normal_control_north2km_drop10.csv",
-      "sha256": "3dd3b7e25e6d0779f376be8e69bdf4d608c11f5c58c157354cdb8ba225be3279",
-      "source_card": "output/evidence/corpus-validation-v2/normal_control_v2.yaml",
+      "sha256": "397ce32aee0700e1b2f1643120b314b14159bd544865b98d78ffdd9ff5c1f63c",
+      "source_card": "sdth-synth/scenarios/singapore/sg_lck_survey_normal.yaml",
       "perturbation": {
         "north_m": 2000.0,
         "drop_frac": 0.1,
         "seed": 2026,
         "gap_s": null,
-        "rows_before": 215,
-        "rows_after": 197
+        "rows_before": 476,
+        "rows_after": 442
       },
       "gate": {
         "passed": true,
         "issues": [],
-        "geography_gate": "passed"
+        "geography_gate": "skipped: home 1.4229864321183747,103.7 is within 50 km of a gold/demo/SITL origin"
       },
       "observed_detectors": {}
     },
     {
       "file": "dji_csv_perturbed_gps_weak_north2km_drop10.csv",
-      "sha256": "e6732796a929505600e34730d1536fe853d55f0ee4d76aaed72471331901c87e",
-      "source_card": "sdth-synth/scenarios/hazards/gps_jamming.yaml",
+      "sha256": "a512f69e848ec427c20b026857c749f7dea547c50e9543ce2201e113448f4090",
+      "source_card": "sdth-synth/scenarios/singapore/sg_lck_survey_gps_weak.yaml",
       "perturbation": {
         "north_m": 2000.0,
         "drop_frac": 0.1,
         "seed": 2026,
         "gap_s": null,
-        "rows_before": 225,
-        "rows_after": 202
+        "rows_before": 476,
+        "rows_after": 429
       },
       "gate": {
         "passed": true,
         "issues": [],
-        "geography_gate": "passed"
+        "geography_gate": "skipped: home 1.4229864321183747,103.70135 is within 50 km of a gold/demo/SITL origin"
       },
       "observed_detectors": {
         "operator_warning": 1
@@ -43,20 +43,20 @@
     },
     {
       "file": "dji_csv_perturbed_gps_weak_north2km_drop10_gap20s.csv",
-      "sha256": "1bb70537c176662eac46072e9399e9f195b4a234fb32a0acce7216bb15585bf5",
-      "source_card": "sdth-synth/scenarios/hazards/gps_jamming.yaml",
+      "sha256": "886ffa9dc8f44fea7c108a664823b05e61345b88c3882e0fa9a2b7a84e8f5b26",
+      "source_card": "sdth-synth/scenarios/singapore/sg_lck_survey_gps_weak.yaml",
       "perturbation": {
         "north_m": 2000.0,
         "drop_frac": 0.1,
         "seed": 2026,
         "gap_s": 20.0,
-        "rows_before": 202,
-        "rows_after": 182
+        "rows_before": 429,
+        "rows_after": 412
       },
       "gate": {
         "passed": true,
         "issues": [],
-        "geography_gate": "passed"
+        "geography_gate": "skipped: home 1.4229864321183747,103.70135 is within 50 km of a gold/demo/SITL origin"
       },
       "observed_detectors": {
         "operator_warning": 1,

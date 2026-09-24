@@ -1,0 +1,100 @@
+name: sg_lck_survey_normal
+aircraft_name: Mini 4 Pro
+seed: 401
+dt_s: 1.0
+start_battery_pct: 88
+end_battery_pct: 74
+min_battery_pct: 70
+cruise_alt_m: 60
+wind_ms: 1.8
+gps_degraded_at_s: null
+home:
+  lat: 1.40500
+  lon: 103.70000
+phases:
+  - name: ground
+    duration_s: 8
+  - name: takeoff
+    duration_s: 26
+    alt_m: 60
+    speed_ms: 1.2
+  # transit to survey start corner (SW of the box)
+  - name: cruise
+    duration_s: 32
+    north_m: -175
+    east_m: -150
+    alt_m: 60
+    speed_ms: 8.0
+  # lawnmower: 6 legs 350 m N-S, 60 m sidestep E between legs
+  - name: cruise
+    duration_s: 45
+    north_m: 175
+    east_m: -150
+    alt_m: 60
+    speed_ms: 8.0
+  - name: cruise
+    duration_s: 10
+    north_m: 175
+    east_m: -90
+    alt_m: 60
+    speed_ms: 6.0
+  - name: cruise
+    duration_s: 45
+    north_m: -175
+    east_m: -90
+    alt_m: 60
+    speed_ms: 8.0
+  - name: cruise
+    duration_s: 10
+    north_m: -175
+    east_m: -30
+    alt_m: 60
+    speed_ms: 6.0
+  - name: cruise
+    duration_s: 45
+    north_m: 175
+    east_m: -30
+    alt_m: 60
+    speed_ms: 8.0
+  - name: cruise
+    duration_s: 10
+    north_m: 175
+    east_m: 30
+    alt_m: 60
+    speed_ms: 6.0
+  - name: cruise
+    duration_s: 45
+    north_m: -175
+    east_m: 30
+    alt_m: 60
+    speed_ms: 8.0
+  - name: cruise
+    duration_s: 10
+    north_m: -175
+    east_m: 90
+    alt_m: 60
+    speed_ms: 6.0
+  - name: cruise
+    duration_s: 45
+    north_m: 175
+    east_m: 90
+    alt_m: 60
+    speed_ms: 8.0
+  - name: cruise
+    duration_s: 10
+    north_m: 175
+    east_m: 150
+    alt_m: 60
+    speed_ms: 6.0
+  - name: cruise
+    duration_s: 45
+    north_m: -175
+    east_m: 150
+    alt_m: 60
+    speed_ms: 8.0
+  - name: rth
+    duration_s: 50
+    speed_ms: 8.0
+  - name: land
+    duration_s: 40
+    speed_ms: 1.0

@@ -1,0 +1,100 @@
+name: sg_lck_survey_gps_weak
+aircraft_name: Mini 4 Pro
+seed: 417
+dt_s: 1.0
+start_battery_pct: 86
+end_battery_pct: 72
+min_battery_pct: 68
+cruise_alt_m: 60
+wind_ms: 2.1
+gps_degraded_at_s: 240
+gps_degraded_for_s: 25
+operator_warning_text: "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+home:
+  lat: 1.40500
+  lon: 103.70135
+phases:
+  - name: ground
+    duration_s: 8
+  - name: takeoff
+    duration_s: 26
+    alt_m: 60
+    speed_ms: 1.2
+  - name: cruise
+    duration_s: 32
+    north_m: -175
+    east_m: -150
+    alt_m: 60
+    speed_ms: 8.0
+  - name: cruise
+    duration_s: 45
+    north_m: 175
+    east_m: -150
+    alt_m: 60
+    speed_ms: 8.0
+  - name: cruise
+    duration_s: 10
+    north_m: 175
+    east_m: -90
+    alt_m: 60
+    speed_ms: 6.0
+  - name: cruise
+    duration_s: 45
+    north_m: -175
+    east_m: -90
+    alt_m: 60
+    speed_ms: 8.0
+  - name: cruise
+    duration_s: 10
+    north_m: -175
+    east_m: -30
+    alt_m: 60
+    speed_ms: 6.0
+  - name: cruise
+    duration_s: 45
+    north_m: 175
+    east_m: -30
+    alt_m: 60
+    speed_ms: 8.0
+  - name: cruise
+    duration_s: 10
+    north_m: 175
+    east_m: 30
+    alt_m: 60
+    speed_ms: 6.0
+  - name: cruise
+    duration_s: 45
+    north_m: -175
+    east_m: 30
+    alt_m: 60
+    speed_ms: 8.0
+  - name: cruise
+    duration_s: 10
+    north_m: -175
+    east_m: 90
+    alt_m: 60
+    speed_ms: 6.0
+  - name: cruise
+    duration_s: 45
+    north_m: 175
+    east_m: 90
+    alt_m: 60
+    speed_ms: 8.0
+  - name: cruise
+    duration_s: 10
+    north_m: 175
+    east_m: 150
+    alt_m: 60
+    speed_ms: 6.0
+  - name: cruise
+    duration_s: 45
+    north_m: -175
+    east_m: 150
+    alt_m: 60
+    speed_ms: 8.0
+  - name: rth
+    duration_s: 50
+    speed_ms: 8.0
+  - name: land
+    duration_s: 40
+    speed_ms: 1.0

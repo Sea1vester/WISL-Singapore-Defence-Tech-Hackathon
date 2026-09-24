@@ -1,0 +1,64 @@
+name: sg_seletar_perimeter_gps_weak
+aircraft_name: Mini 4 Pro
+seed: 433
+dt_s: 1.0
+start_battery_pct: 84
+end_battery_pct: 71
+min_battery_pct: 66
+cruise_alt_m: 45
+wind_ms: 2.0
+gps_degraded_at_s: 130
+gps_degraded_for_s: 25
+operator_warning_text: "GPS signal weak. Hovering unstable. Fly with caution (Code: 30008)."
+home:
+  lat: 1.41650
+  lon: 103.86550
+phases:
+  - name: ground
+    duration_s: 8
+  - name: takeoff
+    duration_s: 20
+    alt_m: 45
+    speed_ms: 1.2
+  # perimeter patrol around the apron, five legs, home inside the loop
+  - name: cruise
+    duration_s: 40
+    north_m: 0
+    east_m: 260
+    alt_m: 45
+    speed_ms: 7.0
+  - name: cruise
+    duration_s: 42
+    north_m: 280
+    east_m: 260
+    alt_m: 45
+    speed_ms: 7.0
+  - name: cruise
+    duration_s: 42
+    north_m: 280
+    east_m: -240
+    alt_m: 45
+    speed_ms: 7.0
+  - name: cruise
+    duration_s: 42
+    north_m: -140
+    east_m: -240
+    alt_m: 45
+    speed_ms: 7.0
+  - name: cruise
+    duration_s: 30
+    north_m: -140
+    east_m: 0
+    alt_m: 45
+    speed_ms: 7.0
+  - name: hover
+    duration_s: 12
+    north_m: -140
+    east_m: 0
+    alt_m: 45
+  - name: rth
+    duration_s: 40
+    speed_ms: 7.0
+  - name: land
+    duration_s: 32
+    speed_ms: 1.0

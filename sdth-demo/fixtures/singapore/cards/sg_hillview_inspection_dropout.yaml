@@ -1,0 +1,57 @@
+name: sg_hillview_inspection_dropout
+aircraft_name: Mini 4 Pro
+seed: 461
+dt_s: 1.0
+start_battery_pct: 82
+end_battery_pct: 70
+min_battery_pct: 66
+cruise_alt_m: 50
+wind_ms: 1.7
+gps_degraded_at_s: null
+logger_gap_at_s: 110
+logger_gap_for_s: 18
+home:
+  lat: 1.36280
+  lon: 103.76720
+phases:
+  - name: ground
+    duration_s: 6
+  - name: takeoff
+    duration_s: 22
+    alt_m: 50
+    speed_ms: 1.2
+  - name: cruise
+    duration_s: 30
+    north_m: 180
+    east_m: -40
+    alt_m: 50
+    speed_ms: 6.5
+  - name: cruise
+    duration_s: 34
+    north_m: 320
+    east_m: -160
+    alt_m: 50
+    speed_ms: 6.5
+  - name: hover
+    duration_s: 14
+    north_m: 320
+    east_m: -160
+    alt_m: 50
+  - name: cruise
+    duration_s: 34
+    north_m: 140
+    east_m: -260
+    alt_m: 50
+    speed_ms: 6.5
+  - name: cruise
+    duration_s: 32
+    north_m: 60
+    east_m: -80
+    alt_m: 50
+    speed_ms: 6.5
+  - name: rth
+    duration_s: 36
+    speed_ms: 6.0
+  - name: land
+    duration_s: 34
+    speed_ms: 1.0

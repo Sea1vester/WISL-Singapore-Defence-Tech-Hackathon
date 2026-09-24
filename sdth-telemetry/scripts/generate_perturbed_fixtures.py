@@ -147,6 +147,10 @@ def main() -> int:
     parser.add_argument("--north-m", type=float, default=2000.0)
     parser.add_argument("--drop-frac", type=float, default=0.10)
     parser.add_argument("--gap-s", type=float, default=20.0)
+    parser.add_argument("--cards", type=Path, nargs=2, default=None,
+                        metavar=("CONTROL_CARD", "HAZARD_CARD"),
+                        help="Override the two base scenario cards "
+                             "(default: v2 normal control + gps_jamming)")
     args = parser.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
@@ -180,10 +184,14 @@ def main() -> int:
     from sdth_synth.geo import offset_latlon
     from sdth_synth.scenario import ScenarioError, load_scenario, validate_geography
 
+    control_card, hazard_card = (
+        args.cards
+        if args.cards
+        else (NORMAL_CONTROL_CARD, synth_root / "scenarios" / "hazards" / "gps_jamming.yaml")
+    )
     bases = [
-        ("normal_control", NORMAL_CONTROL_CARD, "dji_csv_perturbed_normal_control_north2km_drop10.csv"),
-        ("gps_weak", synth_root / "scenarios" / "hazards" / "gps_jamming.yaml",
-         "dji_csv_perturbed_gps_weak_north2km_drop10.csv"),
+        ("normal_control", control_card, "dji_csv_perturbed_normal_control_north2km_drop10.csv"),
+        ("gps_weak", hazard_card, "dji_csv_perturbed_gps_weak_north2km_drop10.csv"),
     ]
     for index, (label, card, out_name) in enumerate(bases):
         base = load_scenario(card)

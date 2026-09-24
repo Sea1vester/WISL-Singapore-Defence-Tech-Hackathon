@@ -44,6 +44,12 @@ export function flightDisplayName(flight) {
     "dji_csv_lost_airborne_026.csv": "Exercise · Recording ends airborne",
     "dji_csv_motor_fail_recover_024.csv": "Exercise · Attitude excursion + warning",
     "dji_csv_v2_normal_control.csv": "Exercise · Normal control",
+    "dji_csv_sg_lck_survey_normal.csv": "Lim Chu Kang · Survey · Normal control",
+    "dji_csv_sg_lck_survey_gps_weak.csv": "Lim Chu Kang · Survey · GPS-weak",
+    "dji_csv_sg_seletar_perimeter_gps_weak.csv": "Seletar · Perimeter · GPS-weak",
+    "dji_csv_sg_hillview_inspection_battery_critical.csv": "Hillview · Inspection · Battery critical",
+    "dji_csv_sg_hillview_inspection_dropout.csv": "Hillview · Inspection · Telemetry dropout",
+    "dji_csv_sg_seletar_ends_airborne.csv": "Seletar · Recording ends airborne",
   };
   if (typeof filename === "string" && filename.startsWith("synthetic_")) {
     const legacy = exerciseNames[filename.slice("synthetic_".length)];

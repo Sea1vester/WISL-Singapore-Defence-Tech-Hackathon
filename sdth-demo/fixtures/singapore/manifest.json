@@ -1,0 +1,103 @@
+[
+  {
+    "file": "dji_csv_sg_lck_survey_normal.csv",
+    "sha256": "2a5b242849739f4e2448a6fffe9e4cf30dc14268c248001954487b48fd14c6e0",
+    "source": "Singapore synthetic mission; scenario card scenarios/singapore/sg_lck_survey_normal.yaml",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "lim-chu-kang",
+    "scenario_card": "sdth-demo/fixtures/singapore/cards/sg_lck_survey_normal.yaml",
+    "geography_gate": "bypassed: Singapore demo region, inside BANNED_HOMES_ALWAYS radius",
+    "physical_sanity_gate": {
+      "passed": true,
+      "issues": []
+    },
+    "observed_detectors": {}
+  },
+  {
+    "file": "dji_csv_sg_lck_survey_gps_weak.csv",
+    "sha256": "ace851c1e1e7f7687a1c68940e141b1d0fa29d2a1069e73b9519f6588c08213e",
+    "source": "Singapore synthetic mission; scenario card scenarios/singapore/sg_lck_survey_gps_weak.yaml",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "lim-chu-kang",
+    "scenario_card": "sdth-demo/fixtures/singapore/cards/sg_lck_survey_gps_weak.yaml",
+    "geography_gate": "bypassed: Singapore demo region, inside BANNED_HOMES_ALWAYS radius",
+    "physical_sanity_gate": {
+      "passed": true,
+      "issues": []
+    },
+    "observed_detectors": {
+      "operator_warning": 1
+    }
+  },
+  {
+    "file": "dji_csv_sg_seletar_perimeter_gps_weak.csv",
+    "sha256": "d215cc213e978a9b65b584595259a4d2c103911b11cecb4802e9fbc98fe88199",
+    "source": "Singapore synthetic mission; scenario card scenarios/singapore/sg_seletar_perimeter_gps_weak.yaml",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "seletar",
+    "scenario_card": "sdth-demo/fixtures/singapore/cards/sg_seletar_perimeter_gps_weak.yaml",
+    "geography_gate": "bypassed: Singapore demo region, inside BANNED_HOMES_ALWAYS radius",
+    "physical_sanity_gate": {
+      "passed": true,
+      "issues": []
+    },
+    "observed_detectors": {
+      "operator_warning": 1
+    }
+  },
+  {
+    "file": "dji_csv_sg_hillview_inspection_battery_critical.csv",
+    "sha256": "9ed5c459fdc4d0ee943083cb87d4940e39c0654bf70a837c041aa6fce08ed57b",
+    "source": "Singapore synthetic mission; scenario card scenarios/singapore/sg_hillview_inspection_battery_critical.yaml",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "hillview",
+    "scenario_card": "sdth-demo/fixtures/singapore/cards/sg_hillview_inspection_battery_critical.yaml",
+    "geography_gate": "bypassed: Singapore demo region, inside BANNED_HOMES_ALWAYS radius",
+    "physical_sanity_gate": {
+      "passed": true,
+      "issues": []
+    },
+    "observed_detectors": {
+      "battery_critical": 1,
+      "battery_low": 1
+    }
+  },
+  {
+    "file": "dji_csv_sg_hillview_inspection_dropout.csv",
+    "sha256": "b8e9b87dfc8681c9dd51859d8fe390e2236e9135eec565b413003ca202eb30aa",
+    "source": "Singapore synthetic mission; scenario card scenarios/singapore/sg_hillview_inspection_dropout.yaml",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "hillview",
+    "scenario_card": "sdth-demo/fixtures/singapore/cards/sg_hillview_inspection_dropout.yaml",
+    "geography_gate": "bypassed: Singapore demo region, inside BANNED_HOMES_ALWAYS radius",
+    "physical_sanity_gate": {
+      "passed": true,
+      "issues": []
+    },
+    "observed_detectors": {
+      "telemetry_gap": 1
+    }
+  },
+  {
+    "file": "dji_csv_sg_seletar_ends_airborne.csv",
+    "sha256": "cf354ecebbdca14d7dade569115c3051e39b61352a4f779ce2b611ae463726b1",
+    "source": "Singapore synthetic mission; scenario card scenarios/singapore/sg_seletar_ends_airborne.yaml",
+    "provenance": "synthetic kinematic simulator export; not an operational drone flight",
+    "parser": "dji_csv",
+    "region": "seletar",
+    "scenario_card": "sdth-demo/fixtures/singapore/cards/sg_seletar_ends_airborne.yaml",
+    "geography_gate": "bypassed: Singapore demo region, inside BANNED_HOMES_ALWAYS radius",
+    "physical_sanity_gate": {
+      "passed": true,
+      "issues": []
+    },
+    "observed_detectors": {
+      "mission_incomplete": 1
+    }
+  }
+]
