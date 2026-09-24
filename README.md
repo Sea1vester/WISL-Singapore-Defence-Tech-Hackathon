@@ -81,7 +81,7 @@ The database is `data/demo-console.db`; raw uploads, reports and visuals also st
 
 ## Layout
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — how the code fits together; [docs/code-check.md](docs/code-check.md) — live assessment guide and unhappy-path fixtures.
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — how the code fits together; [docs/architecture-uml.md](docs/architecture-uml.md) — component, sequence, data-model and state diagrams; [docs/code-check.md](docs/code-check.md) — live assessment guide and unhappy-path fixtures.
 
 The five packages, as described in the report:
 
