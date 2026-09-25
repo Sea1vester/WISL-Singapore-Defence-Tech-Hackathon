@@ -1,3 +1,38 @@
+export function logFilename(flight) {
+  return String(flight.original_filename || flight.filename || flight.upload_filename || `${flight.id || "recorded-flight"}.log`);
+}
+
+export function workspaceRoute(hash) {
+  const [, page, requested] = String(hash || "").split("/");
+  return {page: page === "analysis" ? "analysis" : "replay", tab: ["overview", "patterns", "bulletins", "logs"].includes(requested) ? requested : "overview"};
+}
+
+export function sidebarWidth(value, viewportWidth) {
+  const width = Number.isFinite(value) ? value : 280;
+  return Math.round(Math.max(190, Math.min(width, 520, Math.max(190, viewportWidth - 426))));
+}
+
+export function folderTrail(folders, folderId) {
+  const byId = new Map(folders.map(folder => [folder.id, folder]));
+  const trail = [], seen = new Set();
+  while (folderId && byId.has(folderId) && !seen.has(folderId)) {
+    seen.add(folderId);
+    const folder = byId.get(folderId);
+    trail.unshift(folder);
+    folderId = folder.parent_id;
+  }
+  return trail;
+}
+
+export function folderPath(folders, folderId) {
+  return ["Missions", ...folderTrail(folders, folderId).map(folder => folder.name)].join(" / ");
+}
+
+export function folderDestinations(folders, movingFolderId = null) {
+  return folders.filter(folder => !folderTrail(folders, folder.id).some(parent => parent.id === movingFolderId))
+    .sort((a, b) => folderPath(folders, a.id).localeCompare(folderPath(folders, b.id)));
+}
+
 export function modelStatus(payload) {
   const model = payload?.model || payload?.model_status || payload?.llm || payload?.local_model;
   if (typeof model === "string") return model;
@@ -80,6 +115,10 @@ export function flightDisplayName(flight) {
   const knownNames = {
     "dji_csv_gps_jamming.csv": "GPS-weak warning · DJI CSV",
     "orbiter4_gps_denied_frozen.json": "Frozen position · Orbiter JSON",
+    "ardupilot_amesbury_alpha.tlog": "Amesbury · Telemetry sortie · ArduPilot TLOG",
+    "ardupilot_amesbury_alpha.bin": "Amesbury · Blackbox · ArduPilot BIN",
+    "hermes900_amesbury_perimeter.stanag": "Amesbury · Perimeter · Hermes 900 STANAG",
+    "aunav_neo_amesbury_patrol.ros": "Amesbury · Route check · aunav ROS",
     "dji_csv_supplemental_gps_weak_recurrence.csv": "Supplemental GPS-weak mission",
     "dji_csv_supplemental_normal_control.csv": "Supplemental normal-control mission",
     "flight-1a1b914dc70e6d0c1b45": "GPS-weak mission",

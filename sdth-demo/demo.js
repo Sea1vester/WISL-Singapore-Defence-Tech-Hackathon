@@ -1,6 +1,6 @@
-import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "./demo-contract.mjs?v=model-auto-2";
+import { logFilename, workspaceRoute, sidebarWidth, folderTrail, folderPath, folderDestinations, flightDisplayName, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "./demo-contract.mjs?v=workspace-4";
 
-const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false };
+const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false, folders: [], flightFolders: {}, folderId: sessionStorage.getItem("wislMissionFolder") || null, libraryReady: false, libraryBusy: false, explorerEdit: null, uploadDestination: null, uploadBusy: false, expandedFolders: new Set(), treeFocusKey: null, treeSelectedKey: null };
 const DEMO_LIBRARY_LOGS = [
   { url: "/demo/fixtures/singapore/dji_csv_sg_lck_survey_normal.csv", name: "dji_csv_sg_lck_survey_normal.csv", type: "text/csv" },
   { url: "/demo/fixtures/singapore/dji_csv_sg_lck_survey_gps_weak.csv", name: "dji_csv_sg_lck_survey_gps_weak.csv", type: "text/csv" },
@@ -11,6 +11,10 @@ const DEMO_LIBRARY_LOGS = [
   { url: "/demo/fixtures/dji_csv_gps_jamming.csv", name: "dji_csv_gps_jamming.csv", type: "text/csv" },
   { url: "/demo/fixtures/orbiter4_gps_denied_frozen.json", name: "orbiter4_gps_denied_frozen.json", type: "application/json" },
   { url: "/demo/fixtures/dji_csv_motor_fail_recover_024.csv", name: "dji_csv_motor_fail_recover_024.csv", type: "text/csv" },
+  { url: "/demo/fixtures/ardupilot_amesbury_alpha.tlog", name: "ardupilot_amesbury_alpha.tlog", type: "application/octet-stream" },
+  { url: "/demo/fixtures/ardupilot_amesbury_alpha.bin", name: "ardupilot_amesbury_alpha.bin", type: "application/octet-stream" },
+  { url: "/demo/fixtures/hermes900_amesbury_perimeter.stanag", name: "hermes900_amesbury_perimeter.stanag", type: "text/plain" },
+  { url: "/demo/fixtures/aunav_neo_amesbury_patrol.ros", name: "aunav_neo_amesbury_patrol.ros", type: "text/plain" },
 ];
 const $ = (id) => document.getElementById(id);
 const wideLayout = window.matchMedia("(min-width: 760px)");
@@ -60,20 +64,32 @@ async function pollUpload(uploadId) {
     catch (firstError) { upload = await api(`/v1/logs/${encodeURIComponent(uploadId)}/status`).catch(() => { throw firstError; }); }
     state.upload = upload;
     pipeline(upload.status, upload.error || (upload.duplicate ? "Duplicate found: using the earlier result." : `${upload.filename || "Log"} · ${upload.status}`));
-    if (upload.status === "failed") { setMessage(friendlyError(upload.error) || "The log could not be processed.", "error"); return; }
+    if (upload.status === "failed") { state.uploadBusy = false; setMessage(friendlyError(upload.error) || "The log could not be processed.", "error"); return; }
     if (upload.status === "ready") {
       setMessage(upload.duplicate ? "Duplicate found. The earlier processed log is ready." : "The log has been processed and is ready for review.", "success");
       await refreshFlights();
-      if (upload.flight_id) { await selectFlight(upload.flight_id); showView("overview"); }
+      const destination = state.uploadDestination;
+      if (destination?.uploadId === uploadId) {
+        state.uploadDestination = null;
+        if (!destination.duplicate && destination.folderId && upload.flight_id) {
+          try { await assignMission(upload.flight_id, destination.folderId); }
+          catch (error) { setExplorerNotice(`Log processed, but its folder could not be saved. ${friendlyError(error.message)}`, true); }
+        }
+      }
+      if (upload.flight_id) { await selectFlight(upload.flight_id, null, {revealReplay: true}); }
+      state.uploadBusy = false;
       return;
     }
     state.pollTimer = setTimeout(() => pollUpload(uploadId), 1400);
-  } catch (error) { const msg = friendlyError(error.message); setMessage(msg, "error"); pipeline("failed", msg); }
+  } catch (error) { state.uploadBusy = false; const msg = friendlyError(error.message); setMessage(msg, "error"); pipeline("failed", msg); }
 }
 async function uploadFile(file) {
   if (!state.token) { setMessage("Add a session key before uploading.", "error"); setAuthPanel(true); return; }
   if (!file) return;
+  if (state.uploadBusy) { setMessage("Wait for the current log to finish processing before importing another."); return; }
   if (file.size > 100 * 1024 * 1024) { setMessage("Choose a file smaller than 100 MB.", "error"); return; }
+  state.uploadBusy = true;
+  const folderId = state.libraryReady ? state.folderId : null;
   const data = new FormData(); data.append("file", file);
   setMessage(`Uploading ${file.name}…`); pipeline("received", "Uploading your log…");
   try {
@@ -81,35 +97,214 @@ async function uploadFile(file) {
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(detail(body));
     state.upload = body;
+    state.uploadDestination = {uploadId: body.upload_id, folderId, duplicate: body.duplicate};
     setMessage(body.duplicate ? "A matching log already exists; checking its status…" : "Log accepted. Tracking its progress below.");
     pollUpload(body.upload_id);
-  } catch (error) { const msg = friendlyError(error.message); setMessage(msg, "error"); pipeline("failed", msg); }
+  } catch (error) { state.uploadBusy = false; const msg = friendlyError(error.message); setMessage(msg, "error"); pipeline("failed", msg); }
+}
+function setExplorerNotice(text, error = false) {
+  const notice = $("explorerNotice");
+  notice.textContent = text; notice.hidden = !text; notice.className = `explorer-notice${error ? " error" : ""}`;
+}
+function openFolder(folderId) {
+  state.folderId = folderId;
+  for (const folder of folderTrail(state.folders, folderId)) state.expandedFolders.add(folder.id);
+  state.treeFocusKey = state.treeSelectedKey = folderId ? `folder:${folderId}` : null;
+  rememberTree();
+  sessionStorage.setItem("wislMissionFolder", folderId || "");
+  $("missionSearch").value = "";
+  setExplorerNotice(""); renderFlights(); els.flightList.scrollTop = 0;
+}
+function explorerButton(text, title, action, className = "entry-actions") {
+  const button = document.createElement("button");
+  button.type = "button"; button.className = className; button.textContent = text;
+  button.title = title; button.setAttribute("aria-label", title); button.addEventListener("click", action);
+  return button;
+}
+function folderDropTarget(node, folderId) {
+  const accepts = event => !state.libraryBusy && state.libraryReady && event.dataTransfer.types.includes("application/x-wisl-flight");
+  ["dragenter", "dragover"].forEach(type => node.addEventListener(type, event => {
+    if (!accepts(event)) return;
+    event.preventDefault(); event.dataTransfer.dropEffect = "move"; node.classList.add("folder-drop");
+  }));
+  node.addEventListener("dragleave", () => node.classList.remove("folder-drop"));
+  node.addEventListener("drop", async event => {
+    node.classList.remove("folder-drop");
+    if (!accepts(event)) return;
+    event.preventDefault();
+    const flightId = event.dataTransfer.getData("application/x-wisl-flight");
+    if (!state.flights.some(flight => flight.id === flightId)) return;
+    state.libraryBusy = true; renderFlights();
+    try { await assignMission(flightId, folderId); setExplorerNotice(`Moved to ${folderPath(state.folders, folderId)}.`); }
+    catch (error) { setExplorerNotice(friendlyError(error.message), true); }
+    finally { state.libraryBusy = false; renderFlights(); }
+  });
+}
+function rememberTree() {
+  sessionStorage.setItem("wislExpandedFolders", JSON.stringify([...state.expandedFolders]));
+}
+function focusTree(key) {
+  const nodes = [...els.flightList.querySelectorAll('[role="treeitem"]')];
+  const target = nodes.find(node => node.dataset.treeKey === key) || nodes[0];
+  if (!target) return;
+  state.treeFocusKey = target.dataset.treeKey;
+  for (const node of nodes) node.tabIndex = node === target ? 0 : -1;
+  target.focus({preventScroll: true}); target.querySelector(".tree-row").scrollIntoView({block: "nearest"});
+}
+function toggleFolder(id) {
+  if (state.expandedFolders.has(id)) state.expandedFolders.delete(id); else state.expandedFolders.add(id);
+  state.folderId = id; state.treeFocusKey = state.treeSelectedKey = `folder:${id}`;
+  sessionStorage.setItem("wislMissionFolder", id); rememberTree(); renderFlights(); focusTree(state.treeFocusKey);
 }
 function renderFlights() {
-  els.flightList.replaceChildren();
+  const previousScroll = els.flightList.scrollTop, hadFocus = els.flightList.contains(document.activeElement);
+  if (state.libraryReady && state.folderId && !state.folders.some(folder => folder.id === state.folderId)) state.folderId = null;
+  const location = folderPath(state.folders, state.folderId);
+  $("uploadFolderHint").textContent = `New uploads go to ${location}. Existing records keep their folder.`;
+  $("explorerLocation").textContent = location; $("explorerLocation").title = `New folders and uploads: ${location}`;
+  $("newFolder").disabled = !state.libraryReady || state.libraryBusy;
+  $("newFolder").title = `Create folder in ${location}`;
+  $("folderUp").disabled = !state.folderId;
+  els.flightList.replaceChildren(); els.flightList.className = "flight-list";
   $("libraryCount").textContent = String(state.flights.length).padStart(2, "0");
-  if (!state.flights.length) { els.flightList.textContent = state.token ? "No recorded flights are available yet." : "Connect a session to load recorded flights."; els.flightList.className = "flight-list empty-state"; return; }
-  els.flightList.className = "flight-list";
   const search = $("missionSearch").value.trim().toLowerCase();
-  const matching = state.flights.filter(flight => `${flightDisplayName(flight)} ${flight.source || ""} ${flight.original_filename || ""}`.toLowerCase().includes(search));
-  if (!matching.length) { els.flightList.textContent = "No matching missions. Try a different search."; return; }
-  for (const flight of matching) {
-    const node = $("flightTemplate").content.firstElementChild.cloneNode(true);
-    node.classList.toggle("selected", flight.id === state.selectedFlight?.id);
-    node.setAttribute("aria-pressed", String(flight.id === state.selectedFlight?.id));
-    node.querySelector(".flight-source").textContent = flightDisplayName(flight);
-    node.querySelector(".flight-time").textContent = fmtTime(flight.started_at);
-    node.addEventListener("click", () => selectFlight(flight.id));
-    els.flightList.append(node);
+  const flights = state.flights.filter(flight => !search || `${logFilename(flight)} ${flightDisplayName(flight)} ${flight.source || ""} ${folderPath(state.folders, state.flightFolders[flight.id])}`.toLowerCase().includes(search))
+    .sort((a, b) => logFilename(a).localeCompare(logFilename(b), undefined, {numeric: true}));
+  const shownFolders = new Set();
+  if (search) {
+    const ids = [...state.folders.filter(folder => folderPath(state.folders, folder.id).toLowerCase().includes(search)).map(folder => folder.id), ...flights.map(flight => state.flightFolders[flight.id])];
+    for (const id of ids) for (const folder of folderTrail(state.folders, id)) shownFolders.add(folder.id);
   }
-  if (!search) els.flightList.querySelector(".selected")?.scrollIntoView({block:"nearest"});
+  const folders = state.folders.filter(folder => !search || shownFolders.has(folder.id)).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true}));
+  $("explorerHeading").textContent = search ? "SEARCH RESULTS" : "RECORDED LOGS";
+  $("explorerCount").textContent = `${flights.length} ${flights.length === 1 ? "file" : "files"}`;
+  function entry(kind, item, depth) {
+    const folder = kind === "folder", name = folder ? item.name : logFilename(item), key = `${kind}:${item.id}`;
+    const node = document.createElement("div"); node.className = "tree-node"; node.dataset.treeKey = key; node.dataset.kind = kind; node.dataset.id = item.id;
+    node.setAttribute("role", "treeitem"); node.setAttribute("aria-level", String(depth + 1)); node.setAttribute("aria-label", name);
+    node.setAttribute("aria-selected", String(key === state.treeSelectedKey)); node.tabIndex = key === state.treeFocusKey ? 0 : -1;
+    const row = document.createElement("div"); row.className = `tree-row ${folder ? "tree-folder" : "tree-file"}`; row.style.setProperty("--depth", Math.min(depth, 8));
+    row.classList.toggle("selected", key === state.treeSelectedKey);
+    row.title = folder ? folderPath(state.folders, item.id) : `${folderPath(state.folders, state.flightFolders[item.id])} / ${name}\n${flightDisplayName(item)} · ${fmtTime(item.started_at)}`;
+    row.innerHTML = folder ? '<span class="tree-chevron" aria-hidden="true">›</span><svg class="tree-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6V4h6l2 2h8v11H2Z"/></svg><span class="tree-name"></span>' : '<span class="tree-chevron" aria-hidden="true"></span><svg class="tree-icon" viewBox="0 0 20 24" aria-hidden="true"><path d="M3 2h9l5 5v15H3Zm9 0v6h5M6 12h8m-8 4h8"/></svg><span class="tree-name"></span>';
+    row.querySelector(".tree-name").textContent = name;
+    if (!folder) row.dataset.extension = name.split(".").at(-1).toLowerCase();
+    const action = explorerButton("⋯", folder ? `Rename or move folder ${name}` : `Move ${name}`, event => { event.stopPropagation(); openExplorerDialog(kind, item.id); });
+    action.tabIndex = -1; action.disabled = !state.libraryReady || state.libraryBusy;
+    row.append(action); node.append(row);
+    row.addEventListener("click", event => {
+      if (event.target.closest(".entry-actions")) return;
+      state.treeFocusKey = state.treeSelectedKey = key;
+      if (folder) toggleFolder(item.id); else selectFlight(item.id, null, {revealReplay: true});
+    });
+    row.addEventListener("contextmenu", event => { event.preventDefault(); openExplorerDialog(kind, item.id); });
+    if (folder) {
+      node.setAttribute("aria-expanded", String(Boolean(search) || state.expandedFolders.has(item.id)));
+      folderDropTarget(row, item.id);
+    } else {
+      row.draggable = state.libraryReady && !state.libraryBusy;
+      row.addEventListener("dragstart", event => { event.dataTransfer.setData("application/x-wisl-flight", item.id); event.dataTransfer.effectAllowed = "move"; });
+      row.addEventListener("dragend", () => document.querySelectorAll(".folder-drop").forEach(item => item.classList.remove("folder-drop")));
+    }
+    return node;
+  }
+  function level(container, parentId, depth) {
+    for (const folder of folders.filter(item => item.parent_id === parentId)) {
+      const node = entry("folder", folder, depth); container.append(node);
+      if (node.getAttribute("aria-expanded") === "true") {
+        const group = document.createElement("div"); group.setAttribute("role", "group"); node.append(group); level(group, folder.id, depth + 1);
+      }
+    }
+    for (const flight of flights.filter(item => (state.flightFolders[item.id] || null) === parentId)) container.append(entry("flight", flight, depth));
+  }
+  level(els.flightList, null, 0);
+  const nodes = [...els.flightList.querySelectorAll('[role="treeitem"]')];
+  if (!nodes.some(node => node.tabIndex === 0) && nodes[0]) { nodes[0].tabIndex = 0; state.treeFocusKey = nodes[0].dataset.treeKey; }
+  if (!nodes.length) {
+    els.flightList.classList.add("empty-state");
+    els.flightList.textContent = !state.token ? "Connect a session to open recorded log files." : !state.libraryReady ? "Mission explorer is unavailable. Try refreshing." : search ? "No matching folders or files." : "No files yet. Import a log or create a folder.";
+  }
+  els.flightList.scrollTop = previousScroll;
+  if (hadFocus) focusTree(state.treeFocusKey);
+}
+function navigateTree(event) {
+  if (event.target.closest(".entry-actions")) return;
+  const node = event.target.closest('[role="treeitem"]');
+  if (!node) return;
+  const nodes = [...els.flightList.querySelectorAll('[role="treeitem"]')], index = nodes.indexOf(node);
+  const key = event.key, folder = node.dataset.kind === "folder", expanded = node.getAttribute("aria-expanded") === "true";
+  if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End", "Enter", " ", "F2"].includes(key)) return;
+  event.preventDefault();
+  if (key === "ArrowUp" || key === "ArrowDown") focusTree(nodes[Math.max(0, Math.min(nodes.length - 1, index + (key === "ArrowDown" ? 1 : -1)))].dataset.treeKey);
+  else if (key === "Home" || key === "End") focusTree(nodes[key === "Home" ? 0 : nodes.length - 1].dataset.treeKey);
+  else if (key === "ArrowRight" && folder) { if (!expanded) toggleFolder(node.dataset.id); else { const child = node.querySelector('[role="group"] > [role="treeitem"]'); if (child) focusTree(child.dataset.treeKey); } }
+  else if (key === "ArrowLeft") { if (folder && expanded && !$("missionSearch").value.trim()) toggleFolder(node.dataset.id); else { const parent = node.parentElement.closest('[role="treeitem"]'); if (parent) focusTree(parent.dataset.treeKey); } }
+  else if (key === "F2") openExplorerDialog(node.dataset.kind, node.dataset.id);
+  else if (key === "Enter" || key === " ") node.querySelector(".tree-row").click();
+}
+function openExplorerDialog(kind, id = null) {
+  if (!state.libraryReady || state.libraryBusy) return;
+  state.explorerEdit = {kind, id};
+  const folder = state.folders.find(item => item.id === id);
+  const flight = state.flights.find(item => item.id === id);
+  $("explorerDialogTitle").textContent = kind === "new" ? "New folder" : kind === "folder" ? "Organise folder" : "Move recorded log";
+  $("explorerDialogHint").textContent = kind === "flight" ? `${flightDisplayName(flight)}. Only its library location changes; the original log and evidence stay untouched.` : "Create, rename or move folders without changing original log files.";
+  $("folderNameField").hidden = kind === "flight";
+  $("folderName").disabled = kind === "flight"; $("folderName").required = kind !== "flight";
+  $("folderName").value = folder?.name || "";
+  const destination = $("folderDestination"); destination.replaceChildren(new Option("Missions (root)", ""));
+  for (const item of folderDestinations(state.folders, kind === "folder" ? id : null)) destination.add(new Option(folderPath(state.folders, item.id), item.id));
+  destination.value = (kind === "new" ? state.folderId : kind === "folder" ? folder.parent_id : state.flightFolders[id]) || "";
+  $("saveExplorer").textContent = kind === "new" ? "Create folder" : kind === "folder" ? "Save changes" : "Move log";
+  $("explorerFormError").hidden = true;
+  $("explorerDialog").showModal();
+  (kind === "flight" ? destination : $("folderName")).focus();
+}
+async function assignMission(flightId, folderId) {
+  await api(`/v1/library/flights/${encodeURIComponent(flightId)}/folder`, {method: "PUT", json: true, body: JSON.stringify({folder_id: folderId})});
+  if (folderId) state.flightFolders[flightId] = folderId;
+  else delete state.flightFolders[flightId];
+}
+async function saveExplorer(event) {
+  event.preventDefault();
+  if (state.libraryBusy) return;
+  const {kind, id} = state.explorerEdit, parentId = $("folderDestination").value || null;
+  state.libraryBusy = true; $("explorerFields").disabled = true; $("saveExplorer").disabled = true; $("cancelExplorer").disabled = true; $("explorerFormError").hidden = true;
+  renderFlights();
+  try {
+    if (kind === "flight") {
+      await assignMission(id, parentId);
+      setExplorerNotice(`Log moved to ${folderPath(state.folders, parentId)}.`);
+    } else {
+      const folder = await api(`/v1/library/folders${kind === "folder" ? `/${encodeURIComponent(id)}` : ""}`, {method: kind === "folder" ? "PUT" : "POST", json: true, body: JSON.stringify({name: $("folderName").value.trim(), parent_id: parentId})});
+      state.folders = [...state.folders.filter(item => item.id !== folder.id), folder];
+      if (kind === "new") openFolder(folder.id);
+      setExplorerNotice(kind === "new" ? "Folder created. Create subfolders here, or move logs in from Missions." : "Folder updated. Its contents are unchanged.");
+    }
+    $("explorerDialog").close();
+  } catch (error) {
+    $("explorerFormError").textContent = friendlyError(error.message); $("explorerFormError").hidden = false;
+  } finally {
+    state.libraryBusy = false; $("explorerFields").disabled = false; $("saveExplorer").disabled = false; $("cancelExplorer").disabled = false; renderFlights();
+  }
+}
+async function allFlights() {
+  const items = [];
+  for (let offset = 0; ; offset += 200) {
+    const page = await api(`/v1/flights?limit=200&offset=${offset}`);
+    items.push(...(page.items || []));
+    if (!page.items?.length || items.length >= page.total) return items;
+  }
 }
 async function refreshFlights() {
   if (!state.token) { renderFlights(); return; }
   const button = $("refreshFlights"); button.disabled = true;
-  try { const result = await api("/v1/flights?limit=50"); state.flights = result.items || []; setApi("online", "Session connected"); if (!state.upload) setMessage("Session connected. Choose a recorded log to process.", "success"); renderFlights(); $("emptyHint").textContent = "Choose a flight from the library or import a log.";
-    if (!state.selectedFlight && state.flights.length) { const saved = sessionStorage.getItem("wislSelectedFlight"); const initial = state.flights.find(f => f.id === saved) || state.flights.find(f => f.id === "flight-1a1b914dc70e6d0c1b45") || state.flights[0]; await selectFlight(initial.id); } }
-  catch (error) { setApi("error", "Connection failed"); els.flightMeta.textContent = friendlyError(error.message); }
+  try {
+    const [flights, library] = await Promise.all([allFlights(), api("/v1/library")]);
+    state.flights = flights; state.folders = library.folders; state.flightFolders = library.flight_folders; state.libraryReady = true;
+    setExplorerNotice(""); setApi("online", "Session connected"); if (!state.upload) setMessage("Session connected. Choose a recorded log to process.", "success"); renderFlights(); $("emptyHint").textContent = "Choose a flight from the library or import a log.";
+    if (!state.selectedFlight && state.flights.length) { const saved = new URL(location.href).searchParams.get("flight") || sessionStorage.getItem("wislSelectedFlight"); const initial = state.flights.find(f => f.id === saved) || state.flights.find(f => f.id === "flight-1a1b914dc70e6d0c1b45") || state.flights[0]; await selectFlight(initial.id); }
+  } catch (error) { state.libraryReady = false; setApi("error", "Connection failed"); setExplorerNotice(friendlyError(error.message), true); els.flightMeta.textContent = friendlyError(error.message); renderFlights(); }
   finally { button.disabled = false; }
 }
 function evidenceText(incident) {
@@ -143,18 +338,39 @@ function renderIncidents(items) {
   });
 }
 function setReplay(flightId, timestamp = null) {
+  const key = JSON.stringify([flightId, state.token]);
+  if (state.replayKey === key && !timestamp) return;
+  state.replayKey = key;
+  if (state.replayToken === state.token && els.replayFrame.getAttribute("src")) {
+    state.replaySelectionId = (state.replaySelectionId || 0) + 1;
+    state.pendingReplaySelection = {type: "wisl:select-flight", flightId, timestamp, selectionId: state.replaySelectionId};
+    els.replayFrame.contentWindow?.postMessage(state.pendingReplaySelection, location.origin);
+    return;
+  }
+  state.replayToken = state.token;
+  state.pendingReplaySelection = null;
   const frameUrl = new URL("/replay/", window.location.origin);
   frameUrl.searchParams.set("flights", flightId);
   frameUrl.searchParams.set("embed", "1");
-  frameUrl.searchParams.set("v", "stream-19");
+  frameUrl.searchParams.set("workspace", workspaceRoute(location.hash).page);
+  frameUrl.searchParams.set("v", "stream-25");
   if (state.token) frameUrl.searchParams.set("token", state.token);
   if (timestamp) frameUrl.searchParams.set("timestamp", timestamp);
   els.replayFrame.src = frameUrl.toString(); els.replayFrame.hidden = false; els.replayEmpty.hidden = true; els.openReplay.href = frameUrl.toString(); els.openReplay.classList.remove("disabled");
 }
-async function selectFlight(flightId, timestamp = null) {
+async function selectFlight(flightId, timestamp = null, {revealReplay = false} = {}) {
+  if (timestamp || revealReplay) navigateWorkspace("replay");
   const flight = state.flights.find((item) => item.id === flightId) || { id: flightId };
   const version = ++state.selectionVersion;
-  state.selectedFlight = flight; sessionStorage.setItem("wislSelectedFlight", flightId); renderFlights(); setLibrary(false);
+  state.selectedFlight = flight; state.treeSelectedKey = `flight:${flightId}`;
+  for (const folder of folderTrail(state.folders, state.flightFolders[flightId])) state.expandedFolders.add(folder.id);
+  if (revealReplay || timestamp) { state.folderId = state.flightFolders[flightId] || null; sessionStorage.setItem("wislMissionFolder", state.folderId || ""); }
+  rememberTree();
+  state.treeFocusKey ||= state.treeSelectedKey;
+  const url = new URL(location.href); url.searchParams.set("flight", flightId); history.replaceState({}, "", url);
+  $("analysisFlightTitle").textContent = flightDisplayName(flight);
+  $("workspaceTitle").textContent = logFilename(flight); $("workspaceTitle").title = logFilename(flight);
+  sessionStorage.setItem("wislSelectedFlight", flightId); renderFlights(); setLibrary(false);
   els.analysisAnswer.textContent = "Ask about this mission or open an observation in replay."; renderLocalAnalysis(null);
   const provenance = simulationProvenance(flight); els.selectedFlightTitle.textContent = flightDisplayName(flight); els.selectedFlightTitle.title = flightDisplayName(flight); els.flightMeta.textContent = `${fmtTime(flight.started_at)}${flight.source ? ` · ${label(flight.source)}` : ""}${provenance ? ` · ${provenance}` : ""}`; els.incidentTitle.textContent = "Loading recorded evidence…"; els.incidentCount.textContent = "…";
   els.downloadReportButton.disabled = false;
@@ -376,7 +592,31 @@ async function analyzeFleetRecords() {
     button.disabled = false; button.textContent = "Analyze fleet records";
   }
 }
-function showView(view) {
+function navigateWorkspace(page, tab = "overview") {
+  const route = page === "analysis" ? `#/analysis/${tab}` : "#/replay";
+  if (location.hash !== route) history.pushState({}, "", route);
+  renderWorkspaceRoute();
+}
+function notifyReplayVisibility() {
+  els.replayFrame.contentWindow?.postMessage({type: "wisl:workspace-visibility", visible: workspaceRoute(location.hash).page === "replay"}, location.origin);
+}
+function renderWorkspaceRoute() {
+  const route = workspaceRoute(location.hash), previous = document.body.dataset.workspacePage;
+  document.body.dataset.workspacePage = route.page;
+  $("analysisPage").hidden = route.page !== "analysis";
+  const replay = document.querySelector(".replay-stage");
+  replay.inert = route.page === "analysis"; replay.setAttribute("aria-hidden", String(replay.inert));
+  if (route.page === "analysis") showView(route.tab, false);
+  const requested = new URL(location.href).searchParams.get("flight");
+  if (state.libraryReady && requested && requested !== state.selectedFlight?.id && state.flights.some(flight => flight.id === requested)) void selectFlight(requested);
+  notifyReplayVisibility();
+  if (previous !== route.page) {
+    if (route.page === "analysis") $(`tab-${route.tab}`).focus({preventScroll: true});
+    else if (!els.replayFrame.hidden) els.replayFrame.focus({preventScroll: true});
+  }
+}
+function showView(view, changeRoute = true) {
+  if (changeRoute) { navigateWorkspace("analysis", view); return; }
   document.querySelectorAll(".view").forEach(el => { const active = el.id === `${view}View`; el.classList.toggle("active", active); el.hidden = !active; });
   document.querySelectorAll(".nav-link").forEach(el => { const active = el.dataset.view === view; el.classList.toggle("active", active); el.setAttribute("aria-selected", String(active)); el.tabIndex = active ? 0 : -1; });
   document.querySelector(".dock-content").scrollTop = 0;
@@ -436,62 +676,60 @@ async function connect() {
   await Promise.all([refreshFlights(), refreshPatterns(), refreshBulletins(), loadDemoStatus()]);
   await seedDemoLibrary();
 }
-// ---- Resizable details dock ----------------------------------------------
-// The dock's height drives a CSS variable on <main>; the replay stage takes
-// whatever is left, so pulling the dock up shrinks the visualisation instead
-// of pushing it off-screen. Height is remembered for the browser session.
-const DOCK_DEFAULT_H = 254, DOCK_MIN_H = 150, STAGE_MIN_H = 200, DOCK_KEY = "wislDockHeight";
-const mainEl = document.querySelector(".workspace > main");
-function maxDockHeight() { return Math.max(DOCK_MIN_H, (mainEl?.clientHeight || 0) - STAGE_MIN_H); }
-function currentDockHeight() { return parseInt(getComputedStyle(mainEl).getPropertyValue("--dock-h"), 10) || DOCK_DEFAULT_H; }
-function setDockHeight(px, persist = true) {
-  if (!mainEl) return;
-  const h = Math.round(Math.min(Math.max(px, DOCK_MIN_H), maxDockHeight()));
-  mainEl.style.setProperty("--dock-h", `${h}px`);
-  $("dockResizer")?.setAttribute("aria-valuenow", String(h));
-  if (persist) { try { sessionStorage.setItem(DOCK_KEY, String(h)); } catch { /* private mode */ } }
+// ---- Resizable file explorer --------------------------------------------
+// The explorer's width drives a CSS variable on the workspace; replay takes
+// whatever is left, so moving the divider resizes the visualisation instead
+// of pushing it off-screen. Width is remembered for the browser session.
+const SIDEBAR_DEFAULT_W = 280, SIDEBAR_KEY = "wislSidebarWidth";
+const workspaceEl = document.querySelector(".workspace");
+function currentSidebarWidth() { return parseInt(workspaceEl.style.getPropertyValue("--sidebar-w"), 10) || SIDEBAR_DEFAULT_W; }
+function setSidebarWidth(px, persist = true) {
+  const viewport = wideLayout.matches ? window.innerWidth : 1200;
+  const width = sidebarWidth(px, viewport);
+  workspaceEl.style.setProperty("--sidebar-w", `${width}px`);
+  $("sidebarResizer").setAttribute("aria-valuenow", String(width));
+  $("sidebarResizer").setAttribute("aria-valuemax", String(sidebarWidth(520, viewport)));
+  if (persist) { try { sessionStorage.setItem(SIDEBAR_KEY, String(width)); } catch { /* private mode */ } }
 }
-(function initDockResizer() {
-  const handle = $("dockResizer");
-  if (!handle || !mainEl) return;
-  handle.setAttribute("aria-valuemin", String(DOCK_MIN_H));
-  const saved = Number(sessionStorage.getItem(DOCK_KEY));
-  setDockHeight(Number.isFinite(saved) && saved > 0 ? saved : DOCK_DEFAULT_H, false);
+(function initSidebarResizer() {
+  const handle = $("sidebarResizer");
+  handle.setAttribute("aria-valuemin", "190");
+  const saved = Number(sessionStorage.getItem(SIDEBAR_KEY));
+  setSidebarWidth(Number.isFinite(saved) && saved > 0 ? saved : SIDEBAR_DEFAULT_W, false);
 
-  let startY = 0, startH = 0;
-  const onMove = (event) => setDockHeight(startH + (startY - event.clientY));
-  const onUp = (event) => {
+  let startX = 0, startWidth = 0;
+  const onMove = event => setSidebarWidth(startWidth + event.clientX - startX);
+  const onUp = event => {
     handle.releasePointerCapture?.(event.pointerId);
-    document.body.classList.remove("dock-resizing");
+    document.body.classList.remove("sidebar-resizing");
     handle.removeEventListener("pointermove", onMove);
     handle.removeEventListener("pointerup", onUp);
     handle.removeEventListener("pointercancel", onUp);
   };
-  handle.addEventListener("pointerdown", (event) => {
-    event.preventDefault();
-    startY = event.clientY;
-    startH = currentDockHeight();
+  handle.addEventListener("pointerdown", event => {
+    if (event.button !== 0) return;
+    event.preventDefault(); startX = event.clientX; startWidth = currentSidebarWidth();
     // Pointer capture keeps events coming to the handle even as the cursor
     // crosses the replay iframe, which would otherwise swallow them.
     handle.setPointerCapture?.(event.pointerId);
-    document.body.classList.add("dock-resizing");
+    document.body.classList.add("sidebar-resizing");
     handle.addEventListener("pointermove", onMove);
     handle.addEventListener("pointerup", onUp);
     handle.addEventListener("pointercancel", onUp);
   });
-  handle.addEventListener("dblclick", () => setDockHeight(DOCK_DEFAULT_H));
-  handle.addEventListener("keydown", (event) => {
+  handle.addEventListener("dblclick", () => setSidebarWidth(SIDEBAR_DEFAULT_W));
+  handle.addEventListener("keydown", event => {
     const step = event.shiftKey ? 64 : 16;
     const actions = {
-      ArrowUp: () => setDockHeight(currentDockHeight() + step),
-      ArrowDown: () => setDockHeight(currentDockHeight() - step),
-      Home: () => setDockHeight(maxDockHeight()),
-      End: () => setDockHeight(DOCK_MIN_H),
+      ArrowRight: () => setSidebarWidth(currentSidebarWidth() + step),
+      ArrowLeft: () => setSidebarWidth(currentSidebarWidth() - step),
+      Home: () => setSidebarWidth(190),
+      End: () => setSidebarWidth(520),
     };
     if (actions[event.key]) { event.preventDefault(); actions[event.key](); }
   });
-  // Re-clamp if the window shrinks so the dock can never crowd out the stage.
-  window.addEventListener("resize", () => setDockHeight(currentDockHeight(), false));
+  // Re-clamp if the window shrinks so the explorer never crowds out the stage.
+  window.addEventListener("resize", () => { if (wideLayout.matches) setSidebarWidth(currentSidebarWidth(), false); });
 })();
 
 $("authButton").addEventListener("click", () => setAuthPanel($("authPanel").hidden));
@@ -505,6 +743,30 @@ function openImport() { setLibrary(false); showView("logs"); $("dropzone").scrol
 $("importButton").addEventListener("click", openImport);
 $("sidebarImport").addEventListener("click", openImport);
 $("missionSearch").addEventListener("input", renderFlights);
+$("newFolder").addEventListener("click", () => openExplorerDialog("new"));
+$("folderUp").addEventListener("click", () => openFolder(state.folders.find(folder => folder.id === state.folderId)?.parent_id || null));
+$("explorerRoot").addEventListener("click", () => openFolder(null));
+folderDropTarget($("explorerRoot"), null);
+els.flightList.addEventListener("keydown", navigateTree);
+$("backToReplay").addEventListener("click", () => navigateWorkspace("replay"));
+els.replayFrame.addEventListener("load", notifyReplayVisibility);
+window.addEventListener("popstate", renderWorkspaceRoute);
+window.addEventListener("hashchange", renderWorkspaceRoute);
+window.addEventListener("message", event => {
+  if (event.origin !== location.origin || event.source !== els.replayFrame.contentWindow) return;
+  if (event.data?.type === "wisl:open-analysis") { setLibrary(false); navigateWorkspace("analysis"); }
+  if (event.data?.type === "wisl:replay-ready") notifyReplayVisibility();
+  if (event.data?.type === "wisl:replay-initialized") {
+    if (state.pendingReplaySelection) els.replayFrame.contentWindow.postMessage(state.pendingReplaySelection, location.origin);
+    notifyReplayVisibility();
+  }
+  if (event.data?.type === "wisl:replay-error" && event.data.selectionId === state.pendingReplaySelection?.selectionId) {
+    state.replayKey = null; setExplorerNotice(friendlyError(event.data.message), true);
+  }
+});
+$("explorerForm").addEventListener("submit", saveExplorer);
+$("cancelExplorer").addEventListener("click", () => $("explorerDialog").close());
+$("explorerDialog").addEventListener("cancel", event => { if (state.libraryBusy) event.preventDefault(); });
 $("sampleButton").addEventListener("click", async () => {
   if (!state.token) { setAuthPanel(true); return; }
   const button = $("sampleButton"); button.disabled = true;
@@ -512,8 +774,11 @@ $("sampleButton").addEventListener("click", async () => {
   catch (error) { setMessage(friendlyError(error.message), "error"); }
   finally { button.disabled = false; }
 });
-document.addEventListener("keydown", event => { if (event.key === "Escape") { setLibrary(false); setAuthPanel(false); } });
-document.addEventListener("click", event => { if (!$("flightLibrary").hidden && !$("flightLibrary").contains(event.target) && !$("libraryButton").contains(event.target) && event.target !== $("emptyLibraryButton")) setLibrary(false); });
+document.addEventListener("keydown", event => { if (event.key === "Escape" && !$("explorerDialog").open) { setLibrary(false); setAuthPanel(false); } });
+document.addEventListener("click", event => {
+  const path = event.composedPath();
+  if (!$("explorerDialog").open && !$("flightLibrary").hidden && ![$("explorerDialog"), $("flightLibrary"), $("libraryButton"), $("emptyLibraryButton")].some(node => path.includes(node))) setLibrary(false);
+});
 els.file.addEventListener("change", () => { uploadFile(els.file.files[0]); els.file.value = ""; });
 ["dragenter","dragover"].forEach(type => $("dropzone").addEventListener(type, event => { event.preventDefault(); $("dropzone").classList.add("dragover"); }));
 ["dragleave","drop"].forEach(type => $("dropzone").addEventListener(type, event => { event.preventDefault(); $("dropzone").classList.remove("dragover"); }));
@@ -552,6 +817,11 @@ tabs.forEach((button,index) => {
   button.addEventListener("click", () => showView(button.dataset.view));
   button.addEventListener("keydown", event => { const target = event.key === "ArrowRight" ? (index+1)%tabs.length : event.key === "ArrowLeft" ? (index+tabs.length-1)%tabs.length : event.key === "Home" ? 0 : event.key === "End" ? tabs.length-1 : null; if (target !== null) { event.preventDefault(); tabs[target].focus(); showView(tabs[target].dataset.view); } });
 });
+try {
+  const expanded = JSON.parse(sessionStorage.getItem("wislExpandedFolders") || "[]");
+  if (Array.isArray(expanded)) state.expandedFolders = new Set(expanded.filter(id => typeof id === "string"));
+} catch {}
 setLibrary(false);
+renderWorkspaceRoute();
 els.token.value = state.token; pipeline("", "No log is being processed.");
 if (state.token) { setApi("", "Connecting…"); refreshFlights().then(() => Promise.all([refreshPatterns(), refreshBulletins(), loadDemoStatus(), seedDemoLibrary()])); } else renderFlights();

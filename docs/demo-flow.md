@@ -11,9 +11,17 @@ cd /Users/sylvesterlim/CodingFun/SDTH
 ./sdth-telemetry/scripts/demo-console.sh
 ```
 
-That one script starts the API, the background ingestion worker, the console and the replay viewer, all in one process on `127.0.0.1:8010`, and opens the browser for you. Stop it with Ctrl+C. It's `./sdth-telemetry/scripts/demo-console.sh`, not `demo-console.sh`; the script isn't on your PATH. The library auto-imports six Singapore missions and three UK examples. Earlier imports remain available; do not delete the database just to refresh the library.
+That one script starts the API, the background ingestion worker, the console and the replay viewer, all in one process on `127.0.0.1:8010`, and opens the browser for you. Stop it with Ctrl+C. It's `./sdth-telemetry/scripts/demo-console.sh`, not `demo-console.sh`; the script isn't on your PATH. The library auto-imports six Singapore missions and seven UK examples, covering five non-DJI formats (Orbiter JSON, ArduPilot TLOG/BIN, Hermes 900 STANAG, aunav ROS). Earlier imports remain available; do not delete the database just to refresh the library.
 
-On a fresh clone, or if `.venv` is missing, do this once first:
+On Windows, after the PowerShell setup in the README, start the same demo from the repo root with:
+
+```powershell
+.\.venv\Scripts\python.exe .\sdth-telemetry\scripts\demo-console.py
+```
+
+The launcher does not require activating the virtual environment or changing PowerShell's execution policy. Node.js 22+ is needed for the first Cesium download; subsequent starts reuse the local build.
+
+On a fresh macOS/Linux clone, or if `.venv` is missing, do this once first:
 
 ```sh
 python3 -m venv .venv
@@ -32,7 +40,7 @@ Roughly twelve minutes if you don't get interrupted. You will get interrupted; t
 
 ## 1. Connect a session
 
-**Do:** Open **Session**, paste `dev-key-12345`, press **Connect**. The Mission library fills in on the left.
+**Do:** Open **Session**, paste `dev-key-12345`, press **Connect**. The Mission explorer fills in on the left with ordinary filenames. Folder chevrons expand the tree, and the vertical divider resizes it.
 
 **Say:** "The console never has a key baked into it. You enter one, it goes in a header on every request, and the server checks it against a list. This one's the local development key. Connecting also imports the bundled missions into this laptop's SQLite, which is why the library just populated. They're synthetic flights from our generator; each is labelled as such."
 
@@ -42,7 +50,7 @@ Roughly twelve minutes if you don't get interrupted. You will get interrupted; t
 
 ## 2. Open a clean flight first
 
-**Do:** Click **Lim Chu Kang · Survey · Normal control**. Wait for the replay to load. Open **Mission analysis** at the bottom.
+**Do:** Open `dji_csv_sg_lck_survey_normal.csv` in the file tree. Wait for the replay to load. Click **Mission analysis** beside **Tabletop / Map / Satellite** to open the full-page review workspace.
 
 **Say:** "Start with the boring one. This is a nominal flight: takeoff, cruise, return, land. The detectors ran on it and found nothing. I'm showing you this first because zero incidents on a clean flight is the control. If anything lit up here we'd have a false-positive problem, and we did have one in September, which I'll come back to."
 
@@ -52,7 +60,7 @@ Don't linger. Fifteen seconds.
 
 ## 3. Open the flagged flight and press play
 
-**Do:** Click **Lim Chu Kang · Survey · GPS-weak**. Press **Play** in the replay. Let it run for ten seconds or so, then point at the telemetry strip.
+**Do:** Open `dji_csv_sg_lck_survey_gps_weak.csv` in the file tree; it returns to replay. Press **Play** in the replay. Let it run for ten seconds or so, then point at the telemetry strip.
 
 **Say:** "Same pipeline, different log. The aircraft follows its recorded positions on the recorded clock. Altitude, battery and UTC along the bottom are straight out of the log. Track speed is the one derived number, from consecutive positions. The path in the inset is the whole route.
 
@@ -62,13 +70,13 @@ Everything you see here is served from our own process, including the Cesium lib
 
 ## 4. Show the flag
 
-**Do:** In **Mission analysis**, the incident list shows one **operator_warning**. Click **Replay this observation**. The replay jumps to that timestamp and pauses.
+**Do:** Click **Mission analysis** beside the map modes. The incident list shows one **operator_warning**. Click **Replay this observation**. It returns to the replay page, jumps to that timestamp and pauses.
 
 **Say:** "This is the flag. The detector is a keyword rule on the warning text the vendor writes into the log, in this case 'GPS signal weak, hovering unstable'. The incident stores the timestamped samples it fired on, and 'Replay this observation' just seeks the replay to that time. So the flag and the picture are the same moment.
 
 I want to be careful about what this is and isn't. The generator scenario is called gps_jamming, and that word is in the filename. What we can actually see in the log is a GPS-weak warning. The system says 'warning', not 'jamming', because it can't know the cause."
 
-**Do:** Press **What happened?**, then **Where is the evidence?**, then **Similar warnings**.
+**Do:** Open **Mission analysis** again. Press **What happened?**, then **Where is the evidence?**, then **Similar warnings**.
 
 **Say:** "These three are deterministic queries against the database. No model. 'What happened' summarises the stored incidents. 'Where is the evidence' lists the samples behind them. 'Similar warnings' looks across every other flight in the store for the same signature, and it finds one: a second aircraft threw the exact same warning. That's the moment this stops being a log viewer and becomes a fleet tool."
 
@@ -98,13 +106,13 @@ Flip to the evidence page and point at the timestamps matching the incident you 
 
 ## 7. The big 3D view
 
-**Do:** Press **Full view ↗** next to the replay heading. It opens `/replay/` in a new tab with the same flight. Toggle between **Tabletop**, **Map** and **Satellite**. Drag to orbit, scroll to zoom. Press **Play** again.
+**Do:** Press **Back to replay**. The viewer already fills the workspace; there is no lower review dock. Drag the sidebar divider left for more map space. Toggle between **Tabletop**, **Map** and **Satellite**. Drag to orbit, scroll to zoom. Press **Play** again.
 
 **Say:** "Same viewer, full screen. Map is OpenStreetMap imagery on cached elevation. Tabletop is the same terrain drawn as a low-poly model, which is easier to read when you're looking at a path rather than a place. The aircraft renders at true 1:1 scale when the camera is close and enlarges to a marker from far away — the HUD toggle switches between **1:1** and **Enlarged**; a scale legend in the corner shows the ground distance.
 
 The viewer only ever sees one endpoint, `/v1/flights/{id}/path`. It never sees raw vendor rows. That's the contract that let us swap the whole renderer once already: the first version of this was raylib, and we replaced it with Cesium in a week because the API didn't change."
 
-Close the tab and go back to the console.
+Click **Mission analysis** to return to the review page. The camera and timestamp stay in place while replay is paused.
 
 ---
 
@@ -144,7 +152,7 @@ Only if Ollama is running and only if they ask.
 
 ## 11. Close on the one that ends badly
 
-**Do:** Click **Seletar · Recording ends airborne**. Press **Play**. Let it run to the end.
+**Do:** Open `dji_csv_sg_seletar_ends_airborne.csv` in the file tree. Press **Play**. Let it run to the end.
 
 **Say:** "Last one. The log just stops with the aircraft still in the air. The mission_incomplete detector flags that: last sample airborne, no landing recorded. The incident carries the position of that last sample. We can't tell you why it stopped. We can tell you exactly where and when, and whether it's happened to another aircraft."
 

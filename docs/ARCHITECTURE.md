@@ -4,13 +4,34 @@ Post-flight evidence pipeline for mixed UAS fleets. One sentence: **raw recorded
 
 Everything numeric is rule-based and reproducible. The optional local model only drafts hypotheses against evidence IDs that already exist.
 
-## System at a glance
+## Interactive backend architecture
 
-![WISL architecture: entry points, a local deterministic evidence pipeline, review services, persistence, and optional model analysis.](diagrams/components.svg)
+**[Open the interactive backend architecture](architecture.html)** — click a stage for its overview, implementation, and trade-offs. Use **Walk through the flow** to follow the five processing stages, or **Full screen** for a focused view. The package and decision details below are embedded in the page, along with the original component and sequence diagrams.
 
-[Explore the architecture atlas](architecture-uml.md) for the full-size component map, the three-part upload sequence, data model, and lifecycle. Colours group responsibilities; the blue boundary is the single platform process.
+On GitHub, the static preview below renders directly. To use the interactive version, download `architecture.html` and open it in a browser; GitHub's file viewer shows HTML source. The HTML is self-contained and works offline, without a review sidebar, server, or external libraries.
 
-Single command: `./sdth-telemetry/scripts/demo-console.sh` starts the API, an in-process background worker (`local_worker.py`), the static console and replay, all on `127.0.0.1:8010`. Redis, Docker and the network are not required for parsing, detection, replay of the bundled regions, or PDF export.
+[![Backend data flow: FastAPI receives logs, Python parsers produce L1 JSON, JSON Schema validates canonical L2 telemetry, deterministic rules index incidents, and CesiumJS and PDF reports expose stored SQLite evidence.](diagrams/backend-data.svg)](architecture.html)
+
+### The five-stage data flow
+
+1. **Receive · FastAPI + SHA-256** — accept the log, check it, and reuse the same record for identical bytes.
+2. **Parse · Python, pyulog, pymavlink** — decode vendor logs into a common L1 JSON envelope.
+3. **Standardise · Python + JSON Schema** — project L1 into validated L2 telemetry that every downstream feature understands.
+4. **Detect · deterministic Python rules** — turn telemetry into timestamped incident evidence and recurring patterns.
+5. **Review · CesiumJS, vanilla JavaScript, ReportLab** — replay, query, and report on the same stored evidence.
+
+**Underneath:** SQLite stores the records and evidence; the local filesystem preserves original logs. **Alongside:** optional Ollama / Qwen2.5 analysis drafts hypotheses, not telemetry or rule detections.
+
+### Maintaining the diagram
+
+Edit the layout, stage summaries, and interactions in [`architecture.html`](architecture.html). The tables in the engineering reference below remain the source for the **Implementation** and **Trade-offs** tabs. Run `python3 docs/diagrams/render.py --html-only` to refresh their embedded data, the reference images, and the GitHub SVG preview. Omit `--html-only` to also rebuild and validate the Mermaid sequences (requires Node/npm and Chrome).
+
+[Open the detailed architecture atlas](architecture-uml.md) for the editable interface map, upload sequences, data model, and lifecycle.
+
+<details>
+<summary>Full engineering reference · packages, data flow, decisions and limits</summary>
+
+Single command: `./sdth-telemetry/scripts/demo-console.sh` starts the API, an in-process background worker (`local_worker.py`), the static console and replay, all on `127.0.0.1:8010`. Redis and Docker are not needed for this path. Parsing, detection and PDF export do not need network access; offline replay depends on the locally available map and terrain assets.
 
 ## Packages
 
@@ -29,11 +50,11 @@ Each stage emits a timed log line `upload=<id> stage=<name> … ms=<n>` in the l
 
 1. **received** — `ingest.py`. Extension and size gate, streaming SHA-256 while spooling to disk. A digest already stored returns the existing `upload_id` (`dedup=true`) — the same bytes never produce a second record. Raw bytes are kept untouched under `data/demo-uploads/`.
 2. **parsed** — `parsers/registry.parse_raw_log`. Sniffs the format, produces the L1 payload. `flight_id` and `event_id` are derived from the checksum (`stable_identifiers`), so re-ingest is idempotent end to end.
-3. **canonical** — `privacy.redact_operator_locations` strips home/operator coordinates and writes an audit row; `canonical_series.persist_canonical_series` projects L1 into the schema-validated **L2** series: `timestamp_utc`, `position{lat,lon,alt_m,frame}`, `attitude{roll,pitch,yaw}`, `battery{soc,voltage_v}`, `sensors`, `metadata{source,frame,value_origin}`. Local-NED-only logs are projected from a reference origin and tagged `frame: local_ned`. Provenance (parser, record count, redactions) is stored on the upload.
+3. **canonical** — `privacy.redact_operator_locations` strips home/operator coordinates and writes an audit row; `canonical_series.persist_canonical_series` projects L1 into the schema-validated **L2** series: `timestamp_utc`, `position{lat,lon,alt_m}`, `attitude{roll_deg,pitch_deg,yaw_deg}`, `battery{percent,voltage_v}`, `sensors`, `metadata{source,frame,...}`. Local-NED-only logs are projected from a reference origin and tagged `frame: local_ned`. Provenance (parser, record count, redactions) is stored on the upload.
 4. **detected** — `incidents.index_flight` loads the L2 series and runs `detectors.detect_incidents`. Eight deterministic detectors: `battery_low/critical`, `battery_plunge`, `telemetry_gap`, `attitude_shock`, `gps_jump`, `last_known_position`, `mission_incomplete`, `operator_warning`. Each incident stores the timestamped L2 samples it was derived from (`sample`/`samples` in `evidence_json`, plus position and hazard label) — that is the "evidence" every later view cites. Rule incidents are replaced atomically per flight, then `incident_patterns` is rebuilt across the fleet by signature.
-5. **done** — status `ready`; the console polls `GET /v1/uploads/{id}` and loads the flight.
+5. **done** — the raw-upload task finishes after enqueueing the follow-up job. `process_job` re-indexes idempotently and then marks the upload `ready`; charts are exported afterward on a best-effort basis. The console polls `GET /v1/uploads/{id}` until `ready` or `failed`.
 
-Downstream, all read-only:
+Downstream evidence views and human-review artefacts:
 
 - **Replay** — `GET /v1/flights/{id}/path` is the stable replay contract (samples + incidents); the viewer never sees raw vendor rows.
 - **Record queries** — `POST /v1/demo/query` answers *What happened? / Where is the evidence? / Similar warnings* purely from stored incidents and L2 records. No model involved.
@@ -43,7 +64,7 @@ Downstream, all read-only:
 
 ## Storage
 
-SQLite (`data/demo-console.db`), migrations in `platform-api/migrations/`. Tables that matter: `raw_uploads` (bytes, sha256, status, provenance) → `ingest_events` (L1, idempotency key) → `canonical_records` (L2) → `incidents` / `incident_patterns` → `mitigation_bulletins`, `comprehensive_reports`; plus `audit_events` and `normalization_provenance`. Everything in `data/` is runtime state and gitignored; a fresh clone starts empty and re-imports the bundled fixtures on Session connect.
+SQLite (`data/demo-console.db`), migrations in `platform-api/migrations/`. Tables that matter: `raw_uploads` (file path, sha256, status, provenance) → `ingest_events` (L1, idempotency key) → `canonical_records` (L2) → `incidents` / `incident_patterns` → `mitigation_bulletins`, `comprehensive_reports`; plus `audit_events` and `normalization_provenance`. Everything in `data/` is runtime state and gitignored; a fresh clone starts empty and re-imports the bundled fixtures on Session connect.
 
 ## Key technical decisions and trade-offs
 
@@ -53,8 +74,8 @@ SQLite (`data/demo-console.db`), migrations in `platform-api/migrations/`. Table
 | Checksum-addressed identities | Idempotent re-ingest, global dedup, tamper-evident evidence | Editing a byte creates a "new" flight — by design |
 | Deterministic detectors, model optional | Reproducible, explainable, works air-gapped; numbers never come from a model. Early prototype (Jul) used an LLM as the normaliser and we replaced it after seeing invented values | Thresholds are hand-tuned for the demo envelope; no learned anomaly detection |
 | L2 canonical schema between parsers and detectors | Detectors are written once for nine formats; schema validation catches parser drift (it caught the DJI 0.0 m altitude bug) | Some vendor-specific fields only survive in `sensors`/`metadata` |
-| SQLite + in-process worker | One command, one file, no Redis/Docker for the judge; the Redis/Compose path still exists for the two-laptop setup | Serialised processing of large exports |
-| CesiumJS served locally with cached terrain/tiles | Replay works offline for the three demo regions; no Ion token | Uploads outside cached regions show a flat globe (`Terrain uncached`) rather than invented terrain |
+| SQLite + in-process worker | One command, one file, no Redis/Docker for the local demo; the Redis/Compose path still exists for the two-laptop setup | Serialised processing of large exports |
+| CesiumJS served locally with cached terrain/tiles | Replay can use locally available cached terrain/tiles; no Ion token | Uploads outside cached regions show a flat globe (`Terrain uncached`) rather than invented terrain |
 | Synthetic corpus from a kinematic generator with gates | We lacked rights to a large real failure corpus; scenario cards give ground truth for expected detector outcomes | Synthetic ≠ operational; every fixture is labelled as such, and real public logs were used for a false-positive audit |
 
 ## Tests and evidence
@@ -70,5 +91,7 @@ SQLite (`data/demo-console.db`), migrations in `platform-api/migrations/`. Table
 - Post-flight only. No live GCS link, no onboard inference, no automated fleet actions.
 - Detector thresholds are demonstration values; they are documented in `sdth-telemetry/README.md` and adjustable in `detectors.py`.
 - Formats outside the thirteen registered extensions are rejected at `received`, with the reason.
-- Terrain/imagery is cached for three demo regions; elsewhere the replay falls back to a flat globe.
-- The model path needs Ollama on loopback; without it the console says so and all deterministic features still work.
+- Bundled terrain covers the demo regions; outside cached terrain, replay falls back to a flat globe. Uncached raster imagery needs network access.
+- Model analysis uses Ollama or a supported local OpenAI-compatible server; without it all deterministic features still work.
+
+</details>

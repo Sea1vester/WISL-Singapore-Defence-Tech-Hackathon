@@ -1,4 +1,4 @@
-import { createTabletop, elevationHeightAt } from './tabletop.mjs?v=stream-19';
+import { createTabletop } from './tabletop.mjs?v=stream-25';
 
 export function intersects(a,b) {
   return a.west<=b.east&&a.east>=b.west&&a.south<=b.north&&a.north>=b.south;
@@ -20,6 +20,47 @@ export function nearbyMapChunks(chunks,bounds) {
   const distance=c=>Math.hypot(((c.bounds.west+c.bounds.east)/2-cx)*Math.cos(cy*Math.PI/180),(c.bounds.south+c.bounds.north)/2-cy);
   return chunks.filter(c=>intersects(c.bounds,bounds)).sort((a,b)=>distance(a)-distance(b));
 }
+export function createTabletopCache(viewer,options={}) {
+  const entries=new Map(),create=options.create||createStreamingTabletop;
+  let active=null,notify=null;
+  const dispose=key=>{
+    const entry=entries.get(key);
+    if(!entry)return;
+    if(active===entry)active=null;
+    entry.part.destroy();entries.delete(key);
+  };
+  return {
+    get size(){return entries.size;},
+    activate(data,onProgress){
+      const key=JSON.stringify([data.name,data.bounds]);
+      if(active&&active.key!==key){
+        if(!active.progress?.complete||active.progress.failed)dispose(active.key);
+        else active.part.setVisible(false);
+      }
+      if(entries.get(key)?.progress?.failed)dispose(key);
+      notify=onProgress;
+      let entry=entries.get(key);
+      if(!entry){
+        entry={key,progress:null,part:null};entries.set(key,entry);active=entry;
+        entry.part=create(viewer,data,{bounds:data.bounds,onProgress:progress=>{
+          entry.progress=progress;if(active===entry)notify?.(progress);
+        }});
+      }
+      active=entry;entries.delete(key);entries.set(key,entry);
+      entry.part.setVisible(true);
+      if(entry.progress)notify?.(entry.progress);
+      while(entries.size>2)dispose(entries.keys().next().value);
+      return entry.part;
+    },
+    deactivate(){
+      if(!active)return;
+      if(!active.progress?.complete||active.progress.failed)dispose(active.key);
+      else{active.part.setVisible(false);active=null;}
+    },
+    destroy(){for(const key of entries.keys())dispose(key);},
+  };
+}
+
 const yieldFrame=()=>new Promise(resolve=>requestAnimationFrame(()=>setTimeout(resolve,0)));
 
 /** A low-resolution base is immediate; cancellable work streams around it. */
@@ -39,23 +80,33 @@ export function createStreamingTabletop(viewer,data,options={}) {
   const update=()=>{if(!destroyed) options.onProgress?.({...progress});};
   const add=(source,config)=>{
     if(destroyed)return;
-    const part=render(viewer,source,{...config,show:visible});
+    const part=render(viewer,source,{...config,show:visible,mapOverlay});
     part.setMapOverlay?.(mapOverlay);
     parts.push(part);
     viewer.scene.requestRender();
+    return part;
   };
   // The low-detail underlay sits just below the detailed surface to avoid z-fighting.
-  add(data,{bounds,features:false,seams:false,edges:false,resolution:10,
-    heightAt:(lon,lat)=>elevationHeightAt(data.elevation,lon,lat)-1.5});
+  const heights=(data.elevation?.heights||[]).filter(Number.isFinite);
+  const baseHeight=(heights.length?Math.min(...heights):0)-8;
+  add(data,{bounds,features:false,seams:false,edges:false,resolution:2,
+    heightAt:()=>baseHeight});
   async function loadTerrain() {
+    const pending=[];
     for(const chunk of terrain){
       await pause();
       if(destroyed)return;
-      add(data,{bounds:chunk.bounds,features:false,seams:false,edges:false,resolution:chunk.distance===0?32:18});
-      progress.terrain++;update();
+      const part=add(data,{bounds:chunk.bounds,features:false,seams:false,edges:false,resolution:chunk.distance===0?32:18});
+      pending.push(Promise.resolve(part.ready).then(rendered=>{
+        if(destroyed)return;
+        if(rendered===false)progress.failed++;
+        progress.terrain++;update();
+      }));
     }
+    await Promise.all(pending);
   }
   async function loadMap() {
+    const pending=[];
     for(const chunk of maps) {
       await pause();
       if(destroyed)return;
@@ -67,14 +118,19 @@ export function createStreamingTabletop(viewer,data,options={}) {
       try{
         const content=await fetchChunk(chunk,timed.signal);
         if(destroyed)return;
-        add({...data,elements:content.elements},{bounds,terrain:false,seams:false,edges:false});
-        progress.map++;
-      }catch(error){if(destroyed)return;progress.failed++;}
+        const part=add({...data,elements:content.elements},{bounds,terrain:false,seams:false,edges:false});
+        pending.push(Promise.resolve(part.ready).then(rendered=>{
+          if(destroyed)return;
+          if(rendered===false)progress.failed++;
+          progress.map++;update();
+        }));
+      }catch(error){if(destroyed)return;progress.failed++;update();}
       finally {clearTimeout(timeout);controller.signal.removeEventListener('abort',abort);}
-      update();
     }
+    await Promise.all(pending);
   }
-  const ready=Promise.allSettled([loadTerrain(),loadMap()]).then(results=>{
+  const terrainReady=loadTerrain();
+  const ready=Promise.allSettled([terrainReady,terrainReady.then(()=>{if(!destroyed)return loadMap();})]).then(results=>{
     if(!destroyed){
       progress.failed+=results.filter(r=>r.status==='rejected').length;
       progress.complete=true;update();

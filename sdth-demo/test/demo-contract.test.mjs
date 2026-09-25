@@ -1,6 +1,36 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { flightDisplayName, isSimulationCorpus, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "../demo-contract.mjs";
+import { logFilename, workspaceRoute, sidebarWidth, folderTrail, folderPath, folderDestinations, flightDisplayName, isSimulationCorpus, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "../demo-contract.mjs";
+
+test("explorer uses actual filenames and never strips their extensions", () => {
+  assert.equal(logFilename({original_filename: "dji_csv_gps_jamming.csv"}), "dji_csv_gps_jamming.csv");
+  assert.equal(logFilename({filename: "Flight with spaces.BIN"}), "Flight with spaces.BIN");
+  assert.equal(logFilename({id: "flight-123"}), "flight-123.log");
+});
+
+test("workspace routes separate replay from the four analysis tabs", () => {
+  assert.deepEqual(workspaceRoute("#/replay"), {page: "replay", tab: "overview"});
+  for (const tab of ["overview", "patterns", "bulletins", "logs"]) assert.deepEqual(workspaceRoute(`#/analysis/${tab}`), {page: "analysis", tab});
+  assert.deepEqual(workspaceRoute("#/analysis/unknown"), {page: "analysis", tab: "overview"});
+  assert.deepEqual(workspaceRoute("#unknown"), {page: "replay", tab: "overview"});
+});
+
+test("sidebar width is bounded and leaves room for the main workspace", () => {
+  assert.equal(sidebarWidth(1000, 1440), 520);
+  assert.equal(sidebarWidth(-10, 1440), 190);
+  assert.equal(sidebarWidth(500, 760), 334);
+  assert.equal(sidebarWidth(NaN, 1440), 280);
+});
+
+test("folder paths and move destinations respect nested ancestry", () => {
+  const folders = [{id: "a", parent_id: null, name: "Singapore"}, {id: "b", parent_id: "a", name: "Hillview"}, {id: "c", parent_id: null, name: "UK"}];
+  assert.equal(folderPath(folders, "b"), "Missions / Singapore / Hillview");
+  assert.equal(folderPath(folders, null), "Missions");
+  assert.equal(folderPath(folders, "missing"), "Missions");
+  assert.deepEqual(folderDestinations(folders, "a").map(folder => folder.id), ["c"]);
+  assert.deepEqual(folderDestinations(folders, "b").map(folder => folder.id), ["a", "c"]);
+  assert.equal(folderTrail([{id: "a", parent_id: "a", name: "Broken"}], "a").length, 1);
+});
 
 test("handles the documented local model status shape", () => {
   assert.equal(modelStatus({ model: { status: "ready", local: true } }), "ready");

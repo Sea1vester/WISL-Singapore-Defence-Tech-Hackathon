@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createStreamingTabletop,terrainChunks,nearbyMapChunks} from '../public/tabletop-stream.mjs';
+import {createStreamingTabletop,createTabletopCache,terrainChunks,nearbyMapChunks} from '../public/tabletop-stream.mjs';
 import {tabletopBounds} from '../public/tabletop-context.mjs';
 const bounds={west:0,south:0,east:3,north:3};
 const region={bounds,elevation:{bounds,columns:2,rows:2,heights:[10,11,12,13]},chunks:[{id:'center',url:'center',bounds:{west:1,south:1,east:2,north:2}},{id:'outside',url:'outside',bounds:{west:4,south:4,east:5,north:5}}]};
@@ -24,7 +24,8 @@ test('replay gets an immediate base while unavailable map chunks leave usable te
  const configs=[],progress=[];
  const stream=createStreamingTabletop(viewer,region,{yieldFrame:pause,fetchChunk:async()=>{throw new Error('offline');},render(v,d,o){configs.push(o);return {setVisible(){},destroy(){}};},onProgress:p=>progress.push(p)});
  assert.equal(configs.length,1);
- assert.equal(configs[0].resolution,10);
+ assert.equal(configs[0].resolution,2);
+ assert.ok(configs[0].heightAt(1.5,1.5)<Math.min(...region.elevation.heights));
  await stream.ready;
  assert.equal(configs.length,10);
  assert.equal(progress.at(-1).terrain,9);
@@ -40,6 +41,54 @@ test('switching missions cancels pending work and prevents stale geometry or pro
  const stream=createStreamingTabletop(viewer,region,{yieldFrame:()=>gate,render(){renders++;return {setVisible(){},destroy(){disposals++;}};},onProgress(){updates++;}});
  stream.destroy();stream.destroy();release();await stream.ready;
  assert.equal(renders,1);assert.equal(disposals,1);assert.equal(updates,0);
+});
+
+test('map details wait for terrain GPU readiness rather than geometry submission',async()=>{
+ const releases=[];
+ let fetched=0;
+ const stream=createStreamingTabletop(viewer,region,{yieldFrame:pause,fetchChunk:async()=>{fetched++;return {elements:[]};},render(v,d,o){
+  return {ready:o.features===false&&o.resolution!==2?new Promise(resolve=>releases.push(resolve)):Promise.resolve(true),setVisible(){},destroy(){}};
+ }});
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(releases.length,9);
+ assert.equal(fetched,0);
+ releases.forEach(resolve=>resolve(true));
+ await stream.ready;
+ assert.equal(fetched,1);
+ stream.destroy();
+});
+
+test('region cache reuses completed geometry, bounds memory, and discards unfinished work',()=>{
+ const built=[];
+ const cache=createTabletopCache(viewer,{create(v,data,options){
+  const part={visible:true,destroyed:false,setVisible(value){this.visible=value;},destroy(){this.destroyed=true;}};
+  built.push({data,options,part});return part;
+ }});
+ const a={...region,name:'a'},b={...region,name:'b'},c={...region,name:'c'};
+ const first=cache.activate(a,()=>{});
+ assert.equal(cache.activate(a,()=>{}),first);
+ assert.equal(built.length,1);
+ built[0].options.onProgress({complete:true,failed:0});
+ assert.equal(cache.activate(a,()=>{}),first);
+ assert.deepEqual(built[0].options.bounds,a.bounds);
+ cache.activate(b,()=>{});built[1].options.onProgress({complete:true,failed:0});
+ assert.equal(first.visible,false);
+ assert.equal(cache.activate(a,()=>{}),first);
+ cache.activate(c,()=>{});
+ assert.equal(built[1].part.destroyed,true);
+ assert.equal(built[0].part.destroyed,false);
+ cache.activate(a,()=>{});
+ assert.equal(built[2].part.destroyed,true);
+ assert.equal(built.length,3);
+ cache.destroy();assert.equal(first.destroyed,true);
+});
+
+test('region cache retries failed regions instead of caching missing geometry',()=>{
+ let builds=0,progress;
+ const cache=createTabletopCache(viewer,{create(v,d,o){builds++;progress=o.onProgress;return {setVisible(){},destroy(){}};}});
+ cache.activate(region,()=>{});progress({complete:true,failed:1});
+ cache.activate(region,()=>{});assert.equal(builds,2);
+ cache.destroy();
 });
 
 test('mode visibility applies to later arriving chunks as well as the base',async()=>{

@@ -1,4 +1,5 @@
 # Raw fixtures are checksum-addressed; preserve their original bytes on checkout.
+sdth-demo/fixtures/** -text
 sdth-demo/fixtures/*.csv -text -diff
 output/evidence/corpus-validation/supplemental/**/*.csv -text -diff
 output/evidence/corpus-validation-v2/**/*.csv -text -diff

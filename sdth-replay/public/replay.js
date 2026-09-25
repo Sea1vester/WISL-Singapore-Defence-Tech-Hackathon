@@ -1,6 +1,6 @@
 window.addEventListener('error', event => console.error('Replay diagnostic', event.error?.stack || event.message));
-import { createStreamingTabletop } from './tabletop-stream.mjs?v=stream-19';
-import { loadTabletopAtlas, routeContext, atlasHeight, tabletopBounds, createCachedTerrain, createTabletopFinish } from './tabletop-context.mjs?v=stream-19';
+import { createTabletopCache } from './tabletop-stream.mjs?v=stream-25';
+import { loadTabletopAtlas, routeContext, atlasHeight, configureDaytimeAtmosphere, createTabletopClip, createCachedTerrain, createTabletopFinish, observeImagery, imageryStatusText, constrainCameraAboveGround } from './tabletop-context.mjs?v=stream-25';
 import {
   alignIncidents,
   bannerState,
@@ -22,7 +22,7 @@ import {
   uavScaleMode,
   metersPerPixel,
   scaleBarStep,
-} from "/replay/lib/flight.mjs?v=stream-19";
+} from "/replay/lib/flight.mjs?v=stream-25";
 
 const CESIUM_VERSION = "1.125";
 const SPEED_VALUES = [0.5, 1, 2, 4, 8, 12];
@@ -58,6 +58,16 @@ const state = {
   viewer: null,
   entities: [],
   clockListener: null,
+  workspaceVisible: params.get("workspace") !== "analysis",
+  resumeAfterAnalysis: false,
+  replayInitialized: false,
+  replayPreparing: true,
+  lastSelectionId: 0,
+  pendingSelection: null,
+  selectionRunning: false,
+  cancelSceneWait: null,
+  tabletopCache: null,
+  tabletopClipKey: null,
   uavModelReady: false,
   uavScaleOverride: null,
   uavScaleApplied: "enlarged",
@@ -127,6 +137,8 @@ const state = {
   mapVisible: false,
   satVisible: false,
   satLayer: null,
+  imageryStatus: {map: {pending:0,loaded:0,failed:0}, satellite: {pending:0,loaded:0,failed:0}},
+  imageryEpoch: {map:0, satellite:0},
   routeOverview: null,
   atlas: [],
   tabletop: null,
@@ -357,22 +369,43 @@ async function createTerrainProvider() {
   return new Cesium.EllipsoidTerrainProvider();
 }
 
+function createImageryProvider(mode) {
+  const satellite=mode==='satellite';
+  const epoch=++state.imageryEpoch[mode];
+  state.imageryStatus[mode]={pending:0,loaded:0,failed:0};
+  const provider=new Cesium.UrlTemplateImageryProvider({
+    url: satellite ? '/tiles/sat/{z}/{x}/{y}.jpg?v=imagery-1' : '/tiles/{z}/{x}/{y}.png?v=imagery-1',
+    maximumLevel:19,
+    credit:satellite?'Esri, Maxar, Earthstar Geographics, and the GIS User Community':'© OpenStreetMap contributors',
+  });
+  return observeImagery(provider,status=>{
+    if(state.imageryEpoch[mode]!==epoch)return;
+    state.imageryStatus[mode]=status;
+    updateTerrainContext();
+  });
+}
+
+function retryImagery() {
+  if(!state.viewer||!state.mapVisible)return;
+  const mode=state.satVisible?'satellite':'map';
+  const layers=state.viewer.imageryLayers;
+  const oldLayer=state.satVisible?state.satLayer:layers.get(0);
+  const index=layers.indexOf(oldLayer);
+  const layer=new Cesium.ImageryLayer(createImageryProvider(mode));
+  layers.remove(oldLayer,true);
+  layers.add(layer,index);
+  if(state.satVisible)state.satLayer=layer;
+  setPresentationMode(mode);
+}
+
 async function createViewer() {
   if (window.Cesium?.Ion) {
     window.Cesium.Ion.defaultAccessToken = "";
   }
   // OSM is a proven no-key source in this local console. Tone the imagery at
   // the layer level so labels remain readable under the route.
-  const baseMap = new Cesium.UrlTemplateImageryProvider({
-    url: "/tiles/{z}/{x}/{y}.png",
-    maximumLevel: 19,
-    credit: "© OpenStreetMap contributors",
-  });
-  const satMap = new Cesium.UrlTemplateImageryProvider({
-    url: "/tiles/sat/{z}/{x}/{y}.jpg",
-    maximumLevel: 19,
-    credit: "Esri, Maxar, Earthstar Geographics, and the GIS User Community",
-  });
+  const baseMap = createImageryProvider("map");
+  const satMap = createImageryProvider("satellite");
   const terrainProvider = new Cesium.EllipsoidTerrainProvider();
   const viewer = new Cesium.Viewer("cesiumContainer", {
     animation: false,
@@ -400,22 +433,21 @@ async function createViewer() {
     requestRenderMode: false,
     targetFrameRate: 30,
   });
-  // Dark space environment. This previously built a Cesium.SkyBox with an
+  // Muted daytime sky. This previously built a Cesium.SkyBox with an
   // empty string as the image source for all six cube faces -- Cesium tries
   // to actually fetch/decode those, an empty URL resolves to this HTML
   // document, and decoding that as an image is exactly what threw
   // "InvalidStateError: source image could not be decoded" and halted
-  // rendering before the base imagery layer ever loaded. Disabling the
-  // skybox outright gets the same dark-space look from backgroundColor
-  // below, without a broken image load.
-  viewer.scene.skyBox = undefined;
-  viewer.scene.skyAtmosphere = undefined;
-  viewer.scene.globe.showGroundAtmosphere = false;
+  // rendering before the base imagery layer ever loaded. Keep the
+  // skybox disabled and use the built-in daytime atmosphere instead,
+  // with a blue-grey fallback and no additional texture downloads.
+  configureDaytimeAtmosphere(viewer, Cesium);
+  state.tabletopCache = createTabletopCache(viewer);
   viewer.scene.globe.enableLighting = false;
   viewer.shadows = false;
   viewer.scene.shadowMap.enabled = false;
   viewer.scene.globe.depthTestAgainstTerrain = true;
-  viewer.scene.backgroundColor = Cesium.Color.fromCssColorString("#061925");
+  viewer.scene.globe.tileCacheSize = 256;
   viewer.scene.fog.enabled = true;
   viewer.scene.fog.density = 0.00015;
   viewer.scene.highDynamicRange = false;
@@ -543,7 +575,7 @@ function setOrbitEnabled(enabled) {
   controller.enableRotate = !enabled;
   controller.enableTilt = !enabled;
   controller.enableLook = !enabled;
-  setGlobeCollision(controller, false);
+  setGlobeCollision(controller, true);
   if (!enabled) {
     viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
     return;
@@ -559,7 +591,7 @@ function startOrbitFromCamera() {
   }
   const range = Cesium.Cartesian3.distance(viewer.camera.positionWC, target);
   state.orbit.heading = viewer.camera.heading;
-  state.orbit.pitch = params.get("embed") === "1" ? clamp(viewer.camera.pitch, -1.25, -0.30) : clamp(viewer.camera.pitch, -1.48, 1.48);
+  state.orbit.pitch = params.get("embed") === "1" ? clamp(viewer.camera.pitch, -1.25, -0.30) : clamp(viewer.camera.pitch, -1.48, -0.08);
   state.orbit.range = params.get("embed") === "1" ? clamp(range, 210, 650) : clamp(range, 4, 30000);
   setOrbitEnabled(true);
 }
@@ -607,8 +639,15 @@ function enableInspectCamera(viewer) {
     Cesium.CameraEventType.PINCH,
     Cesium.CameraEventType.RIGHT_DRAG,
   ];
-  setGlobeCollision(controller, false);
+  setGlobeCollision(controller, true);
   viewer.camera.constrainedAxis = undefined;
+  viewer.scene.preRender.addEventListener(() => {
+    if (!constrainCameraAboveGround(viewer, state.atlas, Cesium) || !state.orbit.enabled || state.cameraJumpAnimating) return;
+    state.orbit.range = Math.max(4, Cesium.Cartesian3.magnitude(viewer.camera.position));
+    state.orbit.pitch = clamp(-Math.asin(viewer.camera.position.z / state.orbit.range), -1.48, -0.08);
+    applyOrbitCamera();
+    constrainCameraAboveGround(viewer, state.atlas, Cesium);
+  });
 
   const onGlobe = (event) => {
     const target = event.target;
@@ -674,7 +713,7 @@ function enableInspectCamera(viewer) {
     const dx = movement.endPosition.x - movement.startPosition.x;
     const dy = movement.endPosition.y - movement.startPosition.y;
     state.orbit.heading -= dx * 0.005;
-    state.orbit.pitch = clamp(state.orbit.pitch + dy * 0.005, -1.48, 1.48);
+    state.orbit.pitch = clamp(state.orbit.pitch + dy * 0.005, -1.48, -0.08);
     applyOrbitCamera();
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
   handler.setInputAction(() => {
@@ -706,7 +745,7 @@ function clearClickHandler() {
 function setupClickToFollow(viewer) {
   clearClickHandler();
   state._clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
-  state._clickHandler.setInputAction((click) => {
+  state._clickHandler.setInputAction(async (click) => {
     const picked = viewer.scene.pick(click.position);
     if (!Cesium.defined(picked) || !picked.id) return;
     const id = picked.id.id || picked.id;
@@ -715,8 +754,7 @@ function setupClickToFollow(viewer) {
       const flightId = id.replace("uav-", "");
       const flightIdx = state.flights.findIndex((f) => f.flight_id === flightId);
       if (flightIdx >= 0) {
-        state.active = flightIdx;
-        showActiveFlight();
+        if (state.active !== flightIdx) { state.active = flightIdx; await showActiveFlight(); }
         // Enable smooth camera follow using Cesium trackedEntity + orbit blend
         const uavEntity = viewer.entities.getById(id);
         if (uavEntity) {
@@ -812,7 +850,7 @@ function setupIncidentTooltip(viewer) {
   const tooltip = getOrCreateTooltip();
   const handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
   handler.setInputAction((movement) => {
-    const picked = viewer.scene.pick(movement.position);
+    const picked = viewer.scene.pick(movement.endPosition);
     if (!Cesium.defined(picked) || !picked.id) {
       tooltip.style.display = "none";
       return;
@@ -837,8 +875,8 @@ function setupIncidentTooltip(viewer) {
             tooltip.append(document.createTextNode(incident.summary));
           }
           tooltip.style.display = "block";
-          tooltip.style.left = movement.position.x + 16 + "px";
-          tooltip.style.top = movement.position.y - 10 + "px";
+          tooltip.style.left = movement.endPosition.x + 16 + "px";
+          tooltip.style.top = movement.endPosition.y - 10 + "px";
           return;
         }
       }
@@ -859,7 +897,7 @@ function clearTooltip() {
 }
 
 function clearEntities() {
-  _trailAnimationCancel = true;
+  _trailAnimationVersion++;
   stopHazardAnimations();
   clearClickHandler();
   clearTooltip();
@@ -1131,16 +1169,16 @@ async function addHazardCircles(flight, incidentHeights) {
 
 // ---- Trail animation: fade trail behind drone, bright ahead ----
 
-let _trailAnimationCancel = false;
+let _trailAnimationVersion = 0;
 
 function animateTrailGlow(flightId, viewer) {
   const trailEntity = viewer.entities.getById(`trail-${flightId}`);
   const pathEntity = viewer.entities.getById(`path-${flightId}`);
   if (!trailEntity || !pathEntity) return;
-  _trailAnimationCancel = false;
+  const version = ++_trailAnimationVersion;
 
   function tick() {
-    if (_trailAnimationCancel || !viewer) return;
+    if (version !== _trailAnimationVersion || !viewer || viewer.isDestroyed()) return;
     const currentTime = viewer.clock.currentTime;
     const startTime = viewer.clock.startTime;
     const stopTime = viewer.clock.stopTime;
@@ -1871,32 +1909,39 @@ function renderHud(flight, pose) {
   maybeCaptureIncidentScreenshot(flight, banner, isoTimestamp);
 }
 
+function setReplayPreparation(visible, text = "Preparing terrain and buildings…", error = false) {
+  state.replayPreparing = visible;
+  document.getElementById("replayPreparation").hidden = !visible;
+  document.getElementById("replayPreparationTitle").textContent = error ? "Replay could not be loaded" : "Preparing recorded replay";
+  document.getElementById("replayPreparationText").textContent = text;
+}
+
 async function showActiveFlight() {
   const flight = state.flights[state.active];
   if (!flight) {
     return;
   }
   const drawId = (state.globeDraw += 1);
+  state.cameraJumpToken = (state.cameraJumpToken || 0) + 1;
+  state.cameraJumpAnimating = false;
   state.bannerClosed = false;
   state.dismissedIncidentId = null;
   state.followEntity = null;
   state.followFlightId = null;
+  setPlaying(false);
+  setReplayPreparation(true);
   clearEntities();
-  state.tabletop?.destroy();
   state.tabletop = null;
   state.terrainProgress = null;
   state.mapContext = routeContext(state.atlas, flight.samples);
   if (state.mapContext) {
-    state.tabletop = createStreamingTabletop(state.viewer, state.mapContext, {
-      bounds: tabletopBounds(state.mapContext, flight.samples),
-      show: true,
-      onProgress: progress => {
-        if(drawId!==state.globeDraw)return;
-        state.terrainProgress=progress;
-        updateTerrainContext();
-      },
+    state.tabletop = state.tabletopCache.activate(state.mapContext, progress => {
+      if(drawId!==state.globeDraw)return;
+      state.terrainProgress=progress;
+      document.getElementById("replayPreparationText").textContent = `Ground ${progress.terrain}/${progress.terrainTotal} · map details ${progress.map}/${progress.mapTotal}`;
+      updateTerrainContext();
     });
-  }
+  } else state.tabletopCache.deactivate();
   setPresentationMode(state.satVisible ? "satellite" : state.mapVisible ? "map" : "tabletop");
   renderFlightList();
   renderFlightLegend();
@@ -1945,9 +1990,15 @@ async function showActiveFlight() {
   }
   updateLayerVisibility();
   focusActiveRoute(flight);
+  let cancelWait;
+  const cancelled = new Promise(resolve => { cancelWait = resolve; });
+  state.cancelSceneWait = cancelWait;
+  await Promise.race([state.tabletop?.ready, cancelled]);
+  if (state.cancelSceneWait === cancelWait) state.cancelSceneWait = null;
   if (drawId !== state.globeDraw) {
     return;
   }
+  setPresentationMode(state.satVisible ? "satellite" : state.mapVisible ? "map" : "tabletop");
   const pausedAtEvidence = seekRequestedReplayTime(flight);
   if (!pausedAtEvidence) {
     setPlaying(true);
@@ -1955,6 +2006,10 @@ async function showActiveFlight() {
     updateTimelineUI();
   }
   setStatus(pausedAtEvidence ? "Evidence timestamp selected" : `Recorded playback ready · ${DEFAULT_PLAYBACK_SPEED}×`);
+  setupClickToFollow(state.viewer);
+  setupIncidentTooltip(state.viewer);
+  setReplayPreparation(false);
+  if (window.parent !== window) window.parent.postMessage({type: "wisl:replay-ready"}, location.origin);
 }
 
 function seekRequestedReplayTime(flight) {
@@ -2007,15 +2062,17 @@ async function captureAndUploadScreenshot(flightId, isoTimestamp, incidentId, ca
 }
 
 function maybeCaptureIncidentScreenshot(flight, banner, isoTimestamp) {
-  if (!banner.failed) return;
+  if (!banner.failed || state.replayPreparing) return;
   const incidentId = banner.incident?.id || null;
   const dedupeKey = incidentId || `${banner.type}:${isoTimestamp}`;
   if (_capturedIncidents.has(dedupeKey)) return;
   _capturedIncidents.add(dedupeKey);
   const caption = `[${banner.severity}] ${banner.type} at ${isoTimestamp}`;
-  requestAnimationFrame(() =>
-    captureAndUploadScreenshot(flight.flight_id, isoTimestamp, incidentId, caption),
-  );
+  const drawId = state.globeDraw;
+  requestAnimationFrame(() => {
+    if (drawId !== state.globeDraw || state.replayPreparing) { _capturedIncidents.delete(dedupeKey); return; }
+    void captureAndUploadScreenshot(flight.flight_id, isoTimestamp, incidentId, caption);
+  });
 }
 
 function clearCameraPip() {
@@ -2168,6 +2225,7 @@ async function hydrateFlight(document, extras = {}) {
 }
 
 async function loadLiveFlight(flightId) {
+  flightId = encodeURIComponent(flightId);
   setStatus(`Loading ${flightId}...`);
   const path = await apiGet(`/v1/flights/${flightId}/path`);
   const incidents = await apiGet(`/v1/flights/${flightId}/incidents`, true);
@@ -2186,6 +2244,31 @@ async function loadLiveFlight(flightId) {
   });
   flight.upload_status = "ready";
   return flight;
+}
+
+async function drainReplaySelections() {
+  if (!state.replayInitialized || state.selectionRunning) return;
+  state.selectionRunning = true;
+  try {
+    while (state.pendingSelection) {
+      const request = state.pendingSelection;
+      state.pendingSelection = null;
+      try {
+        const flight = await loadLiveFlight(request.flightId);
+        if (request.selectionId !== state.lastSelectionId) continue;
+        state.flights = [flight]; state.active = 0; state.showAllFlights = false;
+        params.set("flights", request.flightId);
+        if (request.timestamp) params.set("timestamp", request.timestamp); else params.delete("timestamp");
+        await showActiveFlight();
+      } catch (error) {
+        if (request.selectionId !== state.lastSelectionId) continue;
+        const message = friendlyError(error);
+        setReplayPreparation(true, `${message} Select the log again to retry.`, true);
+        setStatus(message, true);
+        window.parent.postMessage({type: "wisl:replay-error", selectionId: request.selectionId, message}, location.origin);
+      }
+    }
+  } finally { state.selectionRunning = false; }
 }
 
 async function loadOfflineDemo() {
@@ -2398,7 +2481,21 @@ async function loadDataset(path) {
   }
 }
 
+function setWorkspaceVisibility(visible) {
+  if (state.workspaceVisible === visible) return;
+  const viewer = state.viewer;
+  if (!visible) state.resumeAfterAnalysis = Boolean(viewer?.clock.shouldAnimate);
+  state.workspaceVisible = visible;
+  if (!viewer) return;
+  viewer.clock.canAnimate = true;
+  viewer.clock.shouldAnimate = visible && state.resumeAfterAnalysis;
+  if (viewer.clockViewModel) viewer.clockViewModel.shouldAnimate = viewer.clock.shouldAnimate;
+  if (visible) viewer.resize();
+  viewer.scene.requestRender();
+}
+
 function setPlaying(playing) {
+  if (!state.workspaceVisible) { state.resumeAfterAnalysis = playing; playing = false; }
   const viewer = state.viewer;
   const clock = viewer.clock;
   if (playing) {
@@ -2427,12 +2524,21 @@ function updateTerrainContext() {
   const note=document.getElementById('terrainContext');
   if(!note)return;
   const p=state.terrainProgress;
+  const imagery=state.imageryStatus[state.satVisible?'satellite':'map'];
+  const missing=state.mapVisible&&imagery.failed>0;
+  const retry=document.getElementById('retryImageryButton');
+  if(retry)retry.hidden=!missing;
+  note.classList.toggle('imagery-warning',missing);
+  if(state.mapVisible){
+    note.textContent=imageryStatusText(state.satVisible?'Satellite':'Map',imagery);
+    if(imagery.loaded&&!imagery.failed&&!imagery.pending)note.textContent+=state.mapContext?' · cached terrain':' · flat globe (terrain unavailable)';
+    return;
+  }
   note.textContent=!state.mapContext ? 'Showing a simplified globe — detailed terrain is not available for this area.'
-    : state.satVisible ? 'Satellite imagery view · terrain preloaded'
-    : state.mapVisible ? 'Map view · terrain preloaded'
-    : p && !p.complete ? `Loading terrain… (${p.terrain}/${p.terrainTotal})`
-    : p?.failed ? 'Terrain ready — a few map details could not be loaded.'
-    : 'Offline terrain model · approximate elevation and building outlines';
+    : p && !p.complete ? `Preparing cached region · ground ${p.terrain}/${p.terrainTotal} · details ${p.map}/${p.mapTotal}`
+    : p?.failed ? 'Terrain ready — some map details could not be loaded. Surroundings are simplified.'
+    : state.viewer?.scene.globe.show ? 'Cached regional terrain · surroundings outside the cache are simplified'
+    : 'Bounded cached terrain · use Map for surrounding context on this device';
 }
 
 function setPresentationMode(mode) {
@@ -2452,15 +2558,23 @@ function setPresentationMode(mode) {
   if (state.satLayer) state.satLayer.show = state.satVisible;
   if (state.tabletop) {
     state.tabletop.setVisible(true);
-    state.tabletop.setMapOverlay?.(mapVisible);
+    state.tabletop.setMapOverlay?.(mapVisible && Boolean(state.terrainProgress?.complete));
   }
   if (state.tabletopFinish) state.tabletopFinish.enabled = !mapVisible;
-  updateTerrainContext();
   if (viewer) {
-    viewer.scene.globe.show = mapVisible || !state.tabletop;
-    viewer.scene.globe.baseColor = Cesium.Color.fromCssColorString(mapVisible ? "#111b22" : "#194452");
+    const globe = viewer.scene.globe;
+    const key = state.mapContext ? JSON.stringify(state.mapContext.bounds) : null;
+    if (state.tabletopClipKey !== key) {
+      globe.clippingPolygons = state.mapContext ? createTabletopClip(viewer, state.mapContext.bounds, Cesium) || undefined : undefined;
+      state.tabletopClipKey = key;
+    }
+    if (globe.clippingPolygons) globe.clippingPolygons.enabled = !mapVisible && Boolean(state.tabletop);
+    globe.show = mapVisible || !state.tabletop || Boolean(globe.clippingPolygons);
+    viewer.scene.skyAtmosphere.show = globe.show;
+    globe.baseColor = Cesium.Color.fromCssColorString(mapVisible ? "#111b22" : "#496467");
     viewer.scene.requestRender();
   }
+  updateTerrainContext();
   els.studioViewButton.setAttribute("aria-pressed", String(mode === "tabletop"));
   els.mapViewButton.setAttribute("aria-pressed", String(mode === "map"));
   els.satViewButton?.setAttribute("aria-pressed", String(mode === "satellite"));
@@ -2483,10 +2597,19 @@ function resetPlayback() {
 }
 
 function bindControls() {
+  document.getElementById('retryImageryButton').addEventListener('click',retryImagery);
   setPresentationMode(state.satVisible ? "satellite" : state.mapVisible ? "map" : "tabletop");
   els.studioViewButton.addEventListener("click", () => setPresentationMode("tabletop"));
   els.mapViewButton.addEventListener("click", () => setPresentationMode("map"));
   els.satViewButton?.addEventListener("click", () => setPresentationMode("satellite"));
+  document.getElementById("missionAnalysisButton").addEventListener("click", () => {
+    if (window.parent !== window) { window.parent.postMessage({type: "wisl:open-analysis"}, location.origin); return; }
+    const url = new URL("/demo/", location.origin);
+    const flight = state.flights[state.active];
+    if (flight) url.searchParams.set("flight", flight.flight_id);
+    if (state.token) sessionStorage.setItem("wislDemoToken", state.token);
+    url.hash = "/analysis/overview"; location.assign(url);
+  });
   els.uavScaleButton?.addEventListener("click", () => {
     state.uavScaleOverride = state.uavScaleApplied === "true" ? "enlarged" : "true";
     updateScaleUi();
@@ -2627,8 +2750,6 @@ async function bootstrap(create = true) {
     state.viewer = await createViewer();
     bindControls();
     attachClock();
-    setupClickToFollow(state.viewer);
-    setupIncidentTooltip(state.viewer);
     state.atlas=await atlasReady;
     state.viewer.terrainProvider=await createTerrainProvider();
     await modelReady;
@@ -2660,9 +2781,11 @@ async function bootstrap(create = true) {
     }
     setStatus(state.flights[0]?.upload_status || "ready");
     await showActiveFlight();
-    await refreshDatasets();
-    await refreshPatterns();
-    await refreshBulletins();
+    if (params.get("embed") !== "1") {
+      await refreshDatasets();
+      await refreshPatterns();
+      await refreshBulletins();
+    }
   } catch (error) {
     setStatus(friendlyError(error), true);
     if (!state.flights.length) {
@@ -2672,5 +2795,22 @@ async function bootstrap(create = true) {
   }
 }
 
-void bootstrap();
+window.addEventListener("message", event => {
+  if (event.origin !== location.origin || event.source !== window.parent) return;
+  const data = event.data;
+  if (data?.type === "wisl:workspace-visibility" && typeof data.visible === "boolean") setWorkspaceVisibility(data.visible);
+  if (data?.type !== "wisl:select-flight" || typeof data.flightId !== "string" || !data.flightId || data.flightId.length > 200 || !Number.isSafeInteger(data.selectionId) || data.selectionId <= state.lastSelectionId || (data.timestamp !== null && typeof data.timestamp !== "string")) return;
+  state.lastSelectionId = data.selectionId;
+  state.pendingSelection = data;
+  state.globeDraw++;
+  if (state.viewer) setPlaying(false);
+  state.cancelSceneWait?.();
+  setReplayPreparation(true, "Loading recorded telemetry…");
+  void drainReplaySelections();
+});
+void bootstrap().finally(() => {
+  state.replayInitialized = true;
+  if (window.parent !== window) window.parent.postMessage({type: "wisl:replay-initialized"}, location.origin);
+  void drainReplaySelections();
+});
 void CESIUM_VERSION;

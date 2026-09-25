@@ -381,6 +381,14 @@ export function createTabletop(viewer, data, options = {}) {
     seams.push(...ribbon(C, vertical, 0.45, ground, -0.82, PALETTE.seam));
     seams.push(...ribbon(C, horizontal, 0.45, ground, -0.82, PALETTE.seam));
   }
+  if (options.mapOverlay) {
+    const styles = new Map(overlayShading.map(rec => [rec.id, rec]));
+    for (const item of [...walls, ...roofs]) {
+      const rec = styles.get(item.id);
+      item.attributes.color = C.ColorGeometryInstanceAttribute.fromColor(color(C, rec.overlayCss).withAlpha(rec.alpha));
+      rec.applied = true;
+    }
+  }
   add(surfaces, "surfaces"); add(siteLines, "surfaces"); add(roads, "roads"); add(strokes, "roads");
   add(buildings, "buildings");
   const wallsPrim = add(walls, "buildings");
@@ -418,7 +426,7 @@ export function createTabletop(viewer, data, options = {}) {
 
   // Map-overlay mode: keep the extruded buildings over the globe's imagery and
   // terrain, hide the slab, painted facets, road ribbons, seams and labels.
-  let visible = options.show !== false, mapOverlay = false;
+  let visible = options.show !== false, mapOverlay = options.mapOverlay === true;
   const applyVisibility = () => {
     collection.show = visible;
     for (const [category, prims] of Object.entries(categorized)) {
@@ -435,10 +443,11 @@ export function createTabletop(viewer, data, options = {}) {
   // Per-instance colours can only be rewritten once the batch table exists,
   // which happens after the asynchronous primitive compiles -- until then
   // getGeometryInstanceAttributes returns an object with no `color` slot.
-  // There is no Primitive#ready flag, so pending records are retried on a
-  // bounded, idempotent timer rather than probing readiness.
+  // Pending attribute writes are retried on a bounded, idempotent timer;
+  // GPU readiness for the streamed collection is tracked separately below.
   let overlayStyleDead = false, overlayStyleAttempts = 0;
   const applyOverlayStylePass = () => {
+    if (overlayStyleDead) return;
     for (const prim of Object.values(overlayPrims)) {
       if (prim && prim._wislTranslucent !== mapOverlay) {
         prim._wislTranslucent = mapOverlay;
@@ -466,12 +475,24 @@ export function createTabletop(viewer, data, options = {}) {
     overlayStyleAttempts = 0;
     applyOverlayStylePass();
   };
+  applyVisibility();
+  if (mapOverlay) applyOverlayStyle();
+  let finishReady;
+  const ready = new Promise(resolve => {
+    const primitives = Object.entries(categorized).filter(([category]) => category !== "labels").flatMap(([, prims]) => prims);
+    const removeListener = viewer.scene.postRender.addEventListener(() => {
+      if (!collection.show || primitives.every(prim => !prim.show || prim.ready)) finishReady(true);
+    });
+    const timeout = setTimeout(() => finishReady(false), 10000);
+    finishReady = rendered => { clearTimeout(timeout); removeListener(); resolve(rendered); };
+  });
   return {
+    ready,
     get show() { return collection.show; },
     set show(value) { this.setVisible(value); },
     setVisible(value) { visible = Boolean(value); applyVisibility(); },
-    setMapOverlay(value) { mapOverlay = Boolean(value); applyVisibility(); applyOverlayStyle(); },
-    destroy() { overlayStyleDead = true; if (!collection.isDestroyed?.()) viewer.scene.primitives.remove(collection); },
+    setMapOverlay(value) { if (mapOverlay === Boolean(value)) return; mapOverlay = Boolean(value); applyVisibility(); applyOverlayStyle(); },
+    destroy() { overlayStyleDead = true; finishReady(false); if (!collection.isDestroyed?.()) viewer.scene.primitives.remove(collection); },
   };
 }
 

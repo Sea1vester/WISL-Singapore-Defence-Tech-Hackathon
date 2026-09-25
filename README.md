@@ -6,7 +6,7 @@ Team: Sylvester Lim, Inessa Wong · Singapore Defence Tech Hackathon 2026 · 20 
 
 ## Start the local demo
 
-Requirements: Python 3.11 or later. From this repository's root:
+Requirements: Python 3.11 or later, and Node.js 22+ for the first Cesium download. A complete local Cesium build is reused offline. From this repository's root on macOS/Linux:
 
 ```sh
 python3 -m venv .venv
@@ -14,7 +14,17 @@ python3 -m venv .venv
 ./sdth-telemetry/scripts/demo-console.sh
 ```
 
-Once dependencies are installed, only the last command is needed.
+On **Windows (PowerShell)**, from the repository root:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".\sdth-telemetry\platform-api[dev]"
+.\.venv\Scripts\python.exe .\sdth-telemetry\scripts\demo-console.py
+```
+
+No virtual-environment activation, Bash, `rsync`, Unix `unzip`, or PowerShell execution-policy change is required on Windows. If `py` is unavailable, install Python 3.11+ with its Windows launcher, or use the full path to your Python executable for the first command. The launcher uses the platform's path separator, handles paths with spaces, and fails clearly if the local Cesium build cannot be prepared. The Windows installer uses built-in `curl.exe` and PowerShell `Expand-Archive`; TLS verification stays enabled. `--no-browser` starts the server without opening a tab.
+
+Once dependencies are installed, only the last command for your operating system is needed.
 The launcher prints and opens **<http://127.0.0.1:8010/demo/>**.
 `http://127.0.0.1:8010/` and `/replay/` now redirect there.
 `/replay/?embed=1` is only the 3D view inside the console.
@@ -25,12 +35,14 @@ Run it again to recover interrupted ingestion jobs.
 
 ### Use the replay workspace
 
-1. Choose a stored record in the **Mission library** sidebar. Search filters the loaded records. On small screens, use **Flight library** to open the drawer. The last selected flight loads automatically when you return.
-2. To add a record, choose **Import log**, then drop a file in **Logs & uploads**. For a quick start, use **Try an example log with a GPS warning** in that tab. Its bytes are processed by the real pipeline; duplicate uploads reuse the existing record.
+1. Open a recorded log in the **Mission explorer** file tree. Filenames keep their original extensions; expand/collapse folders with their chevrons or the Left/Right keys. Up/Down, Home/End and Enter navigate/open tree items; **F2**, right-click or **⋯** opens organisation controls. **New folder** creates a folder inside the selected folder; select **RECORDED LOGS** to create one at the root. Drag logs onto folders or the root heading to move them. Search spans all folders and files. Drag the vertical divider to resize the sidebar, or focus it and use Left/Right; double-click resets it. Folder organisation is shared by authenticated sessions and saved in SQLite, without moving original files or changing evidence. Width and expansion state are remembered for the browser session. On small screens, use **Flight library** to open the drawer.
+2. To add a record, choose **Import log**, then drop a file in **Logs & uploads**. New records go into the folder that was open when uploading started. For a quick start, use **Try an example log with a GPS warning** in that tab. Its bytes are processed by the real pipeline; duplicate uploads reuse the existing record and keep its folder.
 3. Wait for **Ready to review**. The replay fills the main view. **Tabletop** presents the recorded path above a low-poly terrain model with painted teal facets, solid map features and subtle tilt-shift focus; **Map** shows OpenStreetMap imagery on the cached elevation surface. Drag the scene to tilt/orbit and scroll to zoom. Shadows are disabled in both views. The enlarged aircraft model is for visibility. Use **Play/Pause**, **Restart**, playback-speed and timeline controls to inspect the recorded flight. The telemetry strip shows recorded altitude, battery and UTC; **Track speed** is derived from consecutive positions. The inset shows the recorded route.
-4. Use the bar below the replay: **Mission analysis** contains observations and record queries, **Recurring patterns** compares stored signatures, and **Bulletins** holds reviewable follow-up. Switching these tabs keeps the replay on screen.
+4. Click **Mission analysis** beside **Tabletop / Map / Satellite** to open the separate review page. It retains all four tabs: **Mission analysis**, **Recurring patterns**, **Bulletins**, and **Logs & uploads**. Replay pauses while this page is open. **Back to replay** restores the same camera, timestamp and previous play/pause state without reloading the scene. Browser Back/Forward and direct `#/analysis/overview`, `#/analysis/patterns`, `#/analysis/bulletins`, and `#/analysis/logs` routes are supported. The replay uses the full workspace height and a muted blue-grey daytime atmosphere. This is a visual style, not reconstructed weather.
 5. Click **Replay this observation** to pause at its recorded timestamp. Ask **What happened?**, **Where is the evidence?** or **Similar warnings** for deterministic evidence-backed answers.
 6. Expand **AI-assisted analysis** inside Mission analysis. Select **Ollama** or **OpenAI-compatible** (LM Studio / llama.cpp), enter the local server URL, and click **Check connection & list models**. Choose a model, then **Analyze fleet records**. The panel shows connection, model waiting/generation and evidence-validation progress, elapsed time, and an optional live draft. Only validated output becomes the final answer; its explanations remain unverified hypotheses.
+
+**Terrain coverage and replay cache:** Tabletop draws the full bundled region, rather than a smaller flight-centred patch. A surrounding globe supplies context outside it, but areas outside the elevation cache remain simplified; detailed global terrain/buildings are not included. Devices without globe-polygon clipping support retain a bounded Tabletop view and can use Map for surrounding context. Switching logs keeps the same Cesium viewer and reuses up to two loaded regions' geometry, with a 256-tile globe cache. The first visit to a region shows a preparation screen and waits for geometry before playback, rather than exposing the build-up. Flight telemetry and evidence are fetched afresh; this is not a cached video. GPU geometry reuse lasts while the page is open; refreshing rebuilds it. Downloaded raster tiles still persist in the server's disk cache.
 
 The demo launcher starts an installed Ollama server if needed and preloads `qwen2.5:7b-instruct`. Signing in with the dev key (or returning to an authenticated session) reconnects and warms this default automatically. No second terminal is needed. **Use laptop default** restores it after trying a judge's provider. Existing servers are reused, and Ollama stays running when the demo stops. Set `AUTO_START_LOCAL_MODEL=false` to manage the server yourself; `WARM_LOCAL_MODEL=false` disables preloading. Automatic startup is restricted to the local-demo worker and the configured HTTP loopback address.
 
@@ -38,9 +50,19 @@ The model server must be reachable from the **WISL API host**, not just the brow
 
 Connection selections are per browser session, not global server changes. Optional server tokens stay in page memory and are not saved. **Run fresh** is on by default; turn it off to reuse a cached answer for identical evidence, question and connection. Cached answers are labelled. **Stop waiting** ends the browser request, but the model server may still finish inference. `DEMO_ANALYSIS_TIMEOUT_SECONDS` controls the server wait (default 120 seconds). A model must produce valid JSON and cite only supplied evidence IDs; incompatible or truncated output is rejected without affecting the deterministic analysis.
 
-The library auto-imports six Singapore missions (Lim Chu Kang survey, Seletar perimeter patrol, Hillview inspection) under `sdth-demo/fixtures/singapore/`, plus three UK examples: GPS-weak warning · DJI CSV, Frozen position · Orbiter JSON, and Exercise · Attitude excursion + warning. The other fixtures stay on disk for explicit upload.
+The library auto-imports six Singapore missions (Lim Chu Kang survey, Seletar perimeter patrol, Hillview inspection) under `sdth-demo/fixtures/singapore/`, plus seven UK examples: GPS-weak warning · DJI CSV, Frozen position · Orbiter JSON, Exercise · Attitude excursion + warning, Amesbury · Telemetry sortie · ArduPilot TLOG, Amesbury · Blackbox · ArduPilot BIN, Amesbury · Perimeter · Hermes 900 STANAG, and Amesbury · Route check · aunav ROS. The other fixtures stay on disk for explicit upload.
 They are imported into the Mission library when you connect a Session.
 The term "jamming" in a simulator filename is not a causal diagnosis.
+
+**Map/Satellite on another laptop:** Tabletop geometry and elevation are bundled, but raster imagery downloads through the WISL server into `data/tiles/`. That local cache is not included in Git, so a fresh checkout needs server-side internet access to the imagery providers. If downloads fail, the viewer shows an imagery warning; **Retry imagery** retries after connectivity recovers, without restarting the flight. Blank fallback tiles are not browser-cached. In browser Network tools, failed tile responses carry `X-WISL-Tile: missing` and `X-WISL-Tile-Reason`; the WISL terminal also logs the failure type. Switch to Tabletop while imagery is unavailable.
+
+If Map and Satellite stay blank on Windows, run this from the repo root in PowerShell to test the same download path with the installed Python environment:
+
+```powershell
+.\.venv\Scripts\python.exe -c "import httpx; r=httpx.get('https://tile.openstreetmap.org/0/0/0.png', headers={'User-Agent':'WISL-replay/1.0'}, timeout=15, trust_env=False); print(r.status_code, r.headers.get('content-type')); r.raise_for_status()"
+```
+
+A certificate, proxy, DNS or firewall failure still needs to be resolved on the WISL host. Keep TLS verification enabled; Tabletop remains available without raster imagery.
 
 ### Optional audit of the exercise fixtures
 

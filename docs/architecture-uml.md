@@ -4,7 +4,7 @@
 
 Four views of the local demo: a layered component map, a three-part upload sequence, the data model, and the upload lifecycle. The component and sequence views are SVGs, so they display without a Mermaid plugin and stay sharp when enlarged. Expand the source sections for the detailed interface map and editable sequence definitions.
 
-**Viewing on GitHub:** the diagrams below render directly in this page. For the standalone HTML layout, download [`architecture.html`](architecture.html) and open it in a browser. It includes all four main diagrams with no sidebar, scripts, or external dependencies; GitHub's file viewer shows HTML source rather than running the page.
+**Viewing on GitHub:** the diagrams below render directly in this page. For the standalone HTML layout, download [`architecture.html`](architecture.html) and open it in a browser. It includes an interactive backend data-flow diagram with click-to-explore details and all four reference diagrams. Its inline JavaScript works offline, without external dependencies or review-tool UI; GitHub's file viewer shows HTML source rather than running the page.
 
 ## 1. Component map
 
@@ -346,6 +346,6 @@ stateDiagram-v2
 
 - **Component map:** edit [`diagrams/components.svg`](diagrams/components.svg). It uses native SVG text and shapes, with no external fonts or assets.
 - **Sequences:** edit the Mermaid blocks above, then run `python3 docs/diagrams/render.py` from the repository root. The renderer validates all six Mermaid blocks and rebuilds the three sequence SVGs using pinned Mermaid CLI `11.12.0`. It requires Node/npm and Chrome; set `PUPPETEER_EXECUTABLE_PATH` if Chrome is not in a standard location. The first run downloads the renderer with npm, without adding an application dependency.
-- **Standalone HTML:** the same command rebuilds [`architecture.html`](architecture.html) with the four main diagrams embedded. Commit it alongside the SVGs. Download and open it directly in a browser to view or print; no review tool, sidebar, server, or network access is needed.
+- **Interactive HTML:** edit the data-flow diagram and interactions in [`architecture.html`](architecture.html). The same command refreshes its embedded package/decision data from [`ARCHITECTURE.md`](ARCHITECTURE.md), the four reference diagrams, and the static backend SVG. Use `--html-only` to skip Mermaid rendering. Commit the HTML alongside the SVGs. Download and open it directly in a browser to present, explore, or print; no review tool, server, or network access is needed.
 
 Related reading: [`ARCHITECTURE.md`](ARCHITECTURE.md) for the prose and trade-offs, [`openapi.yaml`](../sdth-telemetry/openapi/openapi.yaml) for the full API contract.
