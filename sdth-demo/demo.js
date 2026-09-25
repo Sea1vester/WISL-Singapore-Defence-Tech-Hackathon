@@ -1,4 +1,4 @@
-import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "./demo-contract.mjs?v=model-auto-1";
+import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "./demo-contract.mjs?v=model-auto-2";
 
 const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false };
 const DEMO_LIBRARY_LOGS = [
@@ -14,7 +14,7 @@ const DEMO_LIBRARY_LOGS = [
 ];
 const $ = (id) => document.getElementById(id);
 const wideLayout = window.matchMedia("(min-width: 760px)");
-const els = { apiDot: $("apiDot"), apiState: $("apiState"), authPanel: $("authPanel"), token: $("tokenInput"), uploadMessage: $("uploadMessage"), uploadStatus: $("uploadStatus"), traceDetail: $("traceDetail"), file: $("logFile"), flightList: $("flightList"), flightMeta: $("flightMeta"), selectedFlightTitle: $("selectedFlightTitle"), incidentTitle: $("incidentTitle"), incidentCount: $("incidentCount"), incidentList: $("incidentList"), modelState: $("modelState"), replayEmpty: $("replayEmpty"), replayFrame: $("replayFrame"), openReplay: $("openReplay"), patternList: $("patternList"), bulletinList: $("bulletinList"), analysisAnswer: $("analysisAnswer"), question: $("questionInput"), localAnalysis: $("localAnalysis"), localAnalysisBody: $("localAnalysisBody"), downloadReportButton: $("downloadReportButton") };
+const els = { apiDot: $("apiDot"), apiState: $("apiState"), authPanel: $("authPanel"), token: $("tokenInput"), uploadMessage: $("uploadMessage"), uploadStatus: $("uploadStatus"), traceDetail: $("traceDetail"), file: $("logFile"), flightList: $("flightList"), flightMeta: $("flightMeta"), selectedFlightTitle: $("selectedFlightTitle"), incidentTitle: $("incidentTitle"), incidentCount: $("incidentCount"), incidentList: $("incidentList"), modelState: $("modelState"), replayEmpty: $("replayEmpty"), replayFrame: $("replayFrame"), openReplay: $("openReplay"), patternList: $("patternList"), bulletinList: $("bulletinList"), analysisAnswer: $("analysisAnswer"), question: $("questionInput"), localAnalysis: $("localAnalysis"), localAnalysisBody: $("localAnalysisBody"), downloadReportButton: $("downloadReportButton"), statTiles: $("statTiles"), fleetCharts: $("fleetCharts") };
 
 function authHeaders(json = false) { const headers = state.token ? { Authorization: `Bearer ${state.token}` } : {}; return json ? { ...headers, "Content-Type": "application/json" } : headers; }
 function detail(error) { return Array.isArray(error?.detail) ? error.detail.map(item => item.msg || "Invalid request field").join(" · ") : error?.detail || error?.message || "The request could not be completed."; }
@@ -189,6 +189,40 @@ async function refreshPatterns() {
 }
 async function createBulletin(signature, button) { if (!signature) return; button.disabled = true; button.textContent = "Creating…"; try { await api("/v1/mitigation-bulletins", { method:"POST", json:true, body:JSON.stringify({ signature }) }); await refreshBulletins(); showView("bulletins"); } catch (error) { button.textContent = friendlyError(error.message); } finally { button.disabled = false; } }
 async function refreshBulletins() { if (!state.token) return; try { const body = await api("/v1/mitigation-bulletins"); const items = body.items || []; els.bulletinList.replaceChildren(); if (!items.length) { els.bulletinList.textContent = "No reviewable bulletins have been created from recorded patterns."; els.bulletinList.className = "bulletin-list empty-state"; return; } els.bulletinList.className = "bulletin-list"; for (const bulletin of items) { const card = document.createElement("article"); card.className="bulletin"; const review = (bulletin.recommended_review || []).map((item) => `<li>${escapeHtml(item)}</li>`).join(""); card.innerHTML = `<div class="bulletin-header"><div><p class="eyebrow">${escapeHtml(bulletin.signature || "recorded pattern")}</p><h2>${escapeHtml(label(bulletin.incident_type))}</h2></div><span class="count-pill">${bulletin.flight_count || 0} flights</span></div><p>${escapeHtml(bulletin.evidence_summary || "Evidence from the recorded incident pattern.")}</p><ul>${review}</ul><p class="fine-print">${escapeHtml(bulletin.limitations || "For operator review only. This document does not modify aircraft.")}</p>`; els.bulletinList.append(card); } } catch (error) { els.bulletinList.textContent = friendlyError(error.message); els.bulletinList.className = "bulletin-list empty-state error"; } }
+function renderFleetStats(stats) {
+  const tiles = [
+    { value: stats.total_flights, text: "recorded flights" },
+    { value: `${stats.incident_rate_pct}%`, text: "of flights have a recorded incident" },
+    { value: stats.total_incidents, text: "recorded incidents" },
+  ];
+  const top = stats.by_type[0];
+  if (top) tiles.push({ value: top.count, text: `most frequent: ${label(top.incident_type)}` });
+  if (stats.battery_at_incident) {
+    const b = stats.battery_at_incident;
+    tiles.push({ value: `${b.median_pct}%`, text: `median battery when a battery incident fired (n=${b.count})` });
+  }
+  els.statTiles.className = "stat-tile-grid";
+  els.statTiles.innerHTML = tiles.map((t) => `<div class="stat-tile"><b>${escapeHtml(String(t.value))}</b><span>${escapeHtml(t.text)}</span></div>`).join("");
+
+  const chartTitles = { incident_type: "Incidents by type", battery_at_incident: "Battery % when a battery incident fired", severity: "Incidents by severity" };
+  els.fleetCharts.innerHTML = Object.entries(chartTitles)
+    .filter(([key]) => stats.charts?.[key])
+    .map(([key, title]) => `<div class="fleet-chart"><p>${escapeHtml(title)}</p><img src="${stats.charts[key]}" alt="${escapeHtml(title)}" /></div>`)
+    .join("");
+}
+async function refreshFleetStats() {
+  if (!state.token) return;
+  els.statTiles.className = "stat-tile-grid";
+  els.statTiles.innerHTML = `<p class="muted">Loading fleet statistics…</p>`;
+  els.fleetCharts.innerHTML = "";
+  try {
+    const stats = await api("/v1/demo/analysis/stats");
+    if (!stats.total_flights) { els.statTiles.innerHTML = `<p class="muted">No recorded flights yet.</p>`; return; }
+    renderFleetStats(stats);
+  } catch (error) {
+    els.statTiles.innerHTML = `<p class="muted error">${escapeHtml(friendlyError(error.message))}</p>`;
+  }
+}
 async function loadDemoStatus() {
   if (!state.token) return;
   try {
@@ -487,6 +521,7 @@ $("dropzone").addEventListener("drop", event => uploadFile(event.dataTransfer.fi
 $("refreshFlights").addEventListener("click", refreshFlights);
 $("questionForm").addEventListener("submit", askQuestion);
 $("fleetAnalysisButton").addEventListener("click", analyzeFleetRecords);
+$("analysisDetails").addEventListener("toggle", (event) => { if (event.target.open) refreshFleetStats(); });
 $("modelConnectionForm").addEventListener("submit", checkModelConnection);
 $("defaultModelButton").addEventListener("click", async () => {
   if (!state.token) { setAuthPanel(true); return; }

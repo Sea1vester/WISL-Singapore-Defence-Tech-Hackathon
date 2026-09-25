@@ -115,6 +115,32 @@ def test_demo_requires_auth_and_empty_analysis_is_honest(client):
     assert result['hypotheses'] == []
 
 
+def test_analysis_stats_requires_auth_and_is_honest_when_empty(client):
+    assert client.get('/v1/demo/analysis/stats').status_code == 401
+    result = client.get('/v1/demo/analysis/stats', headers=AUTH).json()
+    assert result['total_flights'] == 0
+    assert result['incident_rate_pct'] == 0.0
+    assert result['by_type'] == []
+    assert result['battery_at_incident'] is None
+    assert result['charts']['incident_type'] is None
+    assert result['charts']['battery_at_incident'] is None
+
+
+def test_analysis_stats_reflects_ingested_incidents_deterministically(client, monkeypatch):
+    flight = ingest(client, monkeypatch)
+    result = client.get('/v1/demo/analysis/stats', headers=AUTH).json()
+    assert result['total_flights'] == 1
+    assert result['flights_with_incidents'] == 1
+    assert result['incident_rate_pct'] == 100.0
+    by_type = {row['incident_type']: row['count'] for row in result['by_type']}
+    assert by_type.get('operator_warning', 0) >= 1
+    assert sum(row['count'] for row in result['by_severity']) == result['total_incidents']
+    # A single stored flight can't recur across two or more -- the incident-type
+    # chart still renders from real counts, but there's nothing to plot as a trend.
+    assert result['top_recurring'] == []
+    assert result['charts']['incident_type'].startswith('data:image/png;base64,')
+
+
 def test_evidence_query_follows_actual_ingested_records(client, monkeypatch):
     flight = ingest(client, monkeypatch)
     result = client.post('/v1/demo/query', headers=AUTH, json={'flight_id': flight, 'question': 'Where is the evidence?'}).json()

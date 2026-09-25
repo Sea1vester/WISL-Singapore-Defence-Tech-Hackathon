@@ -333,3 +333,18 @@ body.dock-resizing .replay-stage iframe { pointer-events:none; }
 .flight-library { min-height:0; }
 .stage-heading h1 { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
 .stage-heading>p:last-child { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* Fleet numerical findings, inside the AI-assisted analysis panel. Deliberately
+   plainer than the model-drafted hypotheses below it -- tiles, not prose -- so
+   a glance tells these are computed facts, not something the model wrote. */
+.fleet-stats { margin:14px 0 4px; }
+.stat-tile-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:8px; margin-top:8px; }
+.stat-tile { padding:10px 12px; background:#ffffff06; border-radius:var(--radius-sm); min-width:0; }
+.stat-tile b { display:block; font:600 20px/1.15 var(--font-title,inherit); color:var(--ink); letter-spacing:-.01em; }
+.stat-tile span { display:block; margin-top:3px; font-size:10px; color:var(--muted); line-height:1.35; }
+.stat-tile.warn b { color:var(--warn); }
+.stat-tile.danger b { color:var(--danger); }
+.fleet-charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-top:10px; }
+.fleet-chart { padding:8px; background:#ffffff04; border-radius:var(--radius-sm); min-width:0; }
+.fleet-chart p { margin:0 0 6px; font-size:10px; color:#96adbd; }
+.fleet-chart img { display:block; width:100%; height:auto; border-radius:6px; }

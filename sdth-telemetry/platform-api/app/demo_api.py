@@ -21,6 +21,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, SecretStr, field_validator
 
+from app.analysis_stats import (
+    compute_fleet_stats,
+    render_battery_chart,
+    render_incident_type_chart,
+    render_severity_chart,
+)
 from app.auth import require_api_key
 from app.config import settings
 from app.db import db_session
@@ -231,6 +237,28 @@ def demo_status(_: str = Depends(require_api_key)) -> dict:
         "model": _model_status(), "flight_count": flights, "incident_count": incidents,
         "analysis_scope": "Bounded summaries and incident evidence across stored flights; not every raw sample.",
         "analysis_timeout_seconds": settings.demo_analysis_timeout_seconds,
+    }
+
+
+@router.get("/analysis/stats")
+def fleet_analysis_stats(_: str = Depends(require_api_key)) -> dict:
+    """Deterministic fleet-wide numeric findings, with chart images.
+
+    Every figure here is a SQL aggregate over stored, rule-detected incidents
+    -- no model call, no model-drafted number. Charts are optional (null when
+    matplotlib is unavailable or there is nothing to plot); the numeric
+    fields are always present, even at zero.
+    """
+    with db_session() as conn:
+        stats = compute_fleet_stats(conn)
+    battery_values = stats.pop("_battery_values_pct")
+    return {
+        **stats,
+        "charts": {
+            "incident_type": render_incident_type_chart(stats["by_type"]),
+            "battery_at_incident": render_battery_chart(battery_values) if battery_values else None,
+            "severity": render_severity_chart(stats["by_severity"]),
+        },
     }
 
 
