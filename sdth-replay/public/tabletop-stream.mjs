@@ -1,4 +1,4 @@
-import { createTabletop, elevationHeightAt } from './tabletop.mjs?v=stream-18';
+import { createTabletop, elevationHeightAt } from './tabletop.mjs?v=stream-19';
 
 export function intersects(a,b) {
   return a.west<=b.east&&a.east>=b.west&&a.south<=b.north&&a.north>=b.south;

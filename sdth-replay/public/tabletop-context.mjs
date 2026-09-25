@@ -1,4 +1,5 @@
-import { elevationHeightAt } from './tabletop.mjs?v=stream-18';
+const TABLETOP_CACHE_VERSION = 'stream-19';
+import { elevationHeightAt } from './tabletop.mjs?v=stream-19';
 
 export function containsPoint(bounds, lon, lat) {
   return Number.isFinite(lon) && Number.isFinite(lat) && lon >= bounds.west && lon <= bounds.east && lat >= bounds.south && lat <= bounds.north;
@@ -26,12 +27,33 @@ export function tabletopBounds(data, samples) {
 }
 export async function loadTabletopAtlas() {
   // Only the elevation/manifest is needed before replay; map geometry streams later.
-  try {
-    const response=await fetch('./assets/tabletop-atlas.json',{signal:AbortSignal.timeout(4500)});
-    if(!response.ok) return [];
-    const result=await response.json();
-    return Array.isArray(result) ? result : result.regions || [];
-  } catch { return []; }
+  //
+  // A cache-busted URL (matching every other module/asset this file's
+  // importers load) so a browser that cached this manifest before a region
+  // was added doesn't keep serving the old one -- the manifest previously
+  // had no version suffix at all, unlike everything around it.
+  //
+  // The fetch retries once on a slow/aborted attempt instead of giving up
+  // immediately. A tight single-shot timeout here silently disables terrain
+  // matching for every flight for the rest of the session (whatever bounds
+  // check runs next sees an empty atlas and never retries), and opening a
+  // second concurrent viewer -- e.g. "Full view" while the embedded panel
+  // is still live -- is exactly the situation where the main thread is busy
+  // enough with the other Cesium instance's setup that a short deadline
+  // fires before this small, same-origin fetch ever gets a chance to run.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch(`./assets/tabletop-atlas.json?v=${TABLETOP_CACHE_VERSION}`, {
+        signal: AbortSignal.timeout(15000),
+      });
+      if (!response.ok) return [];
+      const result = await response.json();
+      return Array.isArray(result) ? result : result.regions || [];
+    } catch {
+      if (attempt === 1) return [];
+    }
+  }
+  return [];
 }
 
 export function createCachedTerrain(C, atlas) {

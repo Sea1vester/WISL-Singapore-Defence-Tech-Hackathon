@@ -146,7 +146,7 @@ function setReplay(flightId, timestamp = null) {
   const frameUrl = new URL("/replay/", window.location.origin);
   frameUrl.searchParams.set("flights", flightId);
   frameUrl.searchParams.set("embed", "1");
-  frameUrl.searchParams.set("v", "stream-18");
+  frameUrl.searchParams.set("v", "stream-19");
   if (state.token) frameUrl.searchParams.set("token", state.token);
   if (timestamp) frameUrl.searchParams.set("timestamp", timestamp);
   els.replayFrame.src = frameUrl.toString(); els.replayFrame.hidden = false; els.replayEmpty.hidden = true; els.openReplay.href = frameUrl.toString(); els.openReplay.classList.remove("disabled");
