@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1136" viewBox="0 0 1280 1136" role="img" aria-labelledby="title desc">
+  <title id="title">WISL architecture overview</title>
+  <desc id="desc">A layered component map. Amber: controller uploader and browser console with embedded replay. Blue: the single-process FastAPI platform, from receipt through canonical telemetry to deterministic evidence and review APIs. Green: SQLite and untouched raw uploads. Purple: an optional external local model for evidence-checked hypotheses. These are responsibility groups, not separate deployed services; detailed API connections are documented in the accompanying Mermaid interface map.</desc>
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; fill: #183047; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 2px; }
+    .heading { font-size: 34px; font-weight: 700; letter-spacing: -1px; }
+    .subtitle { font-size: 16px; fill: #53657a; }
+    .section { font-size: 17px; font-weight: 700; }
+    .label { font-size: 16px; font-weight: 650; }
+    .body { font-size: 14px; fill: #354d62; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; fill: #475c70; }
+    .small { font-size: 12px; fill: #53657a; }
+    .number { font-size: 12px; font-weight: 700; fill: #fff; }
+    .divider { stroke: #bcd2e5; stroke-width: 1; }
+  </style>
+  <rect width="1280" height="1136" rx="20" fill="#fff"/>
+  <text x="48" y="44" class="eyebrow">WISL / SYSTEM MAP</text>
+  <text x="48" y="91" class="heading">From recorded logs to reviewable evidence.</text>
+  <text x="48" y="122" class="subtitle">One local platform. Deterministic telemetry and detection. Human-reviewed outcomes.</text>
+  <rect x="48" y="158" width="1184" height="181" rx="16" fill="#fae9ac"/>
+  <text x="70" y="189" class="section">01 / Entry points &amp; operator workspace</text>
+  <text x="1210" y="189" text-anchor="end" class="small">CONTROLLER + BROWSER</text>
+  <rect x="70" y="207" width="358" height="109" rx="10" fill="#fff8df"/>
+  <text x="88" y="234" class="label">Edge uploader</text>
+  <text x="88" y="259" class="body">Watch stable files · SHA-256 · manifest</text>
+  <text x="88" y="291" class="code">wisl_ingest.edge / LogUploader</text>
+  <rect x="444" y="207" width="358" height="109" rx="10" fill="#fff8df"/>
+  <text x="462" y="234" class="label">Mission console</text>
+  <text x="462" y="259" class="body">Import · analysis · patterns · bulletins</text>
+  <text x="462" y="291" class="code">sdth-demo /demo/ · vanilla JS</text>
+  <rect x="818" y="207" width="392" height="109" rx="10" fill="#fff8df"/>
+  <text x="836" y="234" class="label">3D replay</text>
+  <text x="836" y="259" class="body">Recorded path + incident markers</text>
+  <text x="836" y="291" class="code">sdth-replay · CesiumJS · console iframe</text>
+  <path d="M623 339 V367" fill="none" stroke="#73869a" stroke-width="2"/>
+  <path d="m618 361 5 6 5-6" fill="none" stroke="#73869a" stroke-width="2"/>
+  <text x="643" y="358" class="small">Multipart uploads / JSON APIs / static assets</text>
+  <rect x="48" y="378" width="882" height="480" rx="16" fill="#e4f0fa" stroke="#b9d2e8"/>
+  <text x="70" y="411" class="section">02 / Local platform</text>
+  <text x="908" y="411" text-anchor="end" class="small">FASTAPI + IN-PROCESS WORKER · 127.0.0.1:8010</text>
+  <rect x="70" y="433" width="262" height="188" rx="10" fill="#f9fcff"/>
+  <circle cx="96" cy="460" r="12" fill="#35668b"/><text x="96" y="464" text-anchor="middle" class="number">1</text>
+  <text x="118" y="465" class="label">Receive &amp; queue</text>
+  <text x="88" y="497" class="body">API key · size / extension gate</text>
+  <text x="88" y="520" class="body">Checksum deduplication</text>
+  <text x="88" y="554" class="code">auth.py · ingest.py</text>
+  <text x="88" y="575" class="code">local_worker.py</text>
+  <text x="88" y="600" class="small">Raw bytes stay untouched</text>
+  <path d="M333 521 H354 m-6-5 6 5-6 5" fill="none" stroke="#35668b" stroke-width="2"/>
+  <rect x="358" y="433" width="262" height="188" rx="10" fill="#f9fcff"/>
+  <circle cx="384" cy="460" r="12" fill="#35668b"/><text x="384" y="464" text-anchor="middle" class="number">2</text>
+  <text x="406" y="465" class="label">Parse &amp; standardise</text>
+  <text x="376" y="497" class="body">Vendor log → L1 payload → L2</text>
+  <text x="376" y="520" class="body">Privacy redaction + validation</text>
+  <text x="376" y="554" class="code">parsers/registry · privacy.py</text>
+  <text x="376" y="575" class="code">canonical_series.py</text>
+  <text x="376" y="600" class="small">One canonical telemetry contract</text>
+  <path d="M621 521 H642 m-6-5 6 5-6 5" fill="none" stroke="#35668b" stroke-width="2"/>
+  <rect x="646" y="433" width="262" height="188" rx="10" fill="#f9fcff"/>
+  <circle cx="672" cy="460" r="12" fill="#35668b"/><text x="672" y="464" text-anchor="middle" class="number">3</text>
+  <text x="694" y="465" class="label">Index evidence</text>
+  <text x="664" y="497" class="body">Eight deterministic rule detectors</text>
+  <text x="664" y="520" class="body">Incidents → recurring signatures</text>
+  <text x="664" y="554" class="code">incidents.index_flight</text>
+  <text x="664" y="575" class="code">detectors.detect_incidents</text>
+  <text x="664" y="600" class="small">Timestamped samples, not guesses</text>
+  <path d="M70 642 H908" class="divider"/>
+  <text x="70" y="671" class="section">Review &amp; delivery</text>
+  <text x="908" y="671" text-anchor="end" class="small">READ STORED EVIDENCE / SAVE REVIEW ARTIFACTS</text>
+  <rect x="70" y="692" width="406" height="66" rx="9" fill="#f9fcff"/>
+  <text x="88" y="718" class="label">Review bulletins &amp; PDF reports</text>
+  <text x="88" y="741" class="code">bulletins.py · pdf_report.py</text>
+  <rect x="492" y="692" width="416" height="66" rx="9" fill="#f9fcff"/>
+  <text x="510" y="718" class="label">Flight, incident &amp; record APIs</text>
+  <text x="510" y="741" class="code">query.py · incident_api.py · demo_api.py</text>
+  <rect x="70" y="771" width="406" height="66" rx="9" fill="#f9fcff"/>
+  <text x="88" y="797" class="label">Cached map tiles</text>
+  <text x="88" y="820" class="code">tiles.py · /tiles/{z}/{x}/{y}</text>
+  <rect x="492" y="771" width="416" height="66" rx="9" fill="#f9fcff"/>
+  <text x="510" y="797" class="label">Locally served UI &amp; replay</text>
+  <text x="510" y="820" class="code">StaticFiles · /demo · /replay · /replay/lib</text>
+  <rect x="950" y="378" width="282" height="480" rx="16" fill="#eee7f7"/>
+  <text x="972" y="411" class="section">Optional local model</text>
+  <rect x="972" y="433" width="238" height="188" rx="10" fill="#faf7ff"/>
+  <text x="990" y="465" class="label">Hypothesis drafting</text>
+  <text x="990" y="497" class="body">Ollama / compatible server</text>
+  <text x="990" y="520" class="body">External to the API process</text>
+  <text x="990" y="554" class="code">qwen2.5:7b-instruct</text>
+  <text x="990" y="575" class="small">Default local-demo model</text>
+  <text x="990" y="600" class="small">Evidence IDs checked on return</text>
+  <path d="M931 712 H969" fill="none" stroke="#85679e" stroke-width="2" stroke-dasharray="4 4"/>
+  <path d="m963 707 6 5-6 5" fill="none" stroke="#85679e" stroke-width="2"/>
+  <text x="981" y="662" class="label">Not on the critical path</text>
+  <text x="981" y="692" class="body">Parsing, detection, replay</text>
+  <text x="981" y="715" class="body">and PDF export do not</text>
+  <text x="981" y="738" class="body">depend on a model.</text>
+  <text x="972" y="797" class="small">Dashed link = optional analysis</text>
+  <text x="972" y="820" class="small">Never a vehicle command</text>
+  <path d="M489 858 V893 m-5-6 5 6 5-6" fill="none" stroke="#73869a" stroke-width="2"/>
+  <text x="509" y="882" class="small">Persist / query</text>
+  <rect x="48" y="904" width="1184" height="171" rx="16" fill="#dceecf"/>
+  <text x="70" y="937" class="section">03 / Evidence &amp; persistence</text>
+  <text x="1210" y="937" text-anchor="end" class="small">LOCAL FILESYSTEM</text>
+  <rect x="70" y="955" width="690" height="97" rx="10" fill="#f4faef"/>
+  <text x="88" y="983" class="label">SQLite · data/demo-console.db</text>
+  <text x="88" y="1008" class="body">Uploads · flights · L1 / L2 records · incidents · patterns</text>
+  <text x="88" y="1031" class="body">Review bulletins · report metadata · audit trail</text>
+  <rect x="776" y="955" width="434" height="97" rx="10" fill="#f4faef"/>
+  <text x="794" y="983" class="label">Original recorded logs</text>
+  <text x="794" y="1008" class="body">Preserved raw bytes + SHA-256 identity</text>
+  <text x="794" y="1031" class="code">data/demo-uploads/</text>
+  <text x="48" y="1110" class="small">Colour groups show responsibility, not separate services. The blue boundary is one local platform process.</text>
+  <text x="1232" y="1110" text-anchor="end" class="eyebrow">POST-FLIGHT ONLY</text>
+</svg>
