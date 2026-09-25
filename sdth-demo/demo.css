@@ -389,3 +389,68 @@ body.dock-resizing .replay-stage iframe { pointer-events:none; }
 @media(min-width:1500px){.workspace{grid-template-columns:310px minmax(0,1fr)}}
 .stage-heading h1 { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
 .stage-heading>p:last-child { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+:root{--header-h:52px}
+body{height:100dvh;overflow:hidden}
+.topbar{height:var(--header-h);padding:0 16px;gap:16px}
+.brand{font-size:17px;gap:9px}
+.brand-mark,.brand-mark svg{width:25px;height:25px}
+.workspace-label{display:block;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-transform:none;letter-spacing:0;font:11px var(--font-body);color:#99b0bd}
+.topbar-actions{flex:none;gap:8px}
+.workspace{display:grid;height:calc(100dvh - var(--header-h));min-height:0;grid-template-columns:var(--sidebar-w,280px) 6px minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+.workspace>main{position:relative;display:block;height:100%;min-height:0;overflow:hidden}
+.replay-stage{position:absolute;inset:0;height:100%;min-height:0;background:#9bafbf}
+.replay-stage iframe{background:#9bafbf}
+.stage-heading,#openReplay{display:none}
+body[data-workspace-page="analysis"] .replay-stage{visibility:hidden;pointer-events:none}
+#analysisPage{position:absolute;inset:0;height:100%;min-height:0;display:flex;flex-direction:column;container-type:inline-size}
+.analysis-page-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:23px 26px 20px;flex:none;border-bottom:1px solid var(--line)}
+.analysis-page-heading>div{min-width:0}
+.analysis-page-heading h1{font-size:21px;font-weight:500;line-height:1.3;overflow-wrap:anywhere}
+.analysis-page-heading>button{flex:none;border:1px solid var(--line)}
+#analysisPage .tabbar{flex:none}
+#analysisPage .dock-content{flex:1;height:auto;min-height:0;overscroll-behavior:contain}
+#analysisPage .view{padding:26px}
+#analysisPage .card-heading{flex-wrap:wrap}
+#analysisPage .model-connection{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr))}
+#analysisPage .model-section summary{flex-wrap:wrap;gap:7px}
+#analysisPage .analysis-actions{flex-wrap:wrap}
+#analysisPage .analysis-actions button{white-space:normal}
+.sidebar-resizer{position:relative;z-index:12;cursor:col-resize;touch-action:none;background:#0a1b28;outline-offset:-2px}
+.sidebar-resizer:hover,.sidebar-resizer:focus-visible{background:var(--signal);outline:0}
+.sidebar-resizer:before{content:"";position:absolute;inset:0 -3px}
+body.sidebar-resizing{cursor:col-resize;user-select:none}
+body.sidebar-resizing iframe{pointer-events:none}
+.flight-library{padding:14px 8px 10px;min-height:0;min-width:0;background:#081824}
+.flight-library>.card-heading{padding:0 8px;flex:none}
+.flight-library>.card-heading .eyebrow{display:none}
+.flight-library h2{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.flight-library .mission-search{margin:14px 4px 8px}
+.explorer-toolbar{padding:0 4px;gap:4px}
+#newFolder{flex:none;padding:5px 8px;background:none;border:0;font-size:10px}
+#folderUp,.folder-breadcrumbs{display:none}
+.flight-library .library-label{align-items:center;margin:8px 0 3px;padding:0 6px;gap:4px}
+#explorerRoot{min-width:0;background:none;color:#b1c4ce;font:600 10px/1.5 var(--font-body);letter-spacing:.04em;padding:5px 2px;text-align:left}
+#explorerRoot:hover{color:var(--signal)}
+#explorerCount{font-size:9px;letter-spacing:0}
+.flight-list{padding:0;margin:0;min-height:0;overflow:auto}
+.tree-node{min-width:0;outline:none}
+.tree-row{display:grid;grid-template-columns:12px 16px minmax(0,1fr) 22px;align-items:center;gap:5px;height:29px;padding:3px 4px 3px calc(4px + var(--depth)*12px);border-left:2px solid transparent;cursor:pointer;color:#b6c8d1;font-size:12px;line-height:20px;min-width:0}
+.tree-row:hover{background:#ffffff06}
+.tree-node[aria-selected="true"]>.tree-row{background:#ff955f12;border-left-color:var(--signal);color:#ffe0ce}
+.tree-node:focus-visible>.tree-row{outline:1px solid var(--signal);outline-offset:-1px}
+.tree-chevron{text-align:center;font:18px/18px var(--font-body);color:#8da6b2}
+.tree-node[aria-expanded="true"]>.tree-row .tree-chevron{transform:rotate(90deg)}
+.tree-icon{width:16px;height:18px;fill:none;stroke:currentColor;stroke-width:1.4;color:#87adbd}
+.tree-folder .tree-icon{color:#d5b28b}
+.tree-file[data-extension="csv"] .tree-icon{color:#84bfa1}
+.tree-file[data-extension="json"] .tree-icon{color:#d8c986}
+.tree-file[data-extension="bin"] .tree-icon,.tree-file[data-extension="tlog"] .tree-icon{color:#a6a7db}
+.tree-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tree-row .entry-actions{margin:0;width:22px;height:22px;padding:0;align-self:center;font-size:17px;line-height:20px;opacity:.45}
+.tree-row:hover .entry-actions,.tree-node:focus-within>.tree-row .entry-actions{opacity:1}
+.sidebar-footer{margin-top:10px;padding:10px 4px 0;flex:none;border-top:1px solid var(--line)}
+#explorerLocation{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;margin:9px 0 0;font-size:9px;color:#7f9caa}
+.session-bar{top:var(--header-h)}
+@container(max-width:720px){.analysis-columns,.upload-layout{grid-template-columns:minmax(0,1fr);gap:24px}.evidence-column{padding:0 0 18px}.analysis-page-heading{align-items:flex-start;flex-wrap:wrap}}
+@media(max-width:759px){.workspace{display:block;height:calc(100dvh - var(--header-h))}.sidebar-resizer{display:none}.workspace-label{display:none}.topbar{padding:0 10px;gap:8px}.topbar .brand{font-size:15px}.brand-light{display:none}.topbar-actions{gap:5px}.topbar .button,.topbar .quiet-button{font-size:10px;padding:7px 8px}.flight-library{top:var(--header-h);height:calc(100dvh - var(--header-h));width:min(var(--sidebar-w,280px),88vw)}.replay-stage{height:100%;min-height:0}.analysis-page-heading{padding:18px}.analysis-page-heading h1{font-size:18px}#analysisPage .view{padding:18px}}
+@media(max-height:760px) and (min-width:760px){body{overflow:hidden}.workspace{height:calc(100dvh - var(--header-h))}}

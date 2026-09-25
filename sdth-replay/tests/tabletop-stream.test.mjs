@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createStreamingTabletop,terrainChunks,nearbyMapChunks} from '../public/tabletop-stream.mjs';
+import {createStreamingTabletop,createTabletopCache,terrainChunks,nearbyMapChunks} from '../public/tabletop-stream.mjs';
 import {tabletopBounds} from '../public/tabletop-context.mjs';
 const bounds={west:0,south:0,east:3,north:3};
 const region={bounds,elevation:{bounds,columns:2,rows:2,heights:[10,11,12,13]},chunks:[{id:'center',url:'center',bounds:{west:1,south:1,east:2,north:2}},{id:'outside',url:'outside',bounds:{west:4,south:4,east:5,north:5}}]};
@@ -56,6 +56,39 @@ test('map details wait for terrain GPU readiness rather than geometry submission
  await stream.ready;
  assert.equal(fetched,1);
  stream.destroy();
+});
+
+test('region cache reuses completed geometry, bounds memory, and discards unfinished work',()=>{
+ const built=[];
+ const cache=createTabletopCache(viewer,{create(v,data,options){
+  const part={visible:true,destroyed:false,setVisible(value){this.visible=value;},destroy(){this.destroyed=true;}};
+  built.push({data,options,part});return part;
+ }});
+ const a={...region,name:'a'},b={...region,name:'b'},c={...region,name:'c'};
+ const first=cache.activate(a,()=>{});
+ assert.equal(cache.activate(a,()=>{}),first);
+ assert.equal(built.length,1);
+ built[0].options.onProgress({complete:true,failed:0});
+ assert.equal(cache.activate(a,()=>{}),first);
+ assert.deepEqual(built[0].options.bounds,a.bounds);
+ cache.activate(b,()=>{});built[1].options.onProgress({complete:true,failed:0});
+ assert.equal(first.visible,false);
+ assert.equal(cache.activate(a,()=>{}),first);
+ cache.activate(c,()=>{});
+ assert.equal(built[1].part.destroyed,true);
+ assert.equal(built[0].part.destroyed,false);
+ cache.activate(a,()=>{});
+ assert.equal(built[2].part.destroyed,true);
+ assert.equal(built.length,3);
+ cache.destroy();assert.equal(first.destroyed,true);
+});
+
+test('region cache retries failed regions instead of caching missing geometry',()=>{
+ let builds=0,progress;
+ const cache=createTabletopCache(viewer,{create(v,d,o){builds++;progress=o.onProgress;return {setVisible(){},destroy(){}};}});
+ cache.activate(region,()=>{});progress({complete:true,failed:1});
+ cache.activate(region,()=>{});assert.equal(builds,2);
+ cache.destroy();
 });
 
 test('mode visibility applies to later arriving chunks as well as the base',async()=>{

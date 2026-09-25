@@ -22,6 +22,9 @@ def test_demo_console_is_served(client):
     assert 'id="newFolder"' in body
     assert 'id="folderBreadcrumbs"' in body
     assert 'id="explorerDialog"' in body
+    assert 'id="sidebarResizer"' in body
+    assert 'id="analysisPage"' in body
+    assert 'role="tree"' in body
     assert "demo.js" in body
 
 
@@ -39,6 +42,7 @@ def test_replay_embed_is_public(client):
     assert "SDTH" in body
     assert "cesium.com/downloads/cesiumjs" in body
     assert 'id="bannerClose"' in body
+    assert 'id="missionAnalysisButton"' in body
     assert "banner-close" in body
 
 

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {routeContext,atlasHeight,tabletopBounds,observeImagery,imageryStatusText,constrainCameraAboveGround} from '../public/tabletop-context.mjs';
+import {routeContext,atlasHeight,tabletopBounds,observeImagery,imageryStatusText,constrainCameraAboveGround,createTabletopClip,configureDaytimeAtmosphere} from '../public/tabletop-context.mjs';
 const atlas=await Promise.all(['stonehenge','shropshire','north-wales'].map(async name=>JSON.parse(await readFile(new URL(`../public/assets/tabletop-${name}.json`,import.meta.url),'utf8'))));
 
 test('imagery distinguishes loading, blank placeholders and real tiles',async()=>{
@@ -62,6 +62,30 @@ test('camera clearance uses cached hills before globe tiles arrive, then the hig
  position.longitude=5;position.latitude=5;position.height=-20;rendered=undefined;
  assert.equal(constrainCameraAboveGround(viewer,atlas,C),true);
  assert.equal(camera.position.height,3);
+});
+
+test('daytime atmosphere is procedural, muted and independent of recorded time',()=>{
+ class Atmosphere{setDynamicLighting(value){this.lighting=value;}}
+ const scene={globe:{ellipsoid:{},showGroundAtmosphere:false},atmosphere:{}};
+ const C={SkyAtmosphere:Atmosphere,DynamicAtmosphereLightingType:{NONE:0},Color:{fromCssColorString:value=>value}};
+ configureDaytimeAtmosphere({scene},C);
+ assert.equal(scene.skyAtmosphere.lighting,0);
+ assert.ok(scene.skyAtmosphere.saturationShift<0);
+ assert.equal(scene.globe.showGroundAtmosphere,true);
+ assert.equal(scene.atmosphere.dynamicLighting,0);
+ assert.equal(scene.backgroundColor,'#9bafbf');
+});
+
+test('surrounding globe clips only the tabletop footprint, with a safe unsupported fallback',()=>{
+ class Polygon{constructor(options){Object.assign(this,options);}}
+ class Collection extends Polygon{static isSupported(){return true;}}
+ const C={ClippingPolygonCollection:Collection,ClippingPolygon:Polygon,Cartesian3:{fromDegreesArray:value=>value}};
+ const bounds={west:1,south:2,east:3,north:4};
+ const clip=createTabletopClip({scene:{}},bounds,C);
+ assert.equal(clip.inverse,false);
+ assert.deepEqual(clip.get?.(0)?.positions||clip.polygons[0].positions,[1,2,3,2,3,4,1,4]);
+ Collection.isSupported=()=>false;
+ assert.equal(createTabletopClip({scene:{}},bounds,C),null);
 });
 
 test('a route crossing cache bounds does not claim full terrain coverage',()=>{

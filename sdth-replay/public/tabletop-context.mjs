@@ -1,4 +1,4 @@
-import { elevationHeightAt } from './tabletop.mjs?v=stream-21';
+import { elevationHeightAt } from './tabletop.mjs?v=stream-25';
 
 export function observeImagery(provider, onStatus) {
   const requestImage=provider.requestImage;
@@ -81,6 +81,30 @@ export async function loadTabletopAtlas() {
   } catch { return []; }
 }
 
+export function configureDaytimeAtmosphere(viewer,C) {
+  const scene=viewer.scene;
+  scene.skyBox=undefined;
+  scene.skyAtmosphere ||= new C.SkyAtmosphere(scene.globe.ellipsoid);
+  scene.skyAtmosphere.setDynamicLighting(C.DynamicAtmosphereLightingType.NONE);
+  scene.skyAtmosphere.saturationShift=-0.25;
+  scene.skyAtmosphere.brightnessShift=-0.12;
+  scene.skyAtmosphere.perFragmentAtmosphere=true;
+  scene.globe.showGroundAtmosphere=true;
+  scene.backgroundColor=C.Color.fromCssColorString('#9bafbf');
+  if(scene.atmosphere){
+    scene.atmosphere.dynamicLighting=C.DynamicAtmosphereLightingType.NONE;
+    scene.atmosphere.saturationShift=-0.25;
+    scene.atmosphere.brightnessShift=-0.12;
+  }
+}
+
+export function createTabletopClip(viewer,bounds,C) {
+  if(!C.ClippingPolygonCollection?.isSupported(viewer.scene))return null;
+  return new C.ClippingPolygonCollection({enabled:false,inverse:false,polygons:[new C.ClippingPolygon({
+    positions:C.Cartesian3.fromDegreesArray([bounds.west,bounds.south,bounds.east,bounds.south,bounds.east,bounds.north,bounds.west,bounds.north]),
+  })]});
+}
+
 export function createCachedTerrain(C, atlas) {
   const tilingScheme=new C.GeographicTilingScheme();
   const size=32;
@@ -122,6 +146,7 @@ export function createTabletopFinish(viewer,C) {
         vec4 eye=czm_windowToEyeCoordinates(gl_FragCoord.xy,depth);
         float distanceToScene=length(eye.xyz/max(abs(eye.w),0.00001));
         float empty=(depth<=0.0 || depth>=0.9999999) ? 1.0 : 0.0;
+        if(empty>0.5){out_FragColor=vec4(sharp,1.0);return;}
         float far=empty>0.5 ? 1.0 : smoothstep(fogNear,fogNear*2.6,distanceToScene);
         float luma=dot(sharp,vec3(0.299,0.587,0.114));
         float chroma=length(sharp-vec3(luma));
@@ -135,7 +160,7 @@ export function createTabletopFinish(viewer,C) {
         color+=texture(colorTexture,uv-radius).rgb*0.15;
         float grain=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453)-0.5;
         float vignette=1.0-0.14*smoothstep(0.28,0.75,length(uv-0.5));
-        vec3 mist=mix(vec3(0.065,0.14,0.17),vec3(0.115,0.23,0.26),1.0-uv.y);
+        vec3 mist=vec3(0.61,0.69,0.75);
         color=mix(mix(color,mist,haze),sharp,mark);
         out_FragColor=vec4(color*vignette+grain*0.006,1.0);
       }`,

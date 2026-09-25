@@ -18,15 +18,17 @@
       href="./cesium/Widgets/widgets.css"
       onerror="this.onerror=null;this.href='https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Widgets/widgets.css'"
     />
-    <link rel="stylesheet" href="./replay.css?v=stream-20" />
+    <link rel="stylesheet" href="./replay.css?v=stream-25" />
   </head>
   <body>
     <div id="cesiumContainer"></div>
     <div id="hud">
+      <div id="replayPreparation" class="replay-preparation" role="status"><div><strong id="replayPreparationTitle">Preparing recorded replay</strong><p id="replayPreparationText">Loading telemetry and map context…</p></div></div>
       <div id="viewMode" aria-label="Replay presentation mode">
         <button id="studioViewButton" type="button" aria-pressed="true">Tabletop</button>
         <button id="mapViewButton" type="button" aria-pressed="false">Map</button>
         <button id="satViewButton" type="button" aria-pressed="false">Satellite</button>
+        <button id="missionAnalysisButton" type="button" title="Open the mission review workspace">Mission analysis</button>
         <button id="retryImageryButton" type="button" hidden>Retry imagery</button>
         <button id="uavScaleButton" type="button" aria-pressed="false" title="Aircraft size: real-world scale (1:1) or enlarged marker">1:1</button>
       </div>
@@ -142,6 +144,6 @@
       src="./cesium/Cesium.js"
       onerror="window.CESIUM_BASE_URL='https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/';document.write('<script src=\x22'+window.CESIUM_BASE_URL+'Cesium.js\x22><\/script>')"
     ></script>
-    <script type="module" src="./replay.js?v=stream-21"></script>
+    <script type="module" src="./replay.js?v=stream-25"></script>
   </body>
 </html>

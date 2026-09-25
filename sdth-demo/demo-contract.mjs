@@ -1,3 +1,17 @@
+export function logFilename(flight) {
+  return String(flight.original_filename || flight.filename || flight.upload_filename || `${flight.id || "recorded-flight"}.log`);
+}
+
+export function workspaceRoute(hash) {
+  const [, page, requested] = String(hash || "").split("/");
+  return {page: page === "analysis" ? "analysis" : "replay", tab: ["overview", "patterns", "bulletins", "logs"].includes(requested) ? requested : "overview"};
+}
+
+export function sidebarWidth(value, viewportWidth) {
+  const width = Number.isFinite(value) ? value : 280;
+  return Math.round(Math.max(190, Math.min(width, 520, Math.max(190, viewportWidth - 426))));
+}
+
 export function folderTrail(folders, folderId) {
   const byId = new Map(folders.map(folder => [folder.id, folder]));
   const trail = [], seen = new Set();

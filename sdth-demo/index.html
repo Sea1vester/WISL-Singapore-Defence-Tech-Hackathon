@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#071520" />
   <title>WISL · Mission replay</title>
-  <link rel="stylesheet" href="./demo.css?v=explorer-3" />
+  <link rel="stylesheet" href="./demo.css?v=workspace-4" />
 </head>
-<body>
+<body data-workspace-page="replay">
   <header class="topbar">
-    <a class="brand" href="#" aria-label="WISL home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 2 30 16 16 30 2 16Z"/><path d="m16 9 7 7-7 7-7-7Z"/></svg></span><span>WISL<span class="brand-light"> REPLAY</span></span></a>
-    <p class="workspace-label"><span></span> Recorded mission workspace</p>
+    <a class="brand" href="#/replay" aria-label="WISL home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 2 30 16 16 30 2 16Z"/><path d="m16 9 7 7-7 7-7-7Z"/></svg></span><span>WISL<span class="brand-light"> REPLAY</span></span></a>
+    <p class="workspace-label" id="workspaceTitle">Recorded mission workspace</p>
     <div class="topbar-actions">
       <span class="connection"><span class="live-dot" id="apiDot"></span><span id="apiState">Not connected</span></span>
       <button id="authButton" class="quiet-button" type="button" aria-expanded="false">Session</button>
@@ -29,11 +29,12 @@
     <label class="mission-search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5"/><path d="m12 12 5 5"/></svg><input id="missionSearch" type="search" placeholder="Search all missions & folders…" aria-label="Search all missions and folders" /></label>
     <div class="explorer-toolbar"><button id="folderUp" class="quiet-button" type="button" aria-label="Go to parent folder" disabled>↑</button><button id="newFolder" class="quiet-button" type="button" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6V4h6l2 2h8v11H2Zm8 3v5m-2.5-2.5h5"/></svg>New folder</button></div>
     <nav id="folderBreadcrumbs" class="folder-breadcrumbs" aria-label="Mission folder path"></nav>
-    <div class="library-label"><span id="explorerHeading">NAME</span><span id="explorerCount"></span></div>
+    <div class="library-label"><button id="explorerRoot" type="button" title="Select the root folder"><span id="explorerHeading">RECORDED LOGS</span></button><span id="explorerCount"></span></div>
     <p id="explorerNotice" class="explorer-notice" role="status" hidden></p>
-    <div id="flightList" class="flight-list"></div>
-    <div class="sidebar-footer"><p class="eyebrow">From record to understanding</p><div class="review-steps"><span><b>01</b> Import</span><i>→</i><span><b>02</b> Replay</span><i>→</i><span><b>03</b> Review</span></div><button id="sidebarImport" class="button" type="button">＋ Import a flight log</button><p>Folders are saved on this WISL server.</p></div>
+    <div id="flightList" class="flight-list" role="tree" aria-label="Recorded mission files"></div>
+    <div class="sidebar-footer"><button id="sidebarImport" class="button" type="button">＋ Import a flight log</button><p id="explorerLocation">Missions</p></div>
   </aside>
+  <div id="sidebarResizer" class="sidebar-resizer" role="separator" aria-orientation="vertical" tabindex="0" aria-label="Resize file explorer" title="Drag to resize · double-click to reset · left/right arrow keys"><span aria-hidden="true"></span></div>
   <main>
     <section class="replay-stage" aria-label="Mission replay">
       <div class="stage-heading"><p class="eyebrow"><span class="stage-dot"></span> Mission replay <span class="recorded-label">Recorded · 3D</span></p><h1 id="selectedFlightTitle">Your flight. In context.</h1><p id="flightMeta">Open a recorded flight to follow its path and investigate its evidence.</p></div>
@@ -46,10 +47,8 @@
       </div>
       <iframe id="replayFrame" title="Recorded flight replay" allow="fullscreen" hidden></iframe>
     </section>
-    <div id="dockResizer" class="dock-resizer" role="separator" aria-orientation="horizontal"
-         tabindex="0" aria-label="Resize the details panel"
-         title="Drag to resize · double-click to reset · arrow keys when focused"><span aria-hidden="true"></span></div>
-    <section class="analysis-dock" aria-label="Mission review panels">
+    <section id="analysisPage" class="analysis-dock" aria-label="Mission review panels" hidden>
+      <header class="analysis-page-heading"><div><p class="eyebrow">Recorded mission review</p><h1 id="analysisFlightTitle">Mission analysis</h1></div><button id="backToReplay" class="quiet-button" type="button">← Back to replay</button></header>
       <nav class="tabbar" role="tablist" aria-label="Mission review">
         <button class="nav-link active" id="tab-overview" role="tab" aria-selected="true" aria-controls="overviewView" data-view="overview" type="button">Mission analysis <span id="incidentCount" class="tab-count">—</span></button>
         <button class="nav-link" id="tab-patterns" role="tab" aria-selected="false" aria-controls="patternsView" data-view="patterns" type="button" tabindex="-1">Recurring patterns</button>
@@ -107,6 +106,6 @@
     </form>
   </dialog>
   <template id="flightTemplate"><button class="flight-row" type="button"><span class="flight-symbol" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M11 11 6 6m15 5 5-5M11 21l-5 5m15-5 5 5M11 11h10v10H11Z"/><circle cx="6" cy="6" r="4"/><circle cx="26" cy="6" r="4"/><circle cx="6" cy="26" r="4"/><circle cx="26" cy="26" r="4"/></svg></span><span class="flight-source"></span><span class="flight-time"></span><span class="flight-arrow">↗</span></button></template>
-  <script type="module" src="./demo.js?v=explorer-3"></script>
+  <script type="module" src="./demo.js?v=workspace-4"></script>
 </body>
 </html>

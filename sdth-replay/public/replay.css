@@ -1204,6 +1204,22 @@ html.replay-embed .cesium-widget-credits img { max-height:18px; width:auto; }
 
 html.replay-embed #cesiumContainer:after {
   content:""; position:absolute; inset:0 0 auto; height:165px; z-index:2;
-  background:linear-gradient(#071722f5 0%,#071722c9 45%,#07172200 100%);
+  background:none;
   pointer-events:none;
 }
+html,body,#cesiumContainer{background:#9bafbf}
+.replay-preparation{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:32px;background:#9bafbf;color:#19323e;text-align:center}
+.replay-preparation>div{max-width:420px;padding:24px;border:1px solid #ffffff66;border-radius:12px;background:#c6d2da}
+.replay-preparation strong{font-size:17px;font-weight:600}
+.replay-preparation p{margin:10px 0 0;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
+#hud #viewMode{z-index:40}
+html.replay-embed #viewMode,body.replay-embed #viewMode{top:14px;right:16px;max-width:calc(100% - 32px);flex-wrap:wrap}
+#viewMode #missionAnalysisButton{color:#ffbb94;border-left:1px solid #49606e;border-radius:0;padding-left:11px}
+#viewMode button:focus-visible{outline:2px solid #ff955f;outline-offset:1px}
+html.replay-embed #orbitalTelemetry,body.replay-embed #orbitalTelemetry{top:58px;left:16px;right:16px}
+html.replay-embed #scaleLegend,body.replay-embed #scaleLegend{top:138px;left:20px}
+#scaleLegendBar{background:#36515e;border-color:#36515e;box-shadow:0 1px 2px #fff}
+#scaleLegendText{color:#36515e;text-shadow:0 1px 2px #fff}
+html.replay-embed #terrainContext,html.replay-embed #terrainContext.imagery-warning{top:165px;left:18px;right:auto;max-width:calc(100% - 36px)}
+html.replay-embed #terrainContext:not(.imagery-warning){color:#385767;text-shadow:none;background:#ffffffd9;padding:3px 6px;border-radius:4px}
+@media(max-width:700px){html.replay-embed #viewMode,body.replay-embed #viewMode{top:10px;right:10px;max-width:calc(100% - 20px)}html.replay-embed #orbitalTelemetry,body.replay-embed #orbitalTelemetry{top:78px;left:10px;right:10px;grid-template-columns:repeat(4,minmax(0,1fr))}html.replay-embed #orbitalTelemetry>div{padding:8px 6px}html.replay-embed #orbitalTelemetry span{font-size:6.5px;letter-spacing:.03em}html.replay-embed #orbitalTelemetry strong{font-size:16px}html.replay-embed #orbitalTelemetry>div:last-child strong{font-size:12px}html.replay-embed #scaleLegend,body.replay-embed #scaleLegend{top:140px}html.replay-embed #terrainContext,html.replay-embed #terrainContext.imagery-warning{top:164px}}
