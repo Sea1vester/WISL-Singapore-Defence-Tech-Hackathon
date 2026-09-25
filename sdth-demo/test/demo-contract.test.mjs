@@ -1,6 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { flightDisplayName, isSimulationCorpus, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "../demo-contract.mjs";
+import { folderTrail, folderPath, folderDestinations, flightDisplayName, isSimulationCorpus, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "../demo-contract.mjs";
+
+test("folder paths and move destinations respect nested ancestry", () => {
+  const folders = [{id: "a", parent_id: null, name: "Singapore"}, {id: "b", parent_id: "a", name: "Hillview"}, {id: "c", parent_id: null, name: "UK"}];
+  assert.equal(folderPath(folders, "b"), "Missions / Singapore / Hillview");
+  assert.equal(folderPath(folders, null), "Missions");
+  assert.equal(folderPath(folders, "missing"), "Missions");
+  assert.deepEqual(folderDestinations(folders, "a").map(folder => folder.id), ["c"]);
+  assert.deepEqual(folderDestinations(folders, "b").map(folder => folder.id), ["a", "c"]);
+  assert.equal(folderTrail([{id: "a", parent_id: "a", name: "Broken"}], "a").length, 1);
+});
 
 test("handles the documented local model status shape", () => {
   assert.equal(modelStatus({ model: { status: "ready", local: true } }), "ready");

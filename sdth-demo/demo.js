@@ -1,6 +1,6 @@
-import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "./demo-contract.mjs?v=model-auto-1";
+import { folderTrail, folderPath, folderDestinations, flightDisplayName, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "./demo-contract.mjs?v=explorer-3";
 
-const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false };
+const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false, folders: [], flightFolders: {}, folderId: sessionStorage.getItem("wislMissionFolder") || null, libraryReady: false, libraryBusy: false, explorerEdit: null, uploadDestination: null, uploadBusy: false };
 const DEMO_LIBRARY_LOGS = [
   { url: "/demo/fixtures/singapore/dji_csv_sg_lck_survey_normal.csv", name: "dji_csv_sg_lck_survey_normal.csv", type: "text/csv" },
   { url: "/demo/fixtures/singapore/dji_csv_sg_lck_survey_gps_weak.csv", name: "dji_csv_sg_lck_survey_gps_weak.csv", type: "text/csv" },
@@ -11,6 +11,10 @@ const DEMO_LIBRARY_LOGS = [
   { url: "/demo/fixtures/dji_csv_gps_jamming.csv", name: "dji_csv_gps_jamming.csv", type: "text/csv" },
   { url: "/demo/fixtures/orbiter4_gps_denied_frozen.json", name: "orbiter4_gps_denied_frozen.json", type: "application/json" },
   { url: "/demo/fixtures/dji_csv_motor_fail_recover_024.csv", name: "dji_csv_motor_fail_recover_024.csv", type: "text/csv" },
+  { url: "/demo/fixtures/ardupilot_amesbury_alpha.tlog", name: "ardupilot_amesbury_alpha.tlog", type: "application/octet-stream" },
+  { url: "/demo/fixtures/ardupilot_amesbury_alpha.bin", name: "ardupilot_amesbury_alpha.bin", type: "application/octet-stream" },
+  { url: "/demo/fixtures/hermes900_amesbury_perimeter.stanag", name: "hermes900_amesbury_perimeter.stanag", type: "text/plain" },
+  { url: "/demo/fixtures/aunav_neo_amesbury_patrol.ros", name: "aunav_neo_amesbury_patrol.ros", type: "text/plain" },
 ];
 const $ = (id) => document.getElementById(id);
 const wideLayout = window.matchMedia("(min-width: 760px)");
@@ -60,20 +64,32 @@ async function pollUpload(uploadId) {
     catch (firstError) { upload = await api(`/v1/logs/${encodeURIComponent(uploadId)}/status`).catch(() => { throw firstError; }); }
     state.upload = upload;
     pipeline(upload.status, upload.error || (upload.duplicate ? "Duplicate found: using the earlier result." : `${upload.filename || "Log"} · ${upload.status}`));
-    if (upload.status === "failed") { setMessage(friendlyError(upload.error) || "The log could not be processed.", "error"); return; }
+    if (upload.status === "failed") { state.uploadBusy = false; setMessage(friendlyError(upload.error) || "The log could not be processed.", "error"); return; }
     if (upload.status === "ready") {
       setMessage(upload.duplicate ? "Duplicate found. The earlier processed log is ready." : "The log has been processed and is ready for review.", "success");
       await refreshFlights();
+      const destination = state.uploadDestination;
+      if (destination?.uploadId === uploadId) {
+        state.uploadDestination = null;
+        if (!destination.duplicate && destination.folderId && upload.flight_id) {
+          try { await assignMission(upload.flight_id, destination.folderId); }
+          catch (error) { setExplorerNotice(`Log processed, but its folder could not be saved. ${friendlyError(error.message)}`, true); }
+        }
+      }
       if (upload.flight_id) { await selectFlight(upload.flight_id); showView("overview"); }
+      state.uploadBusy = false;
       return;
     }
     state.pollTimer = setTimeout(() => pollUpload(uploadId), 1400);
-  } catch (error) { const msg = friendlyError(error.message); setMessage(msg, "error"); pipeline("failed", msg); }
+  } catch (error) { state.uploadBusy = false; const msg = friendlyError(error.message); setMessage(msg, "error"); pipeline("failed", msg); }
 }
 async function uploadFile(file) {
   if (!state.token) { setMessage("Add a session key before uploading.", "error"); setAuthPanel(true); return; }
   if (!file) return;
+  if (state.uploadBusy) { setMessage("Wait for the current log to finish processing before importing another."); return; }
   if (file.size > 100 * 1024 * 1024) { setMessage("Choose a file smaller than 100 MB.", "error"); return; }
+  state.uploadBusy = true;
+  const folderId = state.libraryReady ? state.folderId : null;
   const data = new FormData(); data.append("file", file);
   setMessage(`Uploading ${file.name}…`); pipeline("received", "Uploading your log…");
   try {
@@ -81,35 +97,171 @@ async function uploadFile(file) {
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(detail(body));
     state.upload = body;
+    state.uploadDestination = {uploadId: body.upload_id, folderId, duplicate: body.duplicate};
     setMessage(body.duplicate ? "A matching log already exists; checking its status…" : "Log accepted. Tracking its progress below.");
     pollUpload(body.upload_id);
-  } catch (error) { const msg = friendlyError(error.message); setMessage(msg, "error"); pipeline("failed", msg); }
+  } catch (error) { state.uploadBusy = false; const msg = friendlyError(error.message); setMessage(msg, "error"); pipeline("failed", msg); }
+}
+function setExplorerNotice(text, error = false) {
+  const notice = $("explorerNotice");
+  notice.textContent = text; notice.hidden = !text; notice.className = `explorer-notice${error ? " error" : ""}`;
+}
+function openFolder(folderId) {
+  state.folderId = folderId;
+  sessionStorage.setItem("wislMissionFolder", folderId || "");
+  $("missionSearch").value = "";
+  setExplorerNotice(""); renderFlights(); els.flightList.scrollTop = 0;
+}
+function explorerButton(text, title, action, className = "entry-actions") {
+  const button = document.createElement("button");
+  button.type = "button"; button.className = className; button.textContent = text;
+  button.title = title; button.setAttribute("aria-label", title); button.addEventListener("click", action);
+  return button;
+}
+function folderDropTarget(node, folderId) {
+  const accepts = event => !state.libraryBusy && state.libraryReady && event.dataTransfer.types.includes("application/x-wisl-flight");
+  ["dragenter", "dragover"].forEach(type => node.addEventListener(type, event => {
+    if (!accepts(event)) return;
+    event.preventDefault(); event.dataTransfer.dropEffect = "move"; node.classList.add("folder-drop");
+  }));
+  node.addEventListener("dragleave", () => node.classList.remove("folder-drop"));
+  node.addEventListener("drop", async event => {
+    node.classList.remove("folder-drop");
+    if (!accepts(event)) return;
+    event.preventDefault();
+    const flightId = event.dataTransfer.getData("application/x-wisl-flight");
+    if (!state.flights.some(flight => flight.id === flightId)) return;
+    state.libraryBusy = true; renderFlights();
+    try { await assignMission(flightId, folderId); setExplorerNotice(`Moved to ${folderPath(state.folders, folderId)}.`); }
+    catch (error) { setExplorerNotice(friendlyError(error.message), true); }
+    finally { state.libraryBusy = false; renderFlights(); }
+  });
+}
+function appendExplorerEntry(node, actionLabel, action) {
+  const row = document.createElement("div"); row.className = "explorer-entry";
+  const button = explorerButton("⋯", actionLabel, action);
+  button.disabled = !state.libraryReady || state.libraryBusy;
+  row.append(node, button); els.flightList.append(row);
 }
 function renderFlights() {
-  els.flightList.replaceChildren();
+  const previousScroll = els.flightList.scrollTop;
+  if (state.libraryReady && state.folderId && !state.folders.some(folder => folder.id === state.folderId)) state.folderId = null;
+  $("uploadFolderHint").textContent = `New uploads go to ${folderPath(state.folders, state.folderId)}. Existing records keep their folder.`;
+  $("newFolder").disabled = !state.libraryReady || state.libraryBusy;
+  $("folderUp").disabled = !state.folderId;
+  const breadcrumbs = $("folderBreadcrumbs"); breadcrumbs.replaceChildren();
+  const trail = [{id: null, name: "Missions"}, ...folderTrail(state.folders, state.folderId)];
+  for (const [index, folder] of trail.entries()) {
+    if (index) { const divider = document.createElement("span"); divider.textContent = "/"; divider.setAttribute("aria-hidden", "true"); breadcrumbs.append(divider); }
+    const button = explorerButton(folder.name, folderPath(state.folders, folder.id), () => openFolder(folder.id), "");
+    if (folder.id === state.folderId) button.setAttribute("aria-current", "page");
+    folderDropTarget(button, folder.id); breadcrumbs.append(button);
+  }
+  els.flightList.replaceChildren(); els.flightList.className = "flight-list";
   $("libraryCount").textContent = String(state.flights.length).padStart(2, "0");
-  if (!state.flights.length) { els.flightList.textContent = state.token ? "No recorded flights are available yet." : "Connect a session to load recorded flights."; els.flightList.className = "flight-list empty-state"; return; }
-  els.flightList.className = "flight-list";
   const search = $("missionSearch").value.trim().toLowerCase();
-  const matching = state.flights.filter(flight => `${flightDisplayName(flight)} ${flight.source || ""} ${flight.original_filename || ""}`.toLowerCase().includes(search));
-  if (!matching.length) { els.flightList.textContent = "No matching missions. Try a different search."; return; }
-  for (const flight of matching) {
+  const folders = state.folders.filter(folder => search ? folderPath(state.folders, folder.id).toLowerCase().includes(search) : folder.parent_id === state.folderId)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const flights = state.flights.filter(flight => search
+    ? `${flightDisplayName(flight)} ${flight.source || ""} ${flight.original_filename || ""} ${folderPath(state.folders, state.flightFolders[flight.id])}`.toLowerCase().includes(search)
+    : (state.flightFolders[flight.id] || null) === state.folderId)
+    .sort((a, b) => flightDisplayName(a).localeCompare(flightDisplayName(b)));
+  $("explorerHeading").textContent = search ? "SEARCH RESULTS" : "NAME";
+  $("explorerCount").textContent = `${folders.length} ${folders.length === 1 ? "folder" : "folders"} · ${flights.length} ${flights.length === 1 ? "log" : "logs"}`;
+  for (const folder of folders) {
+    const node = explorerButton("", `Open folder ${folder.name}`, () => openFolder(folder.id), "folder-row");
+    node.innerHTML = '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6V4h6l2 2h8v11H2Z"/></svg><span><strong></strong><small></small></span>';
+    node.querySelector("strong").textContent = folder.name;
+    const count = state.folders.filter(item => item.parent_id === folder.id).length + state.flights.filter(flight => state.flightFolders[flight.id] === folder.id).length;
+    node.querySelector("small").textContent = search ? folderPath(state.folders, folder.parent_id) : `${count} ${count === 1 ? "item" : "items"}`;
+    folderDropTarget(node, folder.id);
+    appendExplorerEntry(node, `Rename or move folder ${folder.name}`, () => openExplorerDialog("folder", folder.id));
+  }
+  for (const flight of flights) {
     const node = $("flightTemplate").content.firstElementChild.cloneNode(true);
     node.classList.toggle("selected", flight.id === state.selectedFlight?.id);
     node.setAttribute("aria-pressed", String(flight.id === state.selectedFlight?.id));
+    node.title = flight.original_filename || flightDisplayName(flight);
+    node.querySelector(".flight-symbol").innerHTML = '<svg viewBox="0 0 20 24" aria-hidden="true"><path d="M3 2h9l5 5v15H3Zm9 0v6h5M6 12h8m-8 4h8"/></svg>';
     node.querySelector(".flight-source").textContent = flightDisplayName(flight);
-    node.querySelector(".flight-time").textContent = fmtTime(flight.started_at);
+    const filename = document.createElement("span"); filename.className = "file-name"; filename.textContent = flight.original_filename || flight.source;
+    node.insertBefore(filename, node.querySelector(".flight-time"));
+    node.querySelector(".flight-time").textContent = search ? folderPath(state.folders, state.flightFolders[flight.id]) : fmtTime(flight.started_at);
     node.addEventListener("click", () => selectFlight(flight.id));
-    els.flightList.append(node);
+    node.draggable = state.libraryReady && !state.libraryBusy;
+    node.addEventListener("dragstart", event => { event.dataTransfer.setData("application/x-wisl-flight", flight.id); event.dataTransfer.effectAllowed = "move"; });
+    node.addEventListener("dragend", () => document.querySelectorAll(".folder-drop").forEach(item => item.classList.remove("folder-drop")));
+    appendExplorerEntry(node, `Move ${flightDisplayName(flight)}`, () => openExplorerDialog("flight", flight.id));
   }
-  if (!search) els.flightList.querySelector(".selected")?.scrollIntoView({block:"nearest"});
+  if (!folders.length && !flights.length) {
+    els.flightList.classList.add("empty-state");
+    els.flightList.textContent = !state.token ? "Connect a session to open your mission library." : !state.libraryReady ? "Mission explorer is unavailable. Try refreshing." : search ? "No matching folders or missions." : "This folder is empty. Create a subfolder or move a recorded log here.";
+  }
+  els.flightList.scrollTop = previousScroll;
+}
+function openExplorerDialog(kind, id = null) {
+  if (!state.libraryReady || state.libraryBusy) return;
+  state.explorerEdit = {kind, id};
+  const folder = state.folders.find(item => item.id === id);
+  const flight = state.flights.find(item => item.id === id);
+  $("explorerDialogTitle").textContent = kind === "new" ? "New folder" : kind === "folder" ? "Organise folder" : "Move recorded log";
+  $("explorerDialogHint").textContent = kind === "flight" ? `${flightDisplayName(flight)}. Only its library location changes; the original log and evidence stay untouched.` : "Create, rename or move folders without changing original log files.";
+  $("folderNameField").hidden = kind === "flight";
+  $("folderName").disabled = kind === "flight"; $("folderName").required = kind !== "flight";
+  $("folderName").value = folder?.name || "";
+  const destination = $("folderDestination"); destination.replaceChildren(new Option("Missions (root)", ""));
+  for (const item of folderDestinations(state.folders, kind === "folder" ? id : null)) destination.add(new Option(folderPath(state.folders, item.id), item.id));
+  destination.value = (kind === "new" ? state.folderId : kind === "folder" ? folder.parent_id : state.flightFolders[id]) || "";
+  $("saveExplorer").textContent = kind === "new" ? "Create folder" : kind === "folder" ? "Save changes" : "Move log";
+  $("explorerFormError").hidden = true;
+  $("explorerDialog").showModal();
+  (kind === "flight" ? destination : $("folderName")).focus();
+}
+async function assignMission(flightId, folderId) {
+  await api(`/v1/library/flights/${encodeURIComponent(flightId)}/folder`, {method: "PUT", json: true, body: JSON.stringify({folder_id: folderId})});
+  if (folderId) state.flightFolders[flightId] = folderId;
+  else delete state.flightFolders[flightId];
+}
+async function saveExplorer(event) {
+  event.preventDefault();
+  if (state.libraryBusy) return;
+  const {kind, id} = state.explorerEdit, parentId = $("folderDestination").value || null;
+  state.libraryBusy = true; $("explorerFields").disabled = true; $("saveExplorer").disabled = true; $("cancelExplorer").disabled = true; $("explorerFormError").hidden = true;
+  renderFlights();
+  try {
+    if (kind === "flight") {
+      await assignMission(id, parentId);
+      setExplorerNotice(`Log moved to ${folderPath(state.folders, parentId)}.`);
+    } else {
+      const folder = await api(`/v1/library/folders${kind === "folder" ? `/${encodeURIComponent(id)}` : ""}`, {method: kind === "folder" ? "PUT" : "POST", json: true, body: JSON.stringify({name: $("folderName").value.trim(), parent_id: parentId})});
+      state.folders = [...state.folders.filter(item => item.id !== folder.id), folder];
+      if (kind === "new") openFolder(folder.id);
+      setExplorerNotice(kind === "new" ? "Folder created. Create subfolders here, or move logs in from Missions." : "Folder updated. Its contents are unchanged.");
+    }
+    $("explorerDialog").close();
+  } catch (error) {
+    $("explorerFormError").textContent = friendlyError(error.message); $("explorerFormError").hidden = false;
+  } finally {
+    state.libraryBusy = false; $("explorerFields").disabled = false; $("saveExplorer").disabled = false; $("cancelExplorer").disabled = false; renderFlights();
+  }
+}
+async function allFlights() {
+  const items = [];
+  for (let offset = 0; ; offset += 200) {
+    const page = await api(`/v1/flights?limit=200&offset=${offset}`);
+    items.push(...(page.items || []));
+    if (!page.items?.length || items.length >= page.total) return items;
+  }
 }
 async function refreshFlights() {
   if (!state.token) { renderFlights(); return; }
   const button = $("refreshFlights"); button.disabled = true;
-  try { const result = await api("/v1/flights?limit=50"); state.flights = result.items || []; setApi("online", "Session connected"); if (!state.upload) setMessage("Session connected. Choose a recorded log to process.", "success"); renderFlights(); $("emptyHint").textContent = "Choose a flight from the library or import a log.";
-    if (!state.selectedFlight && state.flights.length) { const saved = sessionStorage.getItem("wislSelectedFlight"); const initial = state.flights.find(f => f.id === saved) || state.flights.find(f => f.id === "flight-1a1b914dc70e6d0c1b45") || state.flights[0]; await selectFlight(initial.id); } }
-  catch (error) { setApi("error", "Connection failed"); els.flightMeta.textContent = friendlyError(error.message); }
+  try {
+    const [flights, library] = await Promise.all([allFlights(), api("/v1/library")]);
+    state.flights = flights; state.folders = library.folders; state.flightFolders = library.flight_folders; state.libraryReady = true;
+    setExplorerNotice(""); setApi("online", "Session connected"); if (!state.upload) setMessage("Session connected. Choose a recorded log to process.", "success"); renderFlights(); $("emptyHint").textContent = "Choose a flight from the library or import a log.";
+    if (!state.selectedFlight && state.flights.length) { const saved = sessionStorage.getItem("wislSelectedFlight"); const initial = state.flights.find(f => f.id === saved) || state.flights.find(f => f.id === "flight-1a1b914dc70e6d0c1b45") || state.flights[0]; await selectFlight(initial.id); }
+  } catch (error) { state.libraryReady = false; setApi("error", "Connection failed"); setExplorerNotice(friendlyError(error.message), true); els.flightMeta.textContent = friendlyError(error.message); renderFlights(); }
   finally { button.disabled = false; }
 }
 function evidenceText(incident) {
@@ -146,7 +298,7 @@ function setReplay(flightId, timestamp = null) {
   const frameUrl = new URL("/replay/", window.location.origin);
   frameUrl.searchParams.set("flights", flightId);
   frameUrl.searchParams.set("embed", "1");
-  frameUrl.searchParams.set("v", "stream-18");
+  frameUrl.searchParams.set("v", "stream-21");
   if (state.token) frameUrl.searchParams.set("token", state.token);
   if (timestamp) frameUrl.searchParams.set("timestamp", timestamp);
   els.replayFrame.src = frameUrl.toString(); els.replayFrame.hidden = false; els.replayEmpty.hidden = true; els.openReplay.href = frameUrl.toString(); els.openReplay.classList.remove("disabled");
@@ -471,6 +623,11 @@ function openImport() { setLibrary(false); showView("logs"); $("dropzone").scrol
 $("importButton").addEventListener("click", openImport);
 $("sidebarImport").addEventListener("click", openImport);
 $("missionSearch").addEventListener("input", renderFlights);
+$("newFolder").addEventListener("click", () => openExplorerDialog("new"));
+$("folderUp").addEventListener("click", () => openFolder(state.folders.find(folder => folder.id === state.folderId)?.parent_id || null));
+$("explorerForm").addEventListener("submit", saveExplorer);
+$("cancelExplorer").addEventListener("click", () => $("explorerDialog").close());
+$("explorerDialog").addEventListener("cancel", event => { if (state.libraryBusy) event.preventDefault(); });
 $("sampleButton").addEventListener("click", async () => {
   if (!state.token) { setAuthPanel(true); return; }
   const button = $("sampleButton"); button.disabled = true;
@@ -478,8 +635,11 @@ $("sampleButton").addEventListener("click", async () => {
   catch (error) { setMessage(friendlyError(error.message), "error"); }
   finally { button.disabled = false; }
 });
-document.addEventListener("keydown", event => { if (event.key === "Escape") { setLibrary(false); setAuthPanel(false); } });
-document.addEventListener("click", event => { if (!$("flightLibrary").hidden && !$("flightLibrary").contains(event.target) && !$("libraryButton").contains(event.target) && event.target !== $("emptyLibraryButton")) setLibrary(false); });
+document.addEventListener("keydown", event => { if (event.key === "Escape" && !$("explorerDialog").open) { setLibrary(false); setAuthPanel(false); } });
+document.addEventListener("click", event => {
+  const path = event.composedPath();
+  if (!$("explorerDialog").open && !$("flightLibrary").hidden && ![$("explorerDialog"), $("flightLibrary"), $("libraryButton"), $("emptyLibraryButton")].some(node => path.includes(node))) setLibrary(false);
+});
 els.file.addEventListener("change", () => { uploadFile(els.file.files[0]); els.file.value = ""; });
 ["dragenter","dragover"].forEach(type => $("dropzone").addEventListener(type, event => { event.preventDefault(); $("dropzone").classList.add("dragover"); }));
 ["dragleave","drop"].forEach(type => $("dropzone").addEventListener(type, event => { event.preventDefault(); $("dropzone").classList.remove("dragover"); }));

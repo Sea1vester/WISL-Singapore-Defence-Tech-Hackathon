@@ -42,6 +42,7 @@ def test_tile_transparent_placeholder_when_upstream_fails(client, tmp_path, monk
     response = client.get("/tiles/10/511/340.png")
     assert response.status_code == 200
     assert response.headers["x-wisl-tile"] == "missing"
+    assert response.headers["cache-control"] == "no-store"
     assert response.content == PNG_1X1
     assert not (cache / "10" / "511" / "340.png").exists()
 
@@ -88,6 +89,29 @@ def test_sat_tile_upstream_url_swaps_x_y_and_caches(client, tmp_path, monkeypatc
     assert (cache / "sat" / "14" / "12900" / "8100.jpg").read_bytes() == b"\xff\xd8\xff\xe0jpeg-bytes"
 
 
+@pytest.mark.parametrize('path', ['/tiles/14/12900/8100.png', '/tiles/sat/14/12900/8100.jpg'])
+def test_missing_tile_can_recover_and_then_use_disk_cache(client, tmp_path, monkeypatch, path):
+    monkeypatch.setattr(settings, 'tile_cache_dir', str(tmp_path / 'empty-tiles'))
+    calls = []
+    class RetryClient:
+        def __init__(self, *args, **kwargs): pass
+        def __enter__(self): return self
+        def __exit__(self, *args): pass
+        def get(self, url, **kwargs):
+            import httpx
+            calls.append(url)
+            return httpx.Response(503 if len(calls) == 1 else 200, content=b'recovered raster')
+    monkeypatch.setattr('app.tiles.httpx.Client', RetryClient)
+    first = client.get(path)
+    assert first.headers['cache-control'] == 'no-store'
+    assert first.headers['x-wisl-tile-reason'] == 'http-503'
+    second = client.get(path)
+    assert second.content == b'recovered raster'
+    assert 'x-wisl-tile' not in second.headers
+    assert client.get(path).content == second.content
+    assert len(calls) == 2
+
+
 def test_sat_tile_transparent_placeholder_when_upstream_fails(client, tmp_path, monkeypatch):
     cache = tmp_path / "tiles"
     monkeypatch.setattr(settings, "tile_cache_dir", str(cache))
@@ -95,4 +119,5 @@ def test_sat_tile_transparent_placeholder_when_upstream_fails(client, tmp_path, 
     response = client.get("/tiles/sat/19/1/1.jpg")
     assert response.status_code == 200
     assert response.headers["x-wisl-tile"] == "missing"
+    assert response.headers["cache-control"] == "no-store"
     assert not (cache / "sat" / "19" / "1" / "1.jpg").exists()

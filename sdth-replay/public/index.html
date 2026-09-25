@@ -18,7 +18,7 @@
       href="./cesium/Widgets/widgets.css"
       onerror="this.onerror=null;this.href='https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/Widgets/widgets.css'"
     />
-    <link rel="stylesheet" href="./replay.css?v=stream-18" />
+    <link rel="stylesheet" href="./replay.css?v=stream-20" />
   </head>
   <body>
     <div id="cesiumContainer"></div>
@@ -27,6 +27,7 @@
         <button id="studioViewButton" type="button" aria-pressed="true">Tabletop</button>
         <button id="mapViewButton" type="button" aria-pressed="false">Map</button>
         <button id="satViewButton" type="button" aria-pressed="false">Satellite</button>
+        <button id="retryImageryButton" type="button" hidden>Retry imagery</button>
         <button id="uavScaleButton" type="button" aria-pressed="false" title="Aircraft size: real-world scale (1:1) or enlarged marker">1:1</button>
       </div>
       <div id="scaleLegend" aria-hidden="true"><span id="scaleLegendBar"></span><span id="scaleLegendText"></span></div>
@@ -124,7 +125,6 @@
           <path id="routeOverviewAltPath" d="" />
           <circle id="routeOverviewAltCurrent" r="3.5" />
         </svg>
-        <p id="modelScaleNote">REPRESENTATIVE MODEL · NOT TO SCALE</p>
       </aside>
       <aside id="severityLegend" class="severity-legend" aria-label="Incident marker severity legend" hidden>
         <p class="severity-legend-title">Marker severity</p>
@@ -142,6 +142,6 @@
       src="./cesium/Cesium.js"
       onerror="window.CESIUM_BASE_URL='https://cesium.com/downloads/cesiumjs/releases/1.125/Build/Cesium/';document.write('<script src=\x22'+window.CESIUM_BASE_URL+'Cesium.js\x22><\/script>')"
     ></script>
-    <script type="module" src="./replay.js?v=stream-18"></script>
+    <script type="module" src="./replay.js?v=stream-21"></script>
   </body>
 </html>

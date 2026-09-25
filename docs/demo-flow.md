@@ -11,7 +11,7 @@ cd /Users/sylvesterlim/CodingFun/SDTH
 ./sdth-telemetry/scripts/demo-console.sh
 ```
 
-That one script starts the API, the background ingestion worker, the console and the replay viewer, all in one process on `127.0.0.1:8010`, and opens the browser for you. Stop it with Ctrl+C. It's `./sdth-telemetry/scripts/demo-console.sh`, not `demo-console.sh`; the script isn't on your PATH. The library auto-imports six Singapore missions and three UK examples. Earlier imports remain available; do not delete the database just to refresh the library.
+That one script starts the API, the background ingestion worker, the console and the replay viewer, all in one process on `127.0.0.1:8010`, and opens the browser for you. Stop it with Ctrl+C. It's `./sdth-telemetry/scripts/demo-console.sh`, not `demo-console.sh`; the script isn't on your PATH. The library auto-imports six Singapore missions and seven UK examples, covering five non-DJI formats (Orbiter JSON, ArduPilot TLOG/BIN, Hermes 900 STANAG, aunav ROS). Earlier imports remain available; do not delete the database just to refresh the library.
 
 On a fresh clone, or if `.venv` is missing, do this once first:
 

@@ -1,7 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { elevationHeightAt, featureKind, illustrativeBuildingHeight, illustrativeBuildingMinHeight, illustrativeStoneHeight, lineFromGeometry, lineSegmentsFromGeometry, normalizeBounds, ringFromGeometry } from "../public/tabletop.mjs";
+import { createTabletop, elevationHeightAt, featureKind, illustrativeBuildingHeight, illustrativeBuildingMinHeight, illustrativeStoneHeight, lineFromGeometry, lineSegmentsFromGeometry, normalizeBounds, ringFromGeometry } from "../public/tabletop.mjs";
 
 test("normalizes only finite non-wrapping geographic bounds", () => {
   assert.deepEqual(normalizeBounds({ west: 103.8, south: 1.3, east: 103.9, north: 1.4 }), { west: 103.8, south: 1.3, east: 103.9, north: 1.4 });
@@ -57,7 +56,33 @@ test("building min heights come from min_height or building:min_level", () => {
   assert.equal(illustrativeBuildingMinHeight({}), 0);
 });
 
-test("tabletop.mjs never probes Primitive#ready (removed in modern Cesium)", () => {
-  const src = readFileSync(new URL("../public/tabletop.mjs", import.meta.url), "utf8").replace(/\/\/[^\n]*/g, "");
-  assert.ok(!/\.ready\b/.test(src), "tabletop.mjs references a .ready property that does not exist on Primitive");
+test("tabletop readiness waits for the GPU and cancellation removes the frame listener", async () => {
+  class Geometry { constructor(options) { Object.assign(this, options); } }
+  class Primitive extends Geometry { ready = false; show = true; }
+  class PrimitiveCollection {
+    items = [];
+    add(value) { this.items.push(value); return value; }
+    remove(value) { this.items.splice(this.items.indexOf(value), 1); }
+  }
+  const listeners = new Set();
+  const viewer = { scene: { primitives: new PrimitiveCollection(), postRender: { addEventListener(fn) { listeners.add(fn); return () => listeners.delete(fn); } } } };
+  const C = { Primitive, PrimitiveCollection, PolygonGeometry: Geometry, PolygonHierarchy: Geometry, GeometryInstance: Geometry, PerInstanceColorAppearance: Geometry,
+    Cartesian3: { fromDegrees: (lon, lat, height) => ({lon, lat, height}) }, Color: { fromCssColorString: value => value }, ColorGeometryInstanceAttribute: { fromColor: value => value } };
+  const data = { bounds: { west: 0, south: 0, east: 1, north: 1 } };
+  const part = createTabletop(viewer, data, {Cesium: C, seams: false});
+  let resolved = false;
+  part.ready.then(() => { resolved = true; });
+  for (const fn of listeners) fn();
+  await Promise.resolve();
+  assert.equal(resolved, false);
+  viewer.scene.primitives.items[0].items[0].ready = true;
+  for (const fn of listeners) fn();
+  assert.equal(await part.ready, true);
+  assert.equal(listeners.size, 0);
+  part.destroy();
+  const cancelled = createTabletop(viewer, data, {Cesium: C, seams: false});
+  cancelled.destroy();
+  assert.equal(await cancelled.ready, false);
+  assert.equal(listeners.size, 0);
+  assert.equal(viewer.scene.primitives.items.length, 0);
 });
