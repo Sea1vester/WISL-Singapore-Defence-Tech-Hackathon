@@ -43,18 +43,18 @@ def _tile_path(source: str, z: int, x: int, y: int, suffix: str) -> Path:
     return root / str(z) / str(x) / f"{y}{suffix}"
 
 
-def _missing_tile(source: str, z: int) -> Response:
+def _missing_tile(source: str, z: int, reason: str) -> Response:
     key = (source, z)
     if key not in _missing_warned_zooms:
         _missing_warned_zooms.add(key)
         logger.warning(
-            "Tile upstream unavailable for %s zoom %s; serving transparent placeholders",
-            source, z,
+            "Tile upstream unavailable for %s zoom %s (%s); serving transparent placeholders",
+            source, z, reason,
         )
     return Response(
         content=TRANSPARENT_PNG,
         media_type="image/png",
-        headers={**CACHE_HEADERS, "X-WISL-Tile": "missing"},
+        headers={"Cache-Control": "no-store", "X-WISL-Tile": "missing", "X-WISL-Tile-Reason": reason},
     )
 
 
@@ -70,9 +70,9 @@ def _proxy_tile(source: str, z: int, x: int, y: int, suffix: str, upstream: str)
         with httpx.Client(timeout=10, trust_env=False) as client:
             upstream_response = client.get(url, headers={"User-Agent": USER_AGENT})
         if upstream_response.status_code != 200:
-            return _missing_tile(source, z)
-    except httpx.HTTPError:
-        return _missing_tile(source, z)
+            return _missing_tile(source, z, f"http-{upstream_response.status_code}")
+    except httpx.HTTPError as exc:
+        return _missing_tile(source, z, type(exc).__name__)
     body = upstream_response.content
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(body)

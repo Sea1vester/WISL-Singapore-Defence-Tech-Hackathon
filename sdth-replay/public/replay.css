@@ -865,14 +865,6 @@ body.replay-embed #routeOverview {
 
 #routeOverviewAltCurrent { fill: #fff4db; stroke: #ff9d4d; stroke-width: 2.5; }
 
-#modelScaleNote {
-  margin: 6px 0 0;
-  color: #78919a;
-  font-size: 7px;
-  letter-spacing: 0.08em;
-  text-align: center;
-}
-
 /* ---- Severity legend (in-scene, above the transport bar) ----
    Explains the marker dot colors directly in the 3D view. This matters most
    in embed mode, where the side panel (and its incident list) is hidden --
@@ -1198,9 +1190,14 @@ body.replay-embed .cesium-viewer-bottom {
 /* Tabletop map: keep source context readable without crowding the controls. */
 #terrainContext { display:none; }
 html.replay-embed #terrainContext {
-  display:block; position:absolute; top:163px; left:22px; right:18px; z-index:20;
+  display:block; position:absolute; top:204px; left:22px; right:18px; z-index:20;
   font:9px/1.5 var(--font-body); letter-spacing:.02em;
   color:#abc4c7; text-shadow:0 1px 3px #061520; pointer-events:none;
+}
+html.replay-embed #terrainContext.imagery-warning {
+  top:204px; right:auto; max-width:calc(100% - 44px); padding:6px 9px;
+  color:#ffe0ba; background:#13212eee; border:1px solid #ba8254; border-radius:5px;
+  font-size:11px;
 }
 html.replay-embed .cesium-widget-credits { font-size:9px; }
 html.replay-embed .cesium-widget-credits img { max-height:18px; width:auto; }

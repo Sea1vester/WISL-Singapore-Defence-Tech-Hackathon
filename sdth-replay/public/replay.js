@@ -1,6 +1,6 @@
 window.addEventListener('error', event => console.error('Replay diagnostic', event.error?.stack || event.message));
-import { createStreamingTabletop } from './tabletop-stream.mjs?v=stream-18';
-import { loadTabletopAtlas, routeContext, atlasHeight, tabletopBounds, createCachedTerrain, createTabletopFinish } from './tabletop-context.mjs?v=stream-18';
+import { createStreamingTabletop } from './tabletop-stream.mjs?v=stream-21';
+import { loadTabletopAtlas, routeContext, atlasHeight, tabletopBounds, createCachedTerrain, createTabletopFinish, observeImagery, imageryStatusText, constrainCameraAboveGround } from './tabletop-context.mjs?v=stream-21';
 import {
   alignIncidents,
   bannerState,
@@ -22,7 +22,7 @@ import {
   uavScaleMode,
   metersPerPixel,
   scaleBarStep,
-} from "/replay/lib/flight.mjs?v=stream-18";
+} from "/replay/lib/flight.mjs?v=stream-21";
 
 const CESIUM_VERSION = "1.125";
 const SPEED_VALUES = [0.5, 1, 2, 4, 8, 12];
@@ -127,6 +127,8 @@ const state = {
   mapVisible: false,
   satVisible: false,
   satLayer: null,
+  imageryStatus: {map: {pending:0,loaded:0,failed:0}, satellite: {pending:0,loaded:0,failed:0}},
+  imageryEpoch: {map:0, satellite:0},
   routeOverview: null,
   atlas: [],
   tabletop: null,
@@ -357,22 +359,43 @@ async function createTerrainProvider() {
   return new Cesium.EllipsoidTerrainProvider();
 }
 
+function createImageryProvider(mode) {
+  const satellite=mode==='satellite';
+  const epoch=++state.imageryEpoch[mode];
+  state.imageryStatus[mode]={pending:0,loaded:0,failed:0};
+  const provider=new Cesium.UrlTemplateImageryProvider({
+    url: satellite ? '/tiles/sat/{z}/{x}/{y}.jpg?v=imagery-1' : '/tiles/{z}/{x}/{y}.png?v=imagery-1',
+    maximumLevel:19,
+    credit:satellite?'Esri, Maxar, Earthstar Geographics, and the GIS User Community':'© OpenStreetMap contributors',
+  });
+  return observeImagery(provider,status=>{
+    if(state.imageryEpoch[mode]!==epoch)return;
+    state.imageryStatus[mode]=status;
+    updateTerrainContext();
+  });
+}
+
+function retryImagery() {
+  if(!state.viewer||!state.mapVisible)return;
+  const mode=state.satVisible?'satellite':'map';
+  const layers=state.viewer.imageryLayers;
+  const oldLayer=state.satVisible?state.satLayer:layers.get(0);
+  const index=layers.indexOf(oldLayer);
+  const layer=new Cesium.ImageryLayer(createImageryProvider(mode));
+  layers.remove(oldLayer,true);
+  layers.add(layer,index);
+  if(state.satVisible)state.satLayer=layer;
+  setPresentationMode(mode);
+}
+
 async function createViewer() {
   if (window.Cesium?.Ion) {
     window.Cesium.Ion.defaultAccessToken = "";
   }
   // OSM is a proven no-key source in this local console. Tone the imagery at
   // the layer level so labels remain readable under the route.
-  const baseMap = new Cesium.UrlTemplateImageryProvider({
-    url: "/tiles/{z}/{x}/{y}.png",
-    maximumLevel: 19,
-    credit: "© OpenStreetMap contributors",
-  });
-  const satMap = new Cesium.UrlTemplateImageryProvider({
-    url: "/tiles/sat/{z}/{x}/{y}.jpg",
-    maximumLevel: 19,
-    credit: "Esri, Maxar, Earthstar Geographics, and the GIS User Community",
-  });
+  const baseMap = createImageryProvider("map");
+  const satMap = createImageryProvider("satellite");
   const terrainProvider = new Cesium.EllipsoidTerrainProvider();
   const viewer = new Cesium.Viewer("cesiumContainer", {
     animation: false,
@@ -543,7 +566,7 @@ function setOrbitEnabled(enabled) {
   controller.enableRotate = !enabled;
   controller.enableTilt = !enabled;
   controller.enableLook = !enabled;
-  setGlobeCollision(controller, false);
+  setGlobeCollision(controller, true);
   if (!enabled) {
     viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
     return;
@@ -559,7 +582,7 @@ function startOrbitFromCamera() {
   }
   const range = Cesium.Cartesian3.distance(viewer.camera.positionWC, target);
   state.orbit.heading = viewer.camera.heading;
-  state.orbit.pitch = params.get("embed") === "1" ? clamp(viewer.camera.pitch, -1.25, -0.30) : clamp(viewer.camera.pitch, -1.48, 1.48);
+  state.orbit.pitch = params.get("embed") === "1" ? clamp(viewer.camera.pitch, -1.25, -0.30) : clamp(viewer.camera.pitch, -1.48, -0.08);
   state.orbit.range = params.get("embed") === "1" ? clamp(range, 210, 650) : clamp(range, 4, 30000);
   setOrbitEnabled(true);
 }
@@ -607,8 +630,15 @@ function enableInspectCamera(viewer) {
     Cesium.CameraEventType.PINCH,
     Cesium.CameraEventType.RIGHT_DRAG,
   ];
-  setGlobeCollision(controller, false);
+  setGlobeCollision(controller, true);
   viewer.camera.constrainedAxis = undefined;
+  viewer.scene.preRender.addEventListener(() => {
+    if (!constrainCameraAboveGround(viewer, state.atlas, Cesium) || !state.orbit.enabled || state.cameraJumpAnimating) return;
+    state.orbit.range = Math.max(4, Cesium.Cartesian3.magnitude(viewer.camera.position));
+    state.orbit.pitch = clamp(-Math.asin(viewer.camera.position.z / state.orbit.range), -1.48, -0.08);
+    applyOrbitCamera();
+    constrainCameraAboveGround(viewer, state.atlas, Cesium);
+  });
 
   const onGlobe = (event) => {
     const target = event.target;
@@ -674,7 +704,7 @@ function enableInspectCamera(viewer) {
     const dx = movement.endPosition.x - movement.startPosition.x;
     const dy = movement.endPosition.y - movement.startPosition.y;
     state.orbit.heading -= dx * 0.005;
-    state.orbit.pitch = clamp(state.orbit.pitch + dy * 0.005, -1.48, 1.48);
+    state.orbit.pitch = clamp(state.orbit.pitch + dy * 0.005, -1.48, -0.08);
     applyOrbitCamera();
   }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
   handler.setInputAction(() => {
@@ -2427,9 +2457,17 @@ function updateTerrainContext() {
   const note=document.getElementById('terrainContext');
   if(!note)return;
   const p=state.terrainProgress;
+  const imagery=state.imageryStatus[state.satVisible?'satellite':'map'];
+  const missing=state.mapVisible&&imagery.failed>0;
+  const retry=document.getElementById('retryImageryButton');
+  if(retry)retry.hidden=!missing;
+  note.classList.toggle('imagery-warning',missing);
+  if(state.mapVisible){
+    note.textContent=imageryStatusText(state.satVisible?'Satellite':'Map',imagery);
+    if(imagery.loaded&&!imagery.failed&&!imagery.pending)note.textContent+=state.mapContext?' · cached terrain':' · flat globe (terrain unavailable)';
+    return;
+  }
   note.textContent=!state.mapContext ? 'Showing a simplified globe — detailed terrain is not available for this area.'
-    : state.satVisible ? 'Satellite imagery view · terrain preloaded'
-    : state.mapVisible ? 'Map view · terrain preloaded'
     : p && !p.complete ? `Loading terrain… (${p.terrain}/${p.terrainTotal})`
     : p?.failed ? 'Terrain ready — a few map details could not be loaded.'
     : 'Offline terrain model · approximate elevation and building outlines';
@@ -2483,6 +2521,7 @@ function resetPlayback() {
 }
 
 function bindControls() {
+  document.getElementById('retryImageryButton').addEventListener('click',retryImagery);
   setPresentationMode(state.satVisible ? "satellite" : state.mapVisible ? "map" : "tabletop");
   els.studioViewButton.addEventListener("click", () => setPresentationMode("tabletop"));
   els.mapViewButton.addEventListener("click", () => setPresentationMode("map"));

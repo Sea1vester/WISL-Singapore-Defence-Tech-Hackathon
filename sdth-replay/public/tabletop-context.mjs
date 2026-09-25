@@ -1,4 +1,41 @@
-import { elevationHeightAt } from './tabletop.mjs?v=stream-18';
+import { elevationHeightAt } from './tabletop.mjs?v=stream-21';
+
+export function observeImagery(provider, onStatus) {
+  const requestImage=provider.requestImage;
+  const tiles=new Map();
+  const emit=()=>{
+    const counts={pending:0,loaded:0,failed:0};
+    for(const tile of tiles.values()) counts[tile.status]++;
+    onStatus(counts);
+  };
+  provider.requestImage=function(x,y,level,request){
+    const result=requestImage.call(this,x,y,level,request);
+    if(!result)return result;
+    const key=`${level}/${x}/${y}`,tile={status:'pending'};
+    tiles.delete(key);tiles.set(key,tile);
+    if(tiles.size>256)tiles.delete(tiles.keys().next().value);
+    emit();
+    return Promise.resolve(result).then(image=>{
+      if(tiles.get(key)===tile){
+        tile.status=image?.width===1&&image?.height===1?'failed':'loaded';emit();
+      }
+      return image;
+    },error=>{
+      if(tiles.get(key)===tile){
+        if(request?.cancelled)tiles.delete(key);else tile.status='failed';
+        emit();
+      }
+      throw error;
+    });
+  };
+  return provider;
+}
+
+export function imageryStatusText(name, status) {
+  if(status.failed)return `${name} imagery ${status.loaded?'partly unavailable':'unavailable'} — retry or use Tabletop. Check the WISL server's network.`;
+  if(status.pending||!status.loaded)return `Loading ${name.toLowerCase()} imagery…`;
+  return `${name} imagery loaded`;
+}
 
 export function containsPoint(bounds, lon, lat) {
   return Number.isFinite(lon) && Number.isFinite(lat) && lon >= bounds.west && lon <= bounds.east && lat >= bounds.south && lat <= bounds.north;
@@ -10,6 +47,16 @@ export function atlasHeight(atlas, lon, lat) {
   const data = atlas.find(item => containsPoint(item.bounds, lon, lat));
   return data ? elevationHeightAt(data.elevation, lon, lat) : 0;
 }
+export function constrainCameraAboveGround(viewer, atlas, C) {
+  const camera=viewer.camera,position=camera.positionCartographic;
+  const cached=atlasHeight(atlas,C.Math.toDegrees(position.longitude),C.Math.toDegrees(position.latitude));
+  const rendered=viewer.scene.globe.getHeight(position);
+  const floor=Math.max(cached,Number.isFinite(rendered)?rendered:cached)+3;
+  if(position.height>=floor)return false;
+  camera.worldToCameraCoordinatesPoint(C.Cartesian3.fromRadians(position.longitude,position.latitude,floor),camera.position);
+  return true;
+}
+
 export function tabletopBounds(data, samples) {
   const lat = samples.reduce((sum,p)=>sum+p.lat,0)/samples.length;
   const dy=170/111320, dx=dy/Math.max(0.05,Math.cos(lat*Math.PI/180));

@@ -18,7 +18,10 @@ def test_demo_console_is_served(client):
     assert response.status_code == 200
     body = response.text
     assert "WISL" in body
-    assert "Mission library" in body
+    assert "Mission explorer" in body
+    assert 'id="newFolder"' in body
+    assert 'id="folderBreadcrumbs"' in body
+    assert 'id="explorerDialog"' in body
     assert "demo.js" in body
 
 

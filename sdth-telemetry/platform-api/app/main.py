@@ -16,6 +16,7 @@ from app.census_api import router as census_router
 from app.datasets import router as datasets_router
 from app.incident_api import router as incident_router
 from app.ingest import router as ingest_router
+from app.mission_library import router as mission_library_router
 from app.preflight_report_api import router as preflight_report_router
 from app.query import router as query_router
 from app.tiles import router as tiles_router
@@ -91,6 +92,7 @@ app.include_router(visual_router)
 app.include_router(census_router)
 app.include_router(preflight_report_router)
 app.include_router(demo_router)
+app.include_router(mission_library_router)
 app.include_router(tiles_router)
 
 

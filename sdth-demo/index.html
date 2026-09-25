@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#071520" />
   <title>WISL · Mission replay</title>
-  <link rel="stylesheet" href="./demo.css?v=model-auto-1" />
+  <link rel="stylesheet" href="./demo.css?v=explorer-3" />
 </head>
 <body>
   <header class="topbar">
@@ -25,11 +25,14 @@
   </section>
   <div class="workspace">
   <aside class="flight-library" id="flightLibrary" hidden aria-label="Flight library">
-    <div class="card-heading"><div><p class="eyebrow">Your workspace</p><h2>Mission library <span id="libraryCount">00</span></h2></div><div class="inline-actions"><button id="refreshFlights" class="icon-button" type="button" aria-label="Refresh flights">↻</button><button id="closeLibrary" class="icon-button" type="button" aria-label="Close flight library">×</button></div></div>
-    <label class="mission-search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5"/><path d="m12 12 5 5"/></svg><input id="missionSearch" type="search" placeholder="Find a mission…" aria-label="Search loaded missions" /></label>
-    <div class="library-label"><span>RECORDED MISSIONS</span><span>SELECT ↙</span></div>
+    <div class="card-heading"><div><p class="eyebrow">Recorded missions</p><h2>Mission explorer <span id="libraryCount">00</span></h2></div><div class="inline-actions"><button id="refreshFlights" class="icon-button" type="button" aria-label="Refresh mission explorer">↻</button><button id="closeLibrary" class="icon-button" type="button" aria-label="Close flight library">×</button></div></div>
+    <label class="mission-search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5"/><path d="m12 12 5 5"/></svg><input id="missionSearch" type="search" placeholder="Search all missions & folders…" aria-label="Search all missions and folders" /></label>
+    <div class="explorer-toolbar"><button id="folderUp" class="quiet-button" type="button" aria-label="Go to parent folder" disabled>↑</button><button id="newFolder" class="quiet-button" type="button" disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 6V4h6l2 2h8v11H2Zm8 3v5m-2.5-2.5h5"/></svg>New folder</button></div>
+    <nav id="folderBreadcrumbs" class="folder-breadcrumbs" aria-label="Mission folder path"></nav>
+    <div class="library-label"><span id="explorerHeading">NAME</span><span id="explorerCount"></span></div>
+    <p id="explorerNotice" class="explorer-notice" role="status" hidden></p>
     <div id="flightList" class="flight-list"></div>
-    <div class="sidebar-footer"><p class="eyebrow">From record to understanding</p><div class="review-steps"><span><b>01</b> Import</span><i>→</i><span><b>02</b> Replay</span><i>→</i><span><b>03</b> Review</span></div><button id="sidebarImport" class="button" type="button">＋ Import a flight log</button><p>Recorded evidence. Human decisions.</p></div>
+    <div class="sidebar-footer"><p class="eyebrow">From record to understanding</p><div class="review-steps"><span><b>01</b> Import</span><i>→</i><span><b>02</b> Replay</span><i>→</i><span><b>03</b> Review</span></div><button id="sidebarImport" class="button" type="button">＋ Import a flight log</button><p>Folders are saved on this WISL server.</p></div>
   </aside>
   <main>
     <section class="replay-stage" aria-label="Mission replay">
@@ -87,14 +90,23 @@
         <section class="view" role="tabpanel" aria-labelledby="tab-patterns" id="patternsView"><div class="view-heading"><div><p class="eyebrow">Across recorded flights</p><h2>Recurring patterns</h2></div><p>Several flights showing the same warning is a reason to compare them side by side — not proof they share the same cause.</p></div><div id="patternList" class="pattern-grid empty-state">Connect a session to view recorded fleet patterns.</div></section>
         <section class="view" role="tabpanel" aria-labelledby="tab-bulletins" id="bulletinsView"><div class="view-heading"><div><p class="eyebrow">Suggested next steps</p><h2>Bulletins</h2></div><p>Evidence and suggested review steps for people, not the aircraft. Nothing here changes a drone automatically.</p></div><div id="bulletinList" class="bulletin-list empty-state">No reviewable bulletins are loaded.</div></section>
         <section class="view" role="tabpanel" aria-labelledby="tab-logs" id="logsView"><div class="upload-layout">
-          <article><div class="card-heading"><div><p class="eyebrow">Add a flight log</p><h2>Import a flight log</h2></div><span class="badge">Up to 100 MB</span></div><label id="dropzone" class="dropzone" for="logFile"><input id="logFile" type="file" accept=".csv,.ulg,.ulog,.bin,.json,.stanag,.ros,.tlog,.xlsx,.hex,.hermes,.syslog,.xml" /><span class="upload-icon">＋</span><strong>Drop a log here or choose a file</strong><small>CSV · ULog · BIN · TLOG · JSON · XLSX and supported exports</small></label><div id="uploadMessage" class="notice" aria-live="polite">Connect a session key to import a recorded log.</div><button id="sampleButton" class="text-button" type="button">Try an example log with a GPS warning ↗</button></article>
+          <article><div class="card-heading"><div><p class="eyebrow">Add a flight log</p><h2>Import a flight log</h2></div><span class="badge">Up to 100 MB</span></div><p id="uploadFolderHint" class="muted">New uploads go to Missions. Existing records keep their folder.</p><label id="dropzone" class="dropzone" for="logFile"><input id="logFile" type="file" accept=".csv,.ulg,.ulog,.bin,.json,.stanag,.ros,.tlog,.xlsx,.hex,.hermes,.syslog,.xml" /><span class="upload-icon">＋</span><strong>Drop a log here or choose a file</strong><small>CSV · ULog · BIN · TLOG · JSON · XLSX and supported exports</small></label><div id="uploadMessage" class="notice" aria-live="polite">Connect a session key to import a recorded log.</div><button id="sampleButton" class="text-button" type="button">Try an example log with a GPS warning ↗</button></article>
           <article class="pipeline" aria-live="polite"><div class="card-heading"><div><p class="eyebrow">Processing status</p><h2>From log to evidence</h2></div><span id="uploadStatus" class="status-label">Waiting</span></div><ol id="pipelineStages" class="stages"><li data-stage="received"><span>1</span><div><strong>Receive</strong><small>Check the file</small></div></li><li data-stage="parsing"><span>2</span><div><strong>Parse</strong><small>Read the format</small></div></li><li data-stage="normalizing"><span>3</span><div><strong>Normalize</strong><small>Same format for every log</small></div></li><li data-stage="ready"><span>4</span><div><strong>Ready</strong><small>Ready to review</small></div></li></ol><p id="traceDetail" class="pipeline-detail">No log is being processed.</p></article>
         </div></section>
       </div>
     </section>
   </main>
   </div>
+  <dialog id="explorerDialog" class="explorer-dialog" aria-labelledby="explorerDialogTitle">
+    <form id="explorerForm">
+      <p class="eyebrow">Mission explorer</p><h2 id="explorerDialogTitle">New folder</h2>
+      <p id="explorerDialogHint" class="muted">Folders organise records without changing original log files.</p>
+      <fieldset id="explorerFields"><label id="folderNameField">Folder name<input id="folderName" type="text" maxlength="80" required autocomplete="off" /></label><label>Location<select id="folderDestination" aria-label="Destination folder"></select></label></fieldset>
+      <p id="explorerFormError" class="notice error" role="alert" hidden></p>
+      <div class="explorer-dialog-actions"><button id="cancelExplorer" class="quiet-button" type="button">Cancel</button><button id="saveExplorer" class="button" type="submit">Create folder</button></div>
+    </form>
+  </dialog>
   <template id="flightTemplate"><button class="flight-row" type="button"><span class="flight-symbol" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M11 11 6 6m15 5 5-5M11 21l-5 5m15-5 5 5M11 11h10v10H11Z"/><circle cx="6" cy="6" r="4"/><circle cx="26" cy="6" r="4"/><circle cx="6" cy="26" r="4"/><circle cx="26" cy="26" r="4"/></svg></span><span class="flight-source"></span><span class="flight-time"></span><span class="flight-arrow">↗</span></button></template>
-  <script type="module" src="./demo.js?v=model-auto-1"></script>
+  <script type="module" src="./demo.js?v=explorer-3"></script>
 </body>
 </html>
