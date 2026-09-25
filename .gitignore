@@ -19,6 +19,7 @@ data/
 *.html
 !sdth-replay/public/**/*.html
 !sdth-demo/**/*.html
+!docs/architecture.html
 tmp/
 output/evidence/corpus-validation/targeted-input/
 ~$*

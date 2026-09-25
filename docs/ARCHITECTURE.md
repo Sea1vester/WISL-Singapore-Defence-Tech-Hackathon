@@ -6,26 +6,9 @@ Everything numeric is rule-based and reproducible. The optional local model only
 
 ## System at a glance
 
-```
- controller laptop                       platform (FastAPI + SQLite, one process)                           browser
-┌─────────────────────┐   multipart    ┌────────────────────────────────────────────────────────────┐   ┌─────────────────────┐
-│ sdth-ingestion      │  POST /v1/logs │ ingest.py ─▶ raw_uploads (sha256 dedup, ext/size gate)      │   │ sdth-demo console   │
-│ pipeline/edge       │ ───────────────▶     │  enqueue                                             │   │  /demo/             │
-│  size-stable watch, │  X-WISL-SHA256 │     ▼                                                      │◀──│  Mission library    │
-│  hash, upload state │                │ worker.process_raw_upload                                  │   │  Import log         │
-└─────────────────────┘                │   parsers/registry.parse_raw_log  ──▶ L1 payload           │   │  Mission analysis   │
-                                       │   privacy.redact_operator_locations                        │   │  Recurring patterns │
- judge / operator                      │   canonical_series.persist_canonical_series ──▶ L2 rows    │   │  Bulletins          │
- drag-and-drop ───────────────────────▶│   incidents.index_flight ──▶ detectors.detect_incidents    │   │  Comprehensive PDF  │
-                                       │        └▶ incidents, incident_patterns                     │   ├─────────────────────┤
-                                       │ query.py / incident_api.py / demo_api.py / pdf_report.py   │──▶│ sdth-replay         │
-                                       │ tiles.py (cached OSM tiles), static /demo, /replay          │   │  CesiumJS, embedded │
-                                       └──────────────────────────┬─────────────────────────────────┘   └─────────────────────┘
-                                                                  │ optional, loopback
-                                                          ┌───────▼────────┐
-                                                          │ Ollama qwen2.5 │  hypotheses only; validated against evidence IDs
-                                                          └────────────────┘
-```
+![WISL architecture: entry points, a local deterministic evidence pipeline, review services, persistence, and optional model analysis.](diagrams/components.svg)
+
+[Explore the architecture atlas](architecture-uml.md) for the full-size component map, the three-part upload sequence, data model, and lifecycle. Colours group responsibilities; the blue boundary is the single platform process.
 
 Single command: `./sdth-telemetry/scripts/demo-console.sh` starts the API, an in-process background worker (`local_worker.py`), the static console and replay, all on `127.0.0.1:8010`. Redis, Docker and the network are not required for parsing, detection, replay of the bundled regions, or PDF export.
 
