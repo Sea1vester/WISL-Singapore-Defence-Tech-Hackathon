@@ -12,6 +12,27 @@ export function modelDisplay(status) {
     : "Deterministic evidence remains available; local model enrichment is degraded or offline.";
 }
 
+export function usesDefaultModel(connection, model) {
+  if (!connection) return true;
+  const normalize = value => String(value || "").replace(/\/+$/, "");
+  return connection.provider === "ollama" && !connection.api_key
+    && normalize(connection.base_url) === normalize(model?.base_url)
+    && connection.model === model?.name;
+}
+
+export function modelProgressText(stage) {
+  return {
+    connecting: "Connecting to the local model server…",
+    loading: "Request sent. Waiting for the model to load or process the evidence…",
+    thinking: "Model reports reasoning in progress. Waiting for its answer…",
+    generating: "Receiving the model's answer…",
+    validating: "Checking JSON format and evidence references…",
+    complete: "Answer ready for human review.",
+    cached: "Showing a previously generated answer (cached).",
+    unavailable: "No validated answer was produced. See the message below.",
+  }[stage] || "Waiting for the local model…";
+}
+
 export function isSimulationCorpus(flight) {
   return Boolean(simulationProvenance(flight)) || /controller_mission_(alpha|bravo)|simulation corpus/i.test(`${flight?.source || ""} ${flight?.id || ""}`);
 }
@@ -81,5 +102,5 @@ export function queryText(response) {
 
 export function localAnalysisView(response) {
   if (!response) return null;
-  return { status: response.status || "unknown", summary: response.summary || "No local analysis summary returned.", hypotheses: Array.isArray(response.hypotheses) ? response.hypotheses : [], limitations: Array.isArray(response.limitations) ? response.limitations : [], evidence: Array.isArray(response.evidence) ? response.evidence : [], coverage: response.coverage || null, cached: response.cached === true, generated_at: response.generated_at || null };
+  return { model: response.model || "", provider: response.provider || "", status: response.status || "unknown", summary: response.summary || "No local analysis summary returned.", hypotheses: Array.isArray(response.hypotheses) ? response.hypotheses : [], limitations: Array.isArray(response.limitations) ? response.limitations : [], evidence: Array.isArray(response.evidence) ? response.evidence : [], coverage: response.coverage || null, cached: response.cached === true, generated_at: response.generated_at || null };
 }

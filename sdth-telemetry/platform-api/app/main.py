@@ -35,24 +35,13 @@ def _warm_local_model() -> None:
 
     def _ping() -> None:
         try:
-            import httpx
+            from app.demo_api import prepare_default_model
 
-            from app.demo_api import OLLAMA_KEEP_ALIVE, OLLAMA_OPTIONS, _model_status
-
-            if _model_status()["status"] != "ready":
-                return
-            with httpx.Client(timeout=60, trust_env=False) as client:
-                client.post(
-                    settings.ollama_base_url.rstrip("/") + "/api/generate",
-                    json={
-                        "model": settings.ollama_model,
-                        "prompt": "ok",
-                        "stream": False,
-                        "keep_alive": OLLAMA_KEEP_ALIVE,
-                        "options": {**OLLAMA_OPTIONS, "num_predict": 1},
-                    },
-                )
-            logger.info("Warmed local model %s", settings.ollama_model)
+            result = prepare_default_model()
+            if result.get("warmed"):
+                logger.info("Warmed local model %s", settings.ollama_model)
+            else:
+                logger.warning("Local model startup: %s", result.get("message", result["status"]))
         except Exception:  # noqa: BLE001 - warmup is best-effort only
             pass
 

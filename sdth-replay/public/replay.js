@@ -1,6 +1,6 @@
 window.addEventListener('error', event => console.error('Replay diagnostic', event.error?.stack || event.message));
-import { createStreamingTabletop } from './tabletop-stream.mjs?v=stream-17';
-import { loadTabletopAtlas, routeContext, atlasHeight, tabletopBounds, createCachedTerrain, createTabletopFinish } from './tabletop-context.mjs?v=stream-17';
+import { createStreamingTabletop } from './tabletop-stream.mjs?v=stream-18';
+import { loadTabletopAtlas, routeContext, atlasHeight, tabletopBounds, createCachedTerrain, createTabletopFinish } from './tabletop-context.mjs?v=stream-18';
 import {
   alignIncidents,
   bannerState,
@@ -22,7 +22,7 @@ import {
   uavScaleMode,
   metersPerPixel,
   scaleBarStep,
-} from "/replay/lib/flight.mjs?v=stream-3";
+} from "/replay/lib/flight.mjs?v=stream-18";
 
 const CESIUM_VERSION = "1.125";
 const SPEED_VALUES = [0.5, 1, 2, 4, 8, 12];

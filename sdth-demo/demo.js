@@ -1,4 +1,4 @@
-import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, queryText, simulationProvenance } from "./demo-contract.mjs?v=stream-17";
+import { flightDisplayName, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "./demo-contract.mjs?v=model-auto-1";
 
 const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false };
 const DEMO_LIBRARY_LOGS = [
@@ -17,7 +17,7 @@ const wideLayout = window.matchMedia("(min-width: 760px)");
 const els = { apiDot: $("apiDot"), apiState: $("apiState"), authPanel: $("authPanel"), token: $("tokenInput"), uploadMessage: $("uploadMessage"), uploadStatus: $("uploadStatus"), traceDetail: $("traceDetail"), file: $("logFile"), flightList: $("flightList"), flightMeta: $("flightMeta"), selectedFlightTitle: $("selectedFlightTitle"), incidentTitle: $("incidentTitle"), incidentCount: $("incidentCount"), incidentList: $("incidentList"), modelState: $("modelState"), replayEmpty: $("replayEmpty"), replayFrame: $("replayFrame"), openReplay: $("openReplay"), patternList: $("patternList"), bulletinList: $("bulletinList"), analysisAnswer: $("analysisAnswer"), question: $("questionInput"), localAnalysis: $("localAnalysis"), localAnalysisBody: $("localAnalysisBody"), downloadReportButton: $("downloadReportButton") };
 
 function authHeaders(json = false) { const headers = state.token ? { Authorization: `Bearer ${state.token}` } : {}; return json ? { ...headers, "Content-Type": "application/json" } : headers; }
-function detail(error) { return error?.detail || error?.message || "The request could not be completed."; }
+function detail(error) { return Array.isArray(error?.detail) ? error.detail.map(item => item.msg || "Invalid request field").join(" · ") : error?.detail || error?.message || "The request could not be completed."; }
 const VAGUE_ERRORS = new Set(["", "internal server error", "not found", "unprocessable entity", "bad request", "forbidden", "unauthorized"]);
 function friendlyError(message) {
   const text = String(message || "").trim();
@@ -146,7 +146,7 @@ function setReplay(flightId, timestamp = null) {
   const frameUrl = new URL("/replay/", window.location.origin);
   frameUrl.searchParams.set("flights", flightId);
   frameUrl.searchParams.set("embed", "1");
-  frameUrl.searchParams.set("v", "stream-17");
+  frameUrl.searchParams.set("v", "stream-18");
   if (state.token) frameUrl.searchParams.set("token", state.token);
   if (timestamp) frameUrl.searchParams.set("timestamp", timestamp);
   els.replayFrame.src = frameUrl.toString(); els.replayFrame.hidden = false; els.replayEmpty.hidden = true; els.openReplay.href = frameUrl.toString(); els.openReplay.classList.remove("disabled");
@@ -163,7 +163,7 @@ async function selectFlight(flightId, timestamp = null) {
     const [incidents, report] = await Promise.all([api(`/v1/flights/${encodeURIComponent(flightId)}/incidents`), api(`/v1/flights/${encodeURIComponent(flightId)}/incident-report`).catch(() => null)]);
     if (version !== state.selectionVersion) return;
     renderIncidents(incidents.items || []); els.incidentTitle.textContent = incidents.count === 1 ? "1 recorded incident" : `${incidents.count || 0} recorded incidents`;
-    const status = modelStatus(state.demoStatus || report); els.modelState.textContent = modelDisplay(status);
+    if (!modelConnectionTouched) { const status = modelStatus(state.demoStatus || report); els.modelState.textContent = modelDisplay(status); }
   } catch (error) { if (version !== state.selectionVersion) return; els.incidentTitle.textContent = "Evidence unavailable"; els.incidentList.textContent = friendlyError(error.message); els.incidentList.className = "incident-list empty-state error"; }
 }
 async function refreshPatterns() {
@@ -189,7 +189,18 @@ async function refreshPatterns() {
 }
 async function createBulletin(signature, button) { if (!signature) return; button.disabled = true; button.textContent = "Creating…"; try { await api("/v1/mitigation-bulletins", { method:"POST", json:true, body:JSON.stringify({ signature }) }); await refreshBulletins(); showView("bulletins"); } catch (error) { button.textContent = friendlyError(error.message); } finally { button.disabled = false; } }
 async function refreshBulletins() { if (!state.token) return; try { const body = await api("/v1/mitigation-bulletins"); const items = body.items || []; els.bulletinList.replaceChildren(); if (!items.length) { els.bulletinList.textContent = "No reviewable bulletins have been created from recorded patterns."; els.bulletinList.className = "bulletin-list empty-state"; return; } els.bulletinList.className = "bulletin-list"; for (const bulletin of items) { const card = document.createElement("article"); card.className="bulletin"; const review = (bulletin.recommended_review || []).map((item) => `<li>${escapeHtml(item)}</li>`).join(""); card.innerHTML = `<div class="bulletin-header"><div><p class="eyebrow">${escapeHtml(bulletin.signature || "recorded pattern")}</p><h2>${escapeHtml(label(bulletin.incident_type))}</h2></div><span class="count-pill">${bulletin.flight_count || 0} flights</span></div><p>${escapeHtml(bulletin.evidence_summary || "Evidence from the recorded incident pattern.")}</p><ul>${review}</ul><p class="fine-print">${escapeHtml(bulletin.limitations || "For operator review only. This document does not modify aircraft.")}</p>`; els.bulletinList.append(card); } } catch (error) { els.bulletinList.textContent = friendlyError(error.message); els.bulletinList.className = "bulletin-list empty-state error"; } }
-async function loadDemoStatus() { if (!state.token) return; try { state.demoStatus = await api("/v1/demo/status"); els.modelState.textContent = modelDisplay(modelStatus(state.demoStatus)); } catch { /* Demo status is optional while the platform endpoint is being added. */ } }
+async function loadDemoStatus() {
+  if (!state.token) return;
+  try {
+    state.demoStatus = await api("/v1/demo/status");
+    if (!modelConnectionTouched) {
+      const model = state.demoStatus.model;
+      if (model?.base_url) $("modelUrl").value = model.base_url;
+      if (model?.name) $("modelName").value = model.name;
+    }
+    await checkModelConnection();
+  } catch { /* Demo status is optional while the platform endpoint is being added. */ }
+}
 function renderLocalAnalysis(result) {
   const view = localAnalysisView(result);
   if (!view) { els.localAnalysis.hidden = true; return; }
@@ -197,7 +208,7 @@ function renderLocalAnalysis(result) {
   const limits = view.limitations.map((item) => escapeHtml(item)).join(" · ");
   const coverage = view.coverage ? `${view.coverage.included_flights ?? 0}/${view.coverage.total_flights ?? 0} flights · ${view.coverage.included_incidents ?? 0}/${view.coverage.total_incidents ?? 0} incidents` : "";
   const cached = view.cached ? `<p class="evidence">cached · generated ${escapeHtml(relativeTime(view.generated_at))}</p>` : "";
-  els.localAnalysisBody.innerHTML = `${cached}<p>${escapeHtml(view.summary)}</p>${hypotheses ? `<ul>${hypotheses}</ul>` : ""}${limits ? `<p class="limitations">Limits: ${limits}</p>` : ""}${coverage ? `<p class="evidence">Scope: ${escapeHtml(coverage)}</p>` : ""}`;
+  els.localAnalysisBody.innerHTML = `${view.model ? `<p class="evidence">${escapeHtml(view.provider)} · ${escapeHtml(view.model)}</p>` : ""}${cached}<p>${escapeHtml(view.summary)}</p>${hypotheses ? `<ul>${hypotheses}</ul>` : ""}${limits ? `<p class="limitations">Limits: ${limits}</p>` : ""}${coverage ? `<p class="evidence">Scope: ${escapeHtml(coverage)}</p>` : ""}`;
   appendEvidenceLinks(els.localAnalysisBody, view.evidence);
   els.localAnalysis.hidden = false;
 }
@@ -233,32 +244,104 @@ async function downloadComprehensiveReport() {
     button.disabled = false; button.textContent = originalText;
   }
 }
-async function streamFleetAnalysis(question) {
-  const response = await fetch("/v1/demo/analysis/stream", { method: "POST", headers: authHeaders(true), body: JSON.stringify({ question }) });
-  if (!response.ok || !response.body) throw new Error("analysis stream unavailable");
+let modelConnectionTouched = false, modelConnectionChecking = false, analysisController = null;
+function modelConnection() {
+  return { provider: $("modelProvider").value, base_url: $("modelUrl").value.trim(), model: $("modelName").value.trim(), api_key: $("modelApiKey").value };
+}
+function rememberModelConnection() {
+  const { api_key, ...connection } = modelConnection();
+  sessionStorage.setItem("wislModelConnection", JSON.stringify(connection));
+}
+async function checkModelConnection(event) {
+  event?.preventDefault();
+  if (!state.token) { setAuthPanel(true); return; }
+  if (modelConnectionChecking || analysisController) return;
+  const fields = $("modelConnectionFields"), button = $("checkModelButton");
+  const connection = modelConnection();
+  const useDefault = usesDefaultModel(connection, state.demoStatus?.model);
+  modelConnectionTouched = true; modelConnectionChecking = true;
+  fields.disabled = true; button.textContent = "Connecting…"; $("fleetAnalysisButton").disabled = true;
+  $("modelConnectionStatus").textContent = useDefault ? "Connecting the laptop's default model. Starting Ollama and loading the model if needed…" : "Contacting the local server…";
+  try {
+    const result = useDefault
+      ? await api("/v1/demo/model/connect", { method: "POST" })
+      : await api("/v1/demo/model/check", { method: "POST", json: true, body: JSON.stringify(connection) });
+    $("modelOptions").replaceChildren(...(result.models || []).map(name => { const option = document.createElement("option"); option.value = name; return option; }));
+    if (!connection.model && result.models?.length) $("modelName").value = result.models[0];
+    const available = result.status === "ready" || result.status === "available";
+    $("modelConnectionStatus").textContent = result.warmed ? result.message : available ? `Connected · ${result.models.length} model(s) listed. Selected: ${$("modelName").value}.` : result.status === "missing" && connection.model ? `Server reachable, but "${connection.model}" is not listed. Choose a listed model or load it in your server.` : result.message;
+    els.modelState.textContent = available ? "Local model connected. Output still requires human review." : "Model connection needs attention; recorded evidence is unaffected.";
+    rememberModelConnection();
+  } catch (error) { $("modelConnectionStatus").textContent = friendlyError(error.message); }
+  finally { modelConnectionChecking = false; fields.disabled = false; button.textContent = "Check connection & list models"; $("fleetAnalysisButton").disabled = false; }
+}
+function setModelProgress(stage) {
+  $("modelProgress").hidden = false;
+  $("modelProgressText").textContent = modelProgressText(stage);
+}
+async function streamFleetAnalysis(question, signal) {
+  const response = await fetch("/v1/demo/analysis/stream", { method: "POST", headers: authHeaders(true), signal,
+    body: JSON.stringify({ question, connection: modelConnection(), fresh: $("freshAnalysis").checked }) });
+  if (!response.ok) throw new Error(detail(await response.json().catch(() => ({}))));
+  if (!response.body) throw new Error("This browser did not provide an analysis stream. Try another browser.");
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = "", raw = "", final = null;
-  els.localAnalysis.hidden = false;
-  els.localAnalysisBody.textContent = "";
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const parts = buffer.split("\n\n");
-    buffer = parts.pop();
-    for (const part of parts) {
-      const line = part.trim();
-      if (!line.startsWith("data:")) continue;
-      const payload = JSON.parse(line.slice(5));
-      if (payload.delta) { raw += payload.delta; els.localAnalysisBody.textContent = raw; }
-      if (payload.final) final = payload.final;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      buffer += done ? decoder.decode() : decoder.decode(value, { stream: true });
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop();
+      if (done && buffer.trim()) parts.push(buffer);
+      for (const part of parts) {
+        const line = part.trim();
+        if (!line.startsWith("data:")) continue;
+        const payload = JSON.parse(line.slice(5));
+        if (payload.stage) setModelProgress(payload.stage);
+        if (payload.delta) { raw += payload.delta; $("modelDraft").hidden = false; $("modelDraftText").textContent = raw; }
+        if (payload.final) final = payload.final;
+      }
+      if (done) break;
     }
-  }
-  if (!final) throw new Error("analysis stream ended without a result");
+  } finally { await reader.cancel().catch(() => {}); reader.releaseLock(); }
+  if (!final) throw new Error("The stream ended without a validated answer. Check the model server and retry.");
   return final;
 }
-async function analyzeFleetRecords() { if (!state.token) { els.localAnalysis.hidden = true; els.analysisAnswer.textContent = "Connect a session key to analyze stored fleet records."; return; } const button = $("fleetAnalysisButton"); const question = els.question.value.trim() || "Summarize recurring patterns and evidence across stored flights."; button.disabled = true; button.textContent = "Analyzing…"; els.localAnalysis.hidden = true; try { let result; try { result = await streamFleetAnalysis(question); } catch { result = await api("/v1/demo/analysis", { method:"POST", json:true, body:JSON.stringify({ question }) }); } renderLocalAnalysis(result); } catch (error) { els.analysisAnswer.textContent = friendlyError(error.message); } finally { button.disabled = false; button.textContent = "Analyze fleet records"; } }
+async function analyzeFleetRecords() {
+  if (!state.token) { setAuthPanel(true); return; }
+  if (!$("modelConnectionForm").reportValidity()) return;
+  if (!$("modelName").value.trim()) { $("modelConnectionStatus").textContent = "Check the connection and choose a model first."; $("modelName").focus(); return; }
+  if (analysisController) return;
+  const button = $("fleetAnalysisButton");
+  const question = els.question.value.trim() || "Summarize recurring patterns and evidence across stored flights.";
+  analysisController = new AbortController();
+  const started = Date.now();
+  let timedOut = false;
+  const elapsed = () => { $("modelElapsed").textContent = `${Math.floor((Date.now() - started) / 1000)}s elapsed`; };
+  elapsed();
+  const timer = setInterval(elapsed, 1000);
+  const deadline = setTimeout(() => { timedOut = true; analysisController?.abort(); }, ((state.demoStatus?.analysis_timeout_seconds || 120) + 15) * 1000);
+  button.disabled = true; button.textContent = "Analyzing…";
+  $("modelConnectionFields").disabled = true; $("cancelAnalysisButton").hidden = false;
+  $("modelProgress").querySelector("progress").hidden = false;
+  els.localAnalysis.hidden = true; $("modelDraft").hidden = true; $("modelDraftText").textContent = "";
+  setModelProgress("connecting"); rememberModelConnection();
+  try {
+    const result = await streamFleetAnalysis(question, analysisController.signal);
+    renderLocalAnalysis(result);
+    setModelProgress(result.cached ? "cached" : result.status === "generated" ? "complete" : "unavailable");
+    if (result.status !== "generated") { $("modelDraft").hidden = true; $("modelDraftText").textContent = ""; }
+  } catch (error) {
+    $("modelProgressText").textContent = error.name === "AbortError" ? (timedOut ? "Timed out waiting for the model. Try a smaller model or check the server." : "Stopped waiting. Your model server may still be finishing its request.") : friendlyError(error.message);
+    $("modelDraft").hidden = true; $("modelDraftText").textContent = "";
+  } finally {
+    clearInterval(timer); clearTimeout(deadline); analysisController = null;
+    $("modelConnectionFields").disabled = false; $("cancelAnalysisButton").hidden = true;
+    $("modelProgress").querySelector("progress").hidden = true;
+    button.disabled = false; button.textContent = "Analyze fleet records";
+  }
+}
 function showView(view) {
   document.querySelectorAll(".view").forEach(el => { const active = el.id === `${view}View`; el.classList.toggle("active", active); el.hidden = !active; });
   document.querySelectorAll(".nav-link").forEach(el => { const active = el.dataset.view === view; el.classList.toggle("active", active); el.setAttribute("aria-selected", String(active)); el.tabIndex = active ? 0 : -1; });
@@ -404,6 +487,29 @@ $("dropzone").addEventListener("drop", event => uploadFile(event.dataTransfer.fi
 $("refreshFlights").addEventListener("click", refreshFlights);
 $("questionForm").addEventListener("submit", askQuestion);
 $("fleetAnalysisButton").addEventListener("click", analyzeFleetRecords);
+$("modelConnectionForm").addEventListener("submit", checkModelConnection);
+$("defaultModelButton").addEventListener("click", async () => {
+  if (!state.token) { setAuthPanel(true); return; }
+  modelConnectionTouched = false;
+  sessionStorage.removeItem("wislModelConnection");
+  $("modelProvider").value = "ollama"; $("modelApiKey").value = "";
+  await loadDemoStatus();
+});
+$("modelConnectionForm").addEventListener("input", () => { modelConnectionTouched = true; els.modelState.textContent = "Connection settings changed. Check the connection before analyzing."; });
+$("modelProvider").addEventListener("change", () => {
+  $("modelUrl").value = $("modelProvider").value === "ollama" ? "http://127.0.0.1:11434" : "http://127.0.0.1:1234/v1";
+  $("modelName").value = ""; $("modelApiKey").value = ""; $("modelOptions").replaceChildren();
+  $("modelConnectionStatus").textContent = "Enter your server URL, then check the connection.";
+});
+$("cancelAnalysisButton").addEventListener("click", () => analysisController?.abort());
+try {
+  const saved = JSON.parse(sessionStorage.getItem("wislModelConnection"));
+  if (saved && ["ollama", "openai"].includes(saved.provider) && typeof saved.base_url === "string") {
+    $("modelProvider").value = saved.provider; $("modelUrl").value = saved.base_url; $("modelName").value = saved.model || "";
+    modelConnectionTouched = true;
+    els.modelState.textContent = "Saved connection restored. Check it to confirm the model is available.";
+  }
+} catch { sessionStorage.removeItem("wislModelConnection"); }
 els.downloadReportButton.addEventListener("click", downloadComprehensiveReport);
 document.querySelectorAll(".query-presets button").forEach(button => button.addEventListener("click", () => { els.question.value = button.dataset.query; $("questionForm").requestSubmit(); }));
 const tabs = [...document.querySelectorAll(".nav-link")];

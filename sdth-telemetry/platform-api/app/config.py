@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "qwen2.5:7b-instruct"
     warm_local_model: bool = True
+    auto_start_local_model: bool = False
     local_demo_worker: bool = False
     ingest_model_enrichment: bool = True
     demo_analysis_timeout_seconds: float = 120.0

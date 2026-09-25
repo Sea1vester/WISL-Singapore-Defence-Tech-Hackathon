@@ -11,7 +11,7 @@ cd /Users/sylvesterlim/CodingFun/SDTH
 ./sdth-telemetry/scripts/demo-console.sh
 ```
 
-That one script starts the API, the background ingestion worker, the console and the replay viewer, all in one process on `127.0.0.1:8010`, and opens the browser for you. Stop it with Ctrl+C. It's `./sdth-telemetry/scripts/demo-console.sh`, not `demo-console.sh`; the script isn't on your PATH. On the demo laptop, delete `data/demo-console.db` before the session so the Mission library contains only the six Singapore missions, not earlier imports.
+That one script starts the API, the background ingestion worker, the console and the replay viewer, all in one process on `127.0.0.1:8010`, and opens the browser for you. Stop it with Ctrl+C. It's `./sdth-telemetry/scripts/demo-console.sh`, not `demo-console.sh`; the script isn't on your PATH. The library auto-imports six Singapore missions and three UK examples. Earlier imports remain available; do not delete the database just to refresh the library.
 
 On a fresh clone, or if `.venv` is missing, do this once first:
 
@@ -20,11 +20,7 @@ python3 -m venv .venv
 .venv/bin/python -m pip install -e './sdth-telemetry/platform-api[dev]'
 ```
 
-Optional, in a second terminal, only if you plan to show the model step:
-
-```sh
-ollama serve
-```
+The launcher also starts Ollama if it is installed but stopped, then preloads the default `qwen2.5:7b-instruct` model. Dev sign-in reconnects and warms it automatically. In **AI-assisted analysis**, wait for “loaded and ready for analysis”, then press **Analyze fleet records**. Use **Use laptop default** if you previously selected a different server. Models are not downloaded automatically; on a fresh laptop, run `ollama pull qwen2.5:7b-instruct` once first. If loading fails, the panel explains the problem and the rest of the demo remains usable.
 
 If a stale server is already on 8010 from earlier, the new one will fail to bind. Find it with `lsof -i :8010` and kill it, then start again. Restart the server after any code change; the old process keeps running the old code.
 

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#071520" />
   <title>WISL · Mission replay</title>
-  <link rel="stylesheet" href="./demo.css?v=stream-17" />
+  <link rel="stylesheet" href="./demo.css?v=model-auto-1" />
 </head>
 <body>
   <header class="topbar">
@@ -62,7 +62,25 @@
               <div class="query-presets"><button type="button" data-query="What happened on this flight?">What happened?</button><button type="button" data-query="Where is the evidence?">Where is the evidence?</button><button type="button" data-query="Which other flights have the same warning?">Similar warnings</button></div>
               <form id="questionForm"><input id="questionInput" aria-label="Question about recorded evidence" type="text" required placeholder="Ask about this mission…" /><button class="button secondary" type="submit">Ask ↗</button></form>
               <div id="analysisAnswer" class="analysis-answer empty-state" aria-live="polite">Answers link to the selected record and indexed fleet evidence.</div>
-              <details class="model-section"><summary><span>✦ AI-assisted analysis</span><span class="summary-note">Optional — not required</span></summary><p id="modelState" class="muted">Local model status is unknown.</p><div class="analysis-actions"><p>Suggests possible explanations across stored flights. These are unverified guesses, not confirmed findings.</p><button id="fleetAnalysisButton" class="button secondary" type="button">Analyze fleet records</button></div><div id="localAnalysis" class="local-analysis" hidden><div id="localAnalysisBody"></div></div></details>
+              <details class="model-section"><summary><span>✦ AI-assisted analysis</span><span class="summary-note">Optional — not required</span></summary><p id="modelState" class="muted">Local model status is unknown.</p>
+                <form id="modelConnectionForm">
+                  <fieldset id="modelConnectionFields" class="model-connection">
+                    <legend>Connect your local model</legend>
+                    <label>Provider<select id="modelProvider"><option value="ollama">Ollama</option><option value="openai">OpenAI-compatible (LM Studio / llama.cpp)</option></select></label>
+                    <label>Server URL<input id="modelUrl" type="url" required value="http://127.0.0.1:11434" spellcheck="false" /></label>
+                    <label>Model<input id="modelName" list="modelOptions" placeholder="Check connection to list models" maxlength="200" spellcheck="false" /><datalist id="modelOptions"></datalist></label>
+                    <label>Server token (optional)<input id="modelApiKey" type="password" autocomplete="off" placeholder="Only if your local server requires it" maxlength="2000" /></label>
+                    <button id="checkModelButton" class="button secondary" type="submit">Check connection &amp; list models</button>
+                    <button id="defaultModelButton" class="quiet-button" type="button">Use laptop default</button>
+                  </fieldset>
+                </form>
+                <p id="modelConnectionStatus" class="model-connection-status" role="status">Use a model running on the WISL host. No model download is started here.</p>
+                <details class="model-help"><summary>How to start a local server</summary><p><strong>Ollama:</strong> run <code>ollama serve</code>, then <code>ollama pull qwen2.5:7b-instruct</code> once if you need a model. Choose any installed instruction-following model.</p><p><strong>LM Studio:</strong> load a model and start its local server; choose OpenAI-compatible and use the server URL it displays (usually port 1234). For llama.cpp, use its server port (often 8080) with <code>/v1</code>.</p><p>Connections originate from the WISL API, not your browser. For a remote assessment, run WISL beside your model or arrange a loopback SSH tunnel on the WISL host. Only loopback and Docker-host addresses are accepted. Server tokens stay in this page's memory and are sent only with authenticated requests; they are not saved.</p></details>
+                <div class="analysis-actions"><p>Suggests possible explanations across stored flights. These are unverified guesses, not confirmed findings.</p><button id="fleetAnalysisButton" class="button secondary" type="button">Analyze fleet records</button><button id="cancelAnalysisButton" class="quiet-button" type="button" hidden>Stop waiting</button></div>
+                <label class="model-fresh"><input id="freshAnalysis" type="checkbox" checked /> Run fresh (do not reuse a cached answer)</label>
+                <div id="modelProgress" class="model-progress" hidden><progress aria-label="Model analysis in progress"></progress><span id="modelProgressText" role="status"></span><span id="modelElapsed" aria-hidden="true"></span></div>
+                <details id="modelDraft" class="model-draft" hidden><summary>Live draft JSON — not yet validated</summary><pre id="modelDraftText"></pre></details>
+                <div id="localAnalysis" class="local-analysis" hidden><div id="localAnalysisBody"></div></div></details>
             </article>
           </div>
         </section>
@@ -77,6 +95,6 @@
   </main>
   </div>
   <template id="flightTemplate"><button class="flight-row" type="button"><span class="flight-symbol" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M11 11 6 6m15 5 5-5M11 21l-5 5m15-5 5 5M11 11h10v10H11Z"/><circle cx="6" cy="6" r="4"/><circle cx="26" cy="6" r="4"/><circle cx="6" cy="26" r="4"/><circle cx="26" cy="26" r="4"/></svg></span><span class="flight-source"></span><span class="flight-time"></span><span class="flight-arrow">↗</span></button></template>
-  <script type="module" src="./demo.js?v=stream-17"></script>
+  <script type="module" src="./demo.js?v=model-auto-1"></script>
 </body>
 </html>

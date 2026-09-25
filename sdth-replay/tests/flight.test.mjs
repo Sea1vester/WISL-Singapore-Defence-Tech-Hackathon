@@ -30,6 +30,20 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 
+test("replay module dependencies share the entry-point cache version", () => {
+  const html = readFileSync(join(here, "../public/index.html"), "utf8");
+  const version = html.match(/src="\.\/replay\.js\?v=([^"]+)"/)?.[1];
+  assert.ok(version, "replay entry point must have a cache version");
+  for (const file of ["replay.js", "tabletop-stream.mjs", "tabletop-context.mjs"]) {
+    const source = readFileSync(join(here, "../public", file), "utf8");
+    const imports = [...source.matchAll(/from\s+["']([^"']+\.mjs(?:\?[^"']*)?)["']/g)];
+    assert.ok(imports.length, `${file} must expose its module dependencies`);
+    for (const [, specifier] of imports) {
+      assert.equal(new URL(specifier, "http://localhost/replay/").searchParams.get("v"), version, `${file}: ${specifier}`);
+    }
+  }
+});
+
 function pathJson() {
   return {
     contract_version: "1.0",

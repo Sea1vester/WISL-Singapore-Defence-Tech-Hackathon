@@ -14,6 +14,7 @@ export TILE_CACHE_DIR="${TILE_CACHE_DIR:-$TASK_ROOT/data/tiles}"
 export OLLAMA_BASE_URL="${OLLAMA_BASE_URL:-http://127.0.0.1:11434}"
 export OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5:7b-instruct}"
 export LOCAL_DEMO_WORKER=true
+export AUTO_START_LOCAL_MODEL="${AUTO_START_LOCAL_MODEL:-true}"
 export INGEST_MODEL_ENRICHMENT=false
 export REPLAY_STATIC_DIR="$TASK_ROOT/sdth-replay/public"
 if [[ ! -f "$TASK_ROOT/sdth-replay/public/cesium/Cesium.js" ]]; then
