@@ -20,7 +20,13 @@ import logging
 import statistics
 from typing import Any
 
+from app.detectors import parse_timestamp
+
 logger = logging.getLogger("analysis_stats")
+
+# Below this many points, a least-squares line is more noise than signal --
+# skip the regression rather than show a "trend" fit to two or three dots.
+_MIN_REGRESSION_POINTS = 4
 
 # Matches the console's own palette (sdth-demo/demo.css): dark ground, signal
 # orange as the primary accent, warn/danger for severity-coded bars.
@@ -50,6 +56,59 @@ def _battery_percent(evidence_json: str) -> float | None:
     sample = evidence.get("sample") or {}
     battery = sample.get("battery") or {}
     return _safe_float(battery.get("percent"))
+
+
+def _battery_trend_points(conn) -> list[tuple[float, float]]:
+    """(elapsed minutes into the flight, battery % at incident) for every
+    battery-type incident where both the flight start and incident time
+    parse -- the input to the regression below.
+    """
+    rows = conn.execute(
+        """
+        SELECT i.evidence_json AS evidence_json, i.started_at AS incident_started, f.started_at AS flight_started
+        FROM incidents i JOIN flights f ON f.id = i.flight_id
+        WHERE i.detector='rule' AND i.incident_type IN ('battery_low', 'battery_critical', 'battery_plunge')
+        """
+    ).fetchall()
+    points: list[tuple[float, float]] = []
+    for row in rows:
+        pct = _battery_percent(row["evidence_json"])
+        flight_started = parse_timestamp(row["flight_started"])
+        incident_started = parse_timestamp(row["incident_started"])
+        if pct is None or flight_started is None or incident_started is None:
+            continue
+        elapsed_min = (incident_started - flight_started).total_seconds() / 60.0
+        if elapsed_min < 0:
+            continue
+        points.append((elapsed_min, pct))
+    return points
+
+
+def _linear_regression(points: list[tuple[float, float]]) -> dict[str, float] | None:
+    """Ordinary least-squares fit of battery % on elapsed minutes.
+
+    Purely descriptive statistics -- no model involved -- same guarantee as
+    every other number in this module. Requires _MIN_REGRESSION_POINTS with
+    actual spread in elapsed time, otherwise a "trend" is just connecting
+    two dots.
+    """
+    if len(points) < _MIN_REGRESSION_POINTS:
+        return None
+    import numpy as np
+
+    xs = np.array([p[0] for p in points], dtype=float)
+    ys = np.array([p[1] for p in points], dtype=float)
+    if np.ptp(xs) == 0:
+        return None
+    slope, intercept = np.polyfit(xs, ys, 1)
+    correlation = np.corrcoef(xs, ys)[0, 1]
+    r_squared = float(correlation ** 2) if not np.isnan(correlation) else 0.0
+    return {
+        "n": len(points),
+        "slope_pct_per_min": round(float(slope), 3),
+        "intercept_pct": round(float(intercept), 1),
+        "r_squared": round(r_squared, 2),
+    }
 
 
 def compute_fleet_stats(conn) -> dict[str, Any]:
@@ -117,6 +176,9 @@ def compute_fleet_stats(conn) -> dict[str, Any]:
         else None
     )
 
+    trend_points = _battery_trend_points(conn)
+    battery_trend = _linear_regression(trend_points)
+
     top_recurring = conn.execute(
         """
         SELECT signature, incident_type, flight_count, incident_count
@@ -135,10 +197,12 @@ def compute_fleet_stats(conn) -> dict[str, Any]:
         "by_type": by_type,
         "by_severity": by_severity,
         "battery_at_incident": battery_at_incident,
-        # Raw, sorted values behind the summary above -- kept so the caller can
-        # hand them straight to render_battery_chart() without a second query.
-        # Not part of the public response shape; the endpoint pops it off.
+        "battery_trend": battery_trend,
+        # Raw values behind the two summaries above -- kept so the caller can
+        # hand them straight to the matching render_*() without a second
+        # query. Not part of the public response shape; the endpoint pops them.
         "_battery_values_pct": battery_values,
+        "_battery_trend_points": trend_points,
         "top_recurring": [dict(row) for row in top_recurring],
     }
 
@@ -245,6 +309,45 @@ def render_severity_chart(by_severity: list[dict]) -> str | None:
                  ha="center", va="bottom", color=_INK, fontsize=9)
     for label in ax.get_xticklabels():
         label.set_color(_INK)
+    fig.tight_layout()
+    uri = _fig_to_data_uri(fig)
+    plt.close(fig)
+    return uri
+
+
+def render_battery_trend_chart(points: list[tuple[float, float]], trend: dict[str, float] | None) -> str | None:
+    """Scatter of elapsed flight time vs. battery % at a battery incident,
+    with a least-squares trend line -- a rough guide to when battery-related
+    incidents tend to fire. The on-chart caption is deliberate: this is a
+    statistical trend over recorded incidents, not a per-flight prediction.
+    """
+    if not points or not trend:
+        return None
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        import numpy as np
+    except ImportError:
+        logger.warning("matplotlib/numpy not installed; skipping battery trend chart")
+        return None
+
+    xs = [p[0] for p in points]
+    ys = [p[1] for p in points]
+
+    fig, ax = plt.subplots(figsize=(6.4, 3.2))
+    _configure_axes(fig, ax)
+    ax.scatter(xs, ys, color=_AQUA, s=30, zorder=3)
+    line_x = np.array([min(xs), max(xs)])
+    line_y = trend["slope_pct_per_min"] * line_x + trend["intercept_pct"]
+    ax.plot(line_x, line_y, color=_SIGNAL, linewidth=1.6, zorder=2)
+    ax.set_xlabel("Elapsed flight time (min)")
+    ax.set_ylabel("Battery % at incident")
+    ax.text(
+        0.02, 0.04,
+        f"trend only — R²={trend['r_squared']:.2f}, n={trend['n']}; not a per-flight prediction",
+        transform=ax.transAxes, color=_MUTED, fontsize=8, va="bottom",
+    )
     fig.tight_layout()
     uri = _fig_to_data_uri(fig)
     plt.close(fig)

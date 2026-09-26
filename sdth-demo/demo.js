@@ -1,4 +1,4 @@
-import { logFilename, workspaceRoute, sidebarWidth, folderTrail, folderPath, folderDestinations, flightDisplayName, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "./demo-contract.mjs?v=workspace-5";
+import { logFilename, workspaceRoute, sidebarWidth, folderTrail, folderPath, folderDestinations, flightDisplayName, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "./demo-contract.mjs?v=workspace-6";
 
 const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false, folders: [], flightFolders: {}, folderId: sessionStorage.getItem("wislMissionFolder") || null, libraryReady: false, libraryBusy: false, explorerEdit: null, uploadDestination: null, uploadBusy: false, expandedFolders: new Set(), treeFocusKey: null, treeSelectedKey: null };
 const DEMO_LIBRARY_LOGS = [
@@ -417,10 +417,14 @@ function renderFleetStats(stats) {
     const b = stats.battery_at_incident;
     tiles.push({ value: `${b.median_pct}%`, text: `median battery when a battery incident fired (n=${b.count})` });
   }
+  if (stats.battery_trend) {
+    const t = stats.battery_trend;
+    tiles.push({ value: `${t.slope_pct_per_min}%/min`, text: `battery drain trend (R²=${t.r_squared}, n=${t.n}) — not a per-flight prediction` });
+  }
   els.statTiles.className = "stat-tile-grid";
   els.statTiles.innerHTML = tiles.map((t) => `<div class="stat-tile"><b>${escapeHtml(String(t.value))}</b><span>${escapeHtml(t.text)}</span></div>`).join("");
 
-  const chartTitles = { incident_type: "Incidents by type", battery_at_incident: "Battery % when a battery incident fired", severity: "Incidents by severity" };
+  const chartTitles = { incident_type: "Incidents by type", battery_at_incident: "Battery % when a battery incident fired", severity: "Incidents by severity", battery_trend: "Battery drain trend (regression)" };
   els.fleetCharts.innerHTML = Object.entries(chartTitles)
     .filter(([key]) => stats.charts?.[key])
     .map(([key, title]) => `<button class="fleet-chart" type="button" aria-haspopup="dialog"><p>${escapeHtml(title)}</p><img src="${stats.charts[key]}" alt="${escapeHtml(title)}, enlarge" /></button>`)

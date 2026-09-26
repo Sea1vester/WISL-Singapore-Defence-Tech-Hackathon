@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field, SecretStr, field_validator
 from app.analysis_stats import (
     compute_fleet_stats,
     render_battery_chart,
+    render_battery_trend_chart,
     render_incident_type_chart,
     render_severity_chart,
 )
@@ -252,12 +253,14 @@ def fleet_analysis_stats(_: str = Depends(require_api_key)) -> dict:
     with db_session() as conn:
         stats = compute_fleet_stats(conn)
     battery_values = stats.pop("_battery_values_pct")
+    trend_points = stats.pop("_battery_trend_points")
     return {
         **stats,
         "charts": {
             "incident_type": render_incident_type_chart(stats["by_type"]),
             "battery_at_incident": render_battery_chart(battery_values) if battery_values else None,
             "severity": render_severity_chart(stats["by_severity"]),
+            "battery_trend": render_battery_trend_chart(trend_points, stats["battery_trend"]),
         },
     }
 

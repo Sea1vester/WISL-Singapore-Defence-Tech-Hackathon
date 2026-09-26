@@ -122,8 +122,10 @@ def test_analysis_stats_requires_auth_and_is_honest_when_empty(client):
     assert result['incident_rate_pct'] == 0.0
     assert result['by_type'] == []
     assert result['battery_at_incident'] is None
+    assert result['battery_trend'] is None
     assert result['charts']['incident_type'] is None
     assert result['charts']['battery_at_incident'] is None
+    assert result['charts']['battery_trend'] is None
 
 
 def test_analysis_stats_reflects_ingested_incidents_deterministically(client, monkeypatch):
@@ -139,6 +141,47 @@ def test_analysis_stats_reflects_ingested_incidents_deterministically(client, mo
     # chart still renders from real counts, but there's nothing to plot as a trend.
     assert result['top_recurring'] == []
     assert result['charts']['incident_type'].startswith('data:image/png;base64,')
+
+
+def test_battery_trend_regresses_elapsed_time_against_battery_percent(client):
+    # Below _MIN_REGRESSION_POINTS a "trend" is just connecting dots, so this
+    # inserts incidents directly rather than relying on one ingested flight's
+    # incidental battery events.
+    from app.db import db_session
+    from app.schemas import new_id
+
+    flight_id = new_id()
+    with db_session() as conn:
+        conn.execute(
+            "INSERT INTO flights (id, source, started_at) VALUES (?, ?, ?)",
+            (flight_id, "test", "2026-01-01T00:00:00Z"),
+        )
+        # A clean, deliberately linear drain: battery drops ~2%/min as elapsed
+        # time increases, so the regression has an unambiguous negative slope.
+        samples = [(2, 34.0), (6, 26.0), (10, 18.0), (14, 10.0)]
+        for minutes, pct in samples:
+            conn.execute(
+                """
+                INSERT INTO incidents
+                    (id, flight_id, source, brand, incident_type, severity, detector,
+                     started_at, ended_at, signature, summary, evidence_json)
+                VALUES (?, ?, 'test', 'test', 'battery_low', 'warning', 'rule', ?, ?, ?, 'test', ?)
+                """,
+                (
+                    new_id(), flight_id,
+                    f"2026-01-01T00:{minutes:02d}:00Z", f"2026-01-01T00:{minutes:02d}:00Z",
+                    f"sig-{minutes}", json.dumps({"sample": {"battery": {"percent": pct}}}),
+                ),
+            )
+        conn.commit()
+
+    result = client.get('/v1/demo/analysis/stats', headers=AUTH).json()
+    trend = result['battery_trend']
+    assert trend is not None
+    assert trend['n'] == 4
+    assert trend['slope_pct_per_min'] < 0
+    assert trend['r_squared'] > 0.9
+    assert result['charts']['battery_trend'].startswith('data:image/png;base64,')
 
 
 def test_evidence_query_follows_actual_ingested_records(client, monkeypatch):
