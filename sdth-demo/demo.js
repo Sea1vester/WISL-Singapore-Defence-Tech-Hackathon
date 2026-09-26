@@ -1,4 +1,4 @@
-import { logFilename, workspaceRoute, sidebarWidth, folderTrail, folderPath, folderDestinations, flightDisplayName, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "./demo-contract.mjs?v=workspace-4";
+import { logFilename, workspaceRoute, sidebarWidth, folderTrail, folderPath, folderDestinations, flightDisplayName, localAnalysisView, modelDisplay, modelStatus, modelProgressText, usesDefaultModel, queryText, simulationProvenance } from "./demo-contract.mjs?v=workspace-5";
 
 const state = { token: sessionStorage.getItem("wislDemoToken") || "", flights: [], selectedFlight: null, upload: null, pollTimer: null, demoStatus: null, selectionVersion: 0, seedingLibrary: false, folders: [], flightFolders: {}, folderId: sessionStorage.getItem("wislMissionFolder") || null, libraryReady: false, libraryBusy: false, explorerEdit: null, uploadDestination: null, uploadBusy: false, expandedFolders: new Set(), treeFocusKey: null, treeSelectedKey: null };
 const DEMO_LIBRARY_LOGS = [
@@ -423,8 +423,14 @@ function renderFleetStats(stats) {
   const chartTitles = { incident_type: "Incidents by type", battery_at_incident: "Battery % when a battery incident fired", severity: "Incidents by severity" };
   els.fleetCharts.innerHTML = Object.entries(chartTitles)
     .filter(([key]) => stats.charts?.[key])
-    .map(([key, title]) => `<div class="fleet-chart"><p>${escapeHtml(title)}</p><img src="${stats.charts[key]}" alt="${escapeHtml(title)}" /></div>`)
+    .map(([key, title]) => `<button class="fleet-chart" type="button" aria-haspopup="dialog"><p>${escapeHtml(title)}</p><img src="${stats.charts[key]}" alt="${escapeHtml(title)}, enlarge" /></button>`)
     .join("");
+}
+function openChartLightbox(title, src) {
+  $("chartLightboxTitle").textContent = title;
+  const image = $("chartLightboxImage");
+  image.src = src; image.alt = title;
+  $("chartLightbox").showModal();
 }
 async function refreshFleetStats() {
   if (!state.token) return;
@@ -767,6 +773,13 @@ window.addEventListener("message", event => {
 $("explorerForm").addEventListener("submit", saveExplorer);
 $("cancelExplorer").addEventListener("click", () => $("explorerDialog").close());
 $("explorerDialog").addEventListener("cancel", event => { if (state.libraryBusy) event.preventDefault(); });
+els.fleetCharts.addEventListener("click", (event) => {
+  const chart = event.target.closest(".fleet-chart");
+  if (!chart) return;
+  const image = chart.querySelector("img");
+  openChartLightbox(chart.querySelector("p")?.textContent || "Chart", image.src);
+});
+$("closeChartLightbox").addEventListener("click", () => $("chartLightbox").close());
 $("sampleButton").addEventListener("click", async () => {
   if (!state.token) { setAuthPanel(true); return; }
   const button = $("sampleButton"); button.disabled = true;

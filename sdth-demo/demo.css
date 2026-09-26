@@ -401,9 +401,18 @@ body.dock-resizing .replay-stage iframe { pointer-events:none; }
 .stat-tile.warn b { color:var(--warn); }
 .stat-tile.danger b { color:var(--danger); }
 .fleet-charts { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:10px; margin-top:10px; }
-.fleet-chart { padding:8px; background:#ffffff04; border-radius:var(--radius-sm); min-width:0; }
+.fleet-chart { display:block; width:100%; padding:8px; background:#ffffff04; border-radius:var(--radius-sm); min-width:0; text-align:left; transition:background .15s; }
+.fleet-chart:hover,.fleet-chart:focus-visible { background:#ffffff09; }
 .fleet-chart p { margin:0 0 6px; font-size:10px; color:#96adbd; }
 .fleet-chart img { display:block; width:100%; height:auto; border-radius:6px; }
+
+/* Chart lightbox: same dialog language as the folder-explorer dialog
+   (::backdrop, border, radius, shadow), sized for an image instead of a form. */
+.chart-lightbox { width:min(920px,calc(100vw - 48px)); max-height:calc(100dvh - 48px); overflow:auto; padding:16px; border:1px solid var(--line); border-radius:var(--radius); background:#0a2231; box-shadow:0 24px 90px #0008; }
+.chart-lightbox::backdrop { background:#020d17bb; }
+.chart-lightbox-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.chart-lightbox-head p { margin:0; }
+.chart-lightbox img { display:block; width:100%; height:auto; border-radius:8px; }
 
 :root{--header-h:52px}
 body{height:100dvh;overflow:hidden}

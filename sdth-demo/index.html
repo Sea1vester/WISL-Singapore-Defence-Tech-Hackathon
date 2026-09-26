@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#071520" />
   <title>WISL · Mission replay</title>
-  <link rel="stylesheet" href="./demo.css?v=workspace-4" />
+  <link rel="stylesheet" href="./demo.css?v=workspace-5" />
 </head>
 <body data-workspace-page="replay">
   <header class="topbar">
@@ -106,7 +106,11 @@
       <div class="explorer-dialog-actions"><button id="cancelExplorer" class="quiet-button" type="button">Cancel</button><button id="saveExplorer" class="button" type="submit">Create folder</button></div>
     </form>
   </dialog>
+  <dialog id="chartLightbox" class="chart-lightbox" aria-labelledby="chartLightboxTitle">
+    <div class="chart-lightbox-head"><p id="chartLightboxTitle" class="eyebrow"></p><button id="closeChartLightbox" class="icon-button" type="button" aria-label="Close">×</button></div>
+    <img id="chartLightboxImage" alt="" />
+  </dialog>
   <template id="flightTemplate"><button class="flight-row" type="button"><span class="flight-symbol" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M11 11 6 6m15 5 5-5M11 21l-5 5m15-5 5 5M11 11h10v10H11Z"/><circle cx="6" cy="6" r="4"/><circle cx="26" cy="6" r="4"/><circle cx="6" cy="26" r="4"/><circle cx="26" cy="26" r="4"/></svg></span><span class="flight-source"></span><span class="flight-time"></span><span class="flight-arrow">↗</span></button></template>
-  <script type="module" src="./demo.js?v=workspace-4"></script>
+  <script type="module" src="./demo.js?v=workspace-5"></script>
 </body>
 </html>
